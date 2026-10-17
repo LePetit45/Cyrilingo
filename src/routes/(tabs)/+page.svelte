@@ -79,12 +79,14 @@
 							{@const state = lessonState(app.progress, lesson.id)}
 							<li style:--offset={offset(number)} class={{ 'has-tip': state === 'suggested' }}>
 								<a href={lessonHref(lesson.id)} class="node {state}">
-									<span class="disc" aria-hidden="true">
-										{#if state === 'completed'}
-											<Icon name="check" size={36} />
-										{:else}
-											<Cyrillic>{lesson.letters[0]}</Cyrillic>
-										{/if}
+									<span class="ring" aria-hidden="true">
+										<span class="disc">
+											{#if state === 'completed'}
+												<Icon name="check" size={36} />
+											{:else}
+												<Cyrillic>{lesson.letters[0]}</Cyrillic>
+											{/if}
+										</span>
 									</span>
 									<span class="visually-hidden">
 										<span>{m.home.lesson(number)}</span>
@@ -110,7 +112,9 @@
 						{ suggested: examSuggested, passed: app.progress.examPassed }
 					]}
 				>
-					<span class="disc" aria-hidden="true"><Icon name="crown" size={40} /></span>
+					<span class="ring" aria-hidden="true">
+						<span class="disc"><Icon name="crown" size={40} /></span>
+					</span>
 					<span class="exam-label">
 						<span class="exam-name" id="exam-title">{m.home.exam}</span>
 						<span class="exam-state">
@@ -312,37 +316,75 @@
 		display: block;
 	}
 
+	/* Holds the disc and its bottom edge, so the suggested ring is centered on both. */
+	.ring {
+		--edge-depth: 7px;
+		position: relative;
+		display: block;
+		padding-bottom: var(--edge-depth);
+	}
+
 	.disc {
+		--edge: var(--section-dark);
+		position: relative;
 		display: grid;
 		place-items: center;
 		width: 4.75rem;
 		height: 4.25rem;
+		overflow: hidden;
 		font-size: 2.125rem;
 		font-weight: 900;
 		color: #fff;
 		background: var(--section);
 		border-radius: 50%;
-		box-shadow: 0 7px 0 var(--section-dark);
+		/* A light rim on top and a darker one at the bottom give the disc some volume. */
+		box-shadow:
+			inset 0 0.25rem 0 rgb(255 255 255 / 0.22),
+			inset 0 -0.3125rem 0 rgb(0 0 0 / 0.1),
+			0 var(--edge-depth) 0 var(--edge);
 		transition:
 			transform 80ms ease-out,
 			box-shadow 80ms ease-out;
 	}
 
+	/* Glossy highlight on the upper left. */
+	.disc::before {
+		content: '';
+		position: absolute;
+		top: 0.625rem;
+		left: 0.875rem;
+		width: 1.375rem;
+		height: 0.625rem;
+		background: rgb(255 255 255 / 0.35);
+		border-radius: 50%;
+		transform: rotate(-30deg);
+	}
+
+	.disc > :global(*) {
+		position: relative;
+	}
+
 	.node:active .disc {
 		transform: translateY(5px);
-		box-shadow: 0 2px 0 var(--section-dark);
+		box-shadow:
+			inset 0 0.25rem 0 rgb(255 255 255 / 0.22),
+			inset 0 -0.3125rem 0 rgb(0 0 0 / 0.1),
+			0 2px 0 var(--edge);
 	}
 
 	.notDone .disc {
+		--edge: var(--color-border-dark);
 		color: var(--color-text-faint);
 		background: var(--color-border);
-		box-shadow: 0 7px 0 var(--color-border-dark);
 	}
 
 	/* The suggested lesson: a ring around the node and a bouncing bubble above it. */
-	.suggested .disc {
-		outline: 0.4375rem solid color-mix(in srgb, var(--section) 30%, var(--color-bg));
-		outline-offset: 0.3125rem;
+	.suggested .ring::before {
+		content: '';
+		position: absolute;
+		inset: -0.75rem;
+		border: 0.4375rem solid color-mix(in srgb, var(--section) 30%, var(--color-bg));
+		border-radius: 50%;
 	}
 
 	.tip {
