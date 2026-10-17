@@ -12,6 +12,7 @@
 		speaker: 'M4 9.5h3.5L12 5.5v13l-4.5-4H4v-5ZM15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11',
 		backspace: 'M21 5H9l-6 7 6 7h12V5ZM12 9l6 6M18 9l-6 6',
 		back: 'M15 5l-7 7 7 7',
+		forward: 'M9 5l7 7-7 7',
 		play: 'M7 4.5v15l12-7.5-12-7.5Z',
 		refresh: 'M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7'
 	} as const;

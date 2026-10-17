@@ -160,6 +160,9 @@ export const fr = {
 	},
 	settings: {
 		title: 'Réglages',
+		soundSection: 'Sons',
+		progressSection: 'Progression',
+		appSection: 'Application',
 		sound: 'Voix',
 		soundHint: 'Prononciation des lettres et des mots.',
 		soundEffects: 'Effets sonores',
