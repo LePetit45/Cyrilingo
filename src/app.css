@@ -1,47 +1,56 @@
-/* Global styles and design tokens. Single bright, gamified theme for the MVP (spec §8, D13).
-   White text on the saturated colors is kept to large bold text (buttons, titles, glyphs), where
-   they reach the WCAG 3:1 contrast for large text; smaller text uses the dark tokens. */
+/* Global styles and design tokens. Single light, gamified theme inspired by Duolingo's visual
+   language (spec §8, D13): white surfaces, light gray 2px borders, chunky elements with a darker
+   bottom edge. White text on the saturated colors is kept to large bold text (buttons, titles,
+   glyphs), where they reach the WCAG 3:1 contrast for large text; smaller text uses the dark
+   tokens, at 4.5:1 or more. */
 
 :root {
-	--color-bg: #fff8ec;
+	--color-bg: #ffffff;
 	--color-surface: #ffffff;
-	--color-surface-muted: #fdf1dc;
-	--color-text: #1f1b2e;
-	--color-text-muted: #5c566e;
-	--color-primary: #f54e28;
-	--color-primary-dark: #c93814;
-	--color-accent: #3a7bff;
-	--color-accent-dark: #2457c9;
-	--color-border: #f0e2c8;
-	--color-border-dark: #dcc9a6;
+	--color-surface-muted: #f7f7f7;
+	--color-text: #3c3c3c;
+	--color-text-muted: #6b6b6b;
+	/* Placeholders, disabled labels and decorations only: too light for readable text. */
+	--color-text-faint: #afafaf;
+	--color-primary: #43a00e;
+	--color-primary-dark: #347d0a;
+	--color-accent: #1a8fd0;
+	--color-accent-dark: #106d9f;
+	--color-accent-light: #ddf3ff;
+	--color-border: #e5e5e5;
+	--color-border-dark: #d9d9d9;
 
-	--color-success: #1ea555;
-	--color-success-dark: #137a3d;
-	--color-success-light: #dcf8e6;
-	--color-error: #f2433a;
-	--color-error-dark: #c32a22;
-	--color-error-light: #ffe3e0;
-	--color-gold: #ffc233;
-	--color-gold-dark: #d99a00;
+	--color-success: #43a00e;
+	--color-success-dark: #2b730a;
+	--color-success-light: #dcf7c8;
+	--color-error: #e5484d;
+	--color-error-dark: #b42c2c;
+	--color-error-light: #ffe1e1;
+	--color-gold: #ffc21a;
+	--color-gold-dark: #d99e00;
+	--color-gold-light: #fff5d6;
 
-	/* One color per path section (spec §3.2). */
-	--color-allies: #1ea555;
-	--color-allies-dark: #137a3d;
-	--color-false-friends: #eb6f00;
-	--color-false-friends-dark: #b85600;
-	--color-greek-cousins: #3a7bff;
-	--color-greek-cousins-dark: #2457c9;
-	--color-newcomers: #9b5cff;
-	--color-newcomers-dark: #7435dd;
+	/* One color per path section (spec §3.2, §8). */
+	--color-allies: #43a00e;
+	--color-allies-dark: #347d0a;
+	--color-false-friends: #e04a7c;
+	--color-false-friends-dark: #b3355f;
+	--color-greek-cousins: #1a8fd0;
+	--color-greek-cousins-dark: #106d9f;
+	--color-newcomers: #9b5de5;
+	--color-newcomers-dark: #7a3fc4;
 
 	--radius-lg: 20px;
-	--radius-md: 14px;
+	--radius-md: 16px;
 	--radius-sm: 10px;
 	--column-width: 480px;
 	--tab-bar-height: 4.25rem;
 	--press-depth: 4px;
 
-	--font-sans: 'Sofia Sans Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+	--font-sans: 'Nunito Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+	/* Every Bulgarian text is tagged lang="bg" and set in Sofia Sans, whose Bulgarian lowercase
+	   shapes are required by spec D2. */
+	--font-cyrillic: 'Sofia Sans Variable', var(--font-sans);
 
 	color-scheme: light;
 }
@@ -66,7 +75,15 @@ body {
 	margin: 0;
 	min-height: 100dvh;
 	font-size: 1.125rem;
+	font-weight: 600;
 	line-height: 1.5;
+	background: var(--color-bg);
+}
+
+/* Bulgarian text, and the standard (Russian) shapes shown next to it on letter cards. */
+:lang(bg),
+:lang(ru) {
+	font-family: var(--font-cyrillic);
 }
 
 h1,

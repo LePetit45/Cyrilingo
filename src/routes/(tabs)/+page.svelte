@@ -260,7 +260,7 @@
 		width: 5.75rem;
 		height: 5.75rem;
 		color: var(--color-gold-dark);
-		background: #fff3cc;
+		background: var(--color-gold-light);
 		border: 3px solid var(--color-gold);
 		box-shadow: 0 6px 0 var(--color-gold-dark);
 	}

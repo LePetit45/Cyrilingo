@@ -207,7 +207,7 @@
 	.note {
 		padding: 0.75rem;
 		font-size: 0.9375rem;
-		background: #eef4ff;
+		background: var(--color-accent-light);
 		border-radius: var(--radius-md);
 	}
 

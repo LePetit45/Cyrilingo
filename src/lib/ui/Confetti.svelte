@@ -3,7 +3,7 @@
 
 	// Confetti burst for the diploma (spec §8), drawn on a canvas for a few seconds.
 	// Skipped for people who prefer reduced motion.
-	const COLORS = ['#ff5a36', '#ffc233', '#22b35e', '#3a7bff', '#9b5cff', '#ff8a1f'];
+	const COLORS = ['#4fc31a', '#22a7ec', '#f2618f', '#b874f2', '#ffc21a', '#ff9600'];
 	const DURATION = 4500;
 
 	let canvas: HTMLCanvasElement | undefined = $state();
