@@ -49,7 +49,8 @@
 		missedLetters: BulgarianLetter[];
 	}
 
-	// svelte-ignore state_referenced_locally -- the questions of a session never change
+	// The questions of a session never change: the page remounts the player to start over.
+	// svelte-ignore state_referenced_locally
 	let session = $state(createSession(questions, { repeatMisses }));
 	/** Counts questions shown, so a repeated question is a fresh screen with reshuffled choices. */
 	let shown = $state(0);
