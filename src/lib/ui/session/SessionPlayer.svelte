@@ -33,12 +33,14 @@
 		repeatMisses,
 		showMnemonics = true,
 		quitTitle,
+		quitMessage,
 		onfinish
 	}: {
 		questions: readonly Question[];
 		repeatMisses: boolean;
 		showMnemonics?: boolean;
 		quitTitle?: string;
+		quitMessage?: string;
 		onfinish: (summary: Summary) => void;
 	} = $props();
 
@@ -135,7 +137,7 @@
 	}
 </script>
 
-<SessionHeader progress={progress(session)} {quitTitle} />
+<SessionHeader progress={progress(session)} {quitTitle} {quitMessage} />
 
 <p class="visually-hidden" role="status">
 	{result ? (result.correct ? m.feedback.announceCorrect : m.feedback.announceWrong) : ''}

@@ -8,8 +8,11 @@
 
 	// ✕ button with a confirmation, since leaving discards the session (spec §4.5, §7.2), and the
 	// progress bar.
-	let { progress, quitTitle = m.session.quitTitle }: { progress?: number; quitTitle?: string } =
-		$props();
+	let {
+		progress,
+		quitTitle = m.session.quitTitle,
+		quitMessage = m.session.quitMessage
+	}: { progress?: number; quitTitle?: string; quitMessage?: string } = $props();
 
 	let confirming = $state(false);
 </script>
@@ -31,7 +34,7 @@
 <ConfirmDialog
 	bind:open={confirming}
 	title={quitTitle}
-	message={m.session.quitMessage}
+	message={quitMessage}
 	confirmLabel={m.session.quitConfirm}
 	cancelLabel={m.session.quitCancel}
 	danger
