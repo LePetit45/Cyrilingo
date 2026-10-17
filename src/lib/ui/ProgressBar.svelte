@@ -27,11 +27,23 @@
 	}
 
 	.fill {
+		position: relative;
 		height: 100%;
 		min-width: 1.125rem;
-		background: linear-gradient(to bottom, #4fd889, var(--color-success));
+		background: var(--color-success);
 		border-radius: inherit;
-		box-shadow: inset 0 -4px 0 rgb(0 0 0 / 0.12);
 		transition: width 400ms cubic-bezier(0.3, 1.4, 0.6, 1);
+	}
+
+	/* Light streak along the top, for a glossy, chunky look. */
+	.fill::after {
+		content: '';
+		position: absolute;
+		top: 0.25rem;
+		right: 0.5rem;
+		left: 0.5rem;
+		height: 0.25rem;
+		background: rgb(255 255 255 / 0.3);
+		border-radius: inherit;
 	}
 </style>

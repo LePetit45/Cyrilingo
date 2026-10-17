@@ -1,4 +1,5 @@
 <script lang="ts">
+	import '@fontsource-variable/nunito';
 	import '@fontsource-variable/sofia-sans';
 	import '../app.css';
 	import { resolve } from '$app/paths';

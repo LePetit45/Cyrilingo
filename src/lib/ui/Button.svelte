@@ -2,7 +2,7 @@
 	import type { Snippet } from 'svelte';
 	import type { HTMLButtonAttributes } from 'svelte/elements';
 
-	// Big rounded button with a "pressed" effect (spec §8). Renders a link when `href` is set.
+	// Chunky rounded button with a darker bottom edge that flattens when pressed (spec §8). Renders a link when `href` is set.
 	type Variant = 'primary' | 'secondary' | 'success' | 'danger' | 'accent' | 'ghost';
 
 	let {
@@ -44,13 +44,14 @@
 		/* 19px bold counts as large text for contrast (WCAG: 14pt bold). */
 		font-size: 1.1875rem;
 		font-weight: 800;
-		letter-spacing: 0.02em;
+		letter-spacing: 0.06em;
+		line-height: 1.2;
 		text-transform: uppercase;
 		text-decoration: none;
 		text-align: center;
 		color: var(--fg);
 		background: var(--bg);
-		border: 2px solid var(--edge);
+		border: 2px solid var(--bg);
 		border-radius: var(--radius-md);
 		box-shadow: 0 var(--press-depth) 0 var(--edge);
 		cursor: pointer;
@@ -62,8 +63,17 @@
 			filter 120ms;
 	}
 
-	.button:hover:not(:disabled) {
-		filter: brightness(1.05);
+	/* Hover styles only for real pointers: on touch screens they would stick after a tap. */
+	@media (hover: hover) {
+		.button:hover:not(:disabled) {
+			filter: brightness(1.06);
+		}
+
+		.secondary:hover:not(:disabled),
+		.ghost:hover:not(:disabled) {
+			filter: none;
+			background: var(--color-surface-muted);
+		}
 	}
 
 	.button:active:not(:disabled) {
@@ -72,9 +82,9 @@
 	}
 
 	.button:disabled {
-		--bg: var(--color-surface-muted);
-		--edge: var(--color-border-dark);
-		--fg: var(--color-text-muted);
+		--bg: var(--color-border);
+		--fg: var(--color-text-faint);
+		box-shadow: none;
 		cursor: not-allowed;
 	}
 
@@ -82,10 +92,12 @@
 		width: 100%;
 	}
 
+	/* Outlined: white with a gray border and edge. */
 	.secondary {
 		--bg: var(--color-surface);
-		--edge: var(--color-border-dark);
+		--edge: var(--color-border);
 		--fg: var(--color-accent-dark);
+		border-color: var(--color-border);
 	}
 
 	.success {

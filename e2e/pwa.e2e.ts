@@ -26,7 +26,7 @@ test('works offline once the service worker is installed', async ({ page, contex
 
 test('links an installable web app manifest', async ({ page }) => {
 	await page.goto('/');
-	await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#f54e28');
+	await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#43a00e');
 
 	const href = await page.locator('link[rel="manifest"]').getAttribute('href');
 	const manifestUrl = new URL(href ?? '', page.url());

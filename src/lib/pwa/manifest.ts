@@ -7,8 +7,8 @@ import iconMaskable512 from '#lib/assets/icons/icon-maskable-512.png';
 import { m } from '#lib/i18n/index.js';
 
 // Must match --color-primary and --color-bg in src/app.css (checked by a unit test).
-export const THEME_COLOR = '#f54e28';
-export const BACKGROUND_COLOR = '#fff8ec';
+export const THEME_COLOR = '#43a00e';
+export const BACKGROUND_COLOR = '#ffffff';
 
 export { appleTouchIcon };
 
