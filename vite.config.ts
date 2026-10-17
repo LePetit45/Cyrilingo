@@ -13,6 +13,11 @@ export default defineConfig({
 			adapter: adapter()
 		})
 	],
+	build: {
+		// Keep icons and audio as separate files (never data URIs): they get content-hashed names
+		// under _app/immutable/, which the service worker precaches and keeps across deploys.
+		assetsInlineLimit: (file) => (/\.(png|opus|mp3)$/.test(file) ? false : undefined)
+	},
 	test: {
 		expect: { requireAssertions: true },
 		projects: [

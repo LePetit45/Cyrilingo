@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { isSofiaSansCyrillicLoaded } from './fonts.js';
 
 test.beforeEach(async ({ page }) => {
 	await page.goto('/');
@@ -16,14 +17,5 @@ test('renders the 30 letters tagged as Bulgarian', async ({ page }) => {
 });
 
 test('loads the self-hosted Sofia Sans Cyrillic subset', async ({ page }) => {
-	const loaded = await page.evaluate(async () => {
-		await document.fonts.ready;
-		return [...document.fonts].some(
-			(face) =>
-				face.family.replaceAll('"', '') === 'Sofia Sans Variable' &&
-				face.unicodeRange.includes('U+400') &&
-				face.status === 'loaded'
-		);
-	});
-	expect(loaded).toBe(true);
+	expect(await isSofiaSansCyrillicLoaded(page)).toBe(true);
 });
