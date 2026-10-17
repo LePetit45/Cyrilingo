@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+	<!-- Placeholder icon until a real logo exists (spec §8): a chunky "Ц" on an orange tile. -->
+	<rect width="64" height="64" rx="16" fill="#ff5a36" />
+	<path d="M16 14h9v27h14V14h9v27h5v13h-8v-5H16z" fill="#fff" />
+</svg>
