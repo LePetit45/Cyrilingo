@@ -4,6 +4,25 @@ A web app to learn to read the Bulgarian Cyrillic alphabet, designed for native 
 
 See [docs/SPECIFICATIONS.md](docs/SPECIFICATIONS.md) for the product specification.
 
+## Status: v0.9.0-beta
+
+The whole course is playable: the path of 10 lessons, letter discovery cards, the three exercise types with the in-app keyboard on touch devices, free review, the final exam (« L'Épreuve de Preslav ») with its diploma, the alphabet screen and the settings. It works offline once opened.
+
+Not in the beta:
+
+- recorded voice: no recordings yet (spec §10.1), audio buttons stay hidden;
+- deployment: the beta is tried locally (see below);
+- the content (mnemonics, words, translations, stress) is a first draft to be reviewed (spec §9).
+
+To try it like the real thing (production build, service worker, offline):
+
+```bash
+npm install
+npm run build && npm run preview
+```
+
+Then open http://localhost:4173, on a phone on the same network with `npm run preview -- --host`.
+
 ## Stack
 
 - [SvelteKit](https://svelte.dev/docs/kit) + [Svelte 5](https://svelte.dev/docs/svelte) + TypeScript, built as a static site with `@sveltejs/adapter-static`
@@ -45,6 +64,8 @@ Playwright needs its browsers installed once (and again after a Playwright upgra
 npx playwright install chromium firefox webkit
 ```
 
+Tests import `test` and `expect` from [`e2e/test.ts`](e2e/test.ts), which disables Web Audio so sound effects don't play while tests run. [`e2e/answers.ts`](e2e/answers.ts) answers questions by reading the screen, and [`e2e/storage.ts`](e2e/storage.ts) starts the app with a given progress.
+
 Tests live in [`e2e/`](e2e) and run against the production build on desktop Chrome, Firefox and Safari plus mobile Chrome and Safari viewports. To run a single browser: `npm run test:e2e -- --project=chromium`.
 
 ## Project structure
@@ -54,11 +75,20 @@ src/
 ├── app.html, app.css     # HTML shell (lang="fr") and global styles / design tokens
 ├── lib/
 │   ├── core/             # Business logic: plain TypeScript, no Svelte (see below)
-│   ├── i18n/             # Centralized UI strings, one catalog per locale (locales/fr.ts)
-│   ├── ui/               # Reusable Svelte components
+│   │   ├── content/      # Letters, lessons, corpus (typed data + invariant tests)
+│   │   ├── engine/       # Question composition, distractors, sessions (progress model)
+│   │   ├── reading.ts    # Transliteration and typed-answer checking
+│   │   └── progress.ts   # localStorage persistence of progress and settings
+│   ├── i18n/             # UI strings (locales/) and learning content (content/), per locale
+│   ├── ui/               # Svelte components
+│   │   ├── session/      # Question player shared by lessons, free review and exam
+│   │   ├── state/        # Reactive app state wrapping core/progress.ts
+│   │   └── audio/        # Synthesized sound effects, recorded voice lookup
 │   ├── pwa/              # Web app manifest
 │   └── assets/           # Images and icons imported by the app
-├── routes/               # SvelteKit pages (UI only)
+├── routes/
+│   ├── (tabs)/           # Pages with the bottom tab bar: path, alphabet, settings, about
+│   └── (play)/           # Full-screen pages: lesson/[id], review, exam
 └── service-worker/       # Offline support (own tsconfig, WebWorker types)
 e2e/                      # Playwright end-to-end tests
 scripts/                  # Maintenance scripts (icon generation)

@@ -1,6 +1,6 @@
 # Cyrilingo — Specifications
 
-> Status: **draft v0.3**. All areas are specified at MVP level. Remaining open items: audio provider (§10.1), letter-by-letter content (written during implementation, §9).
+> Status: **v0.4**, implemented as the **v0.9.0-beta**. Remaining open items: audio provider (§10.1, the beta ships without recordings), review of the drafted content by the project owner (§9), UI redesign after the beta.
 
 ## 1. Vision
 
@@ -75,7 +75,7 @@ Syllables (ма, ко, те…) bridge the gap between letters and words, and fi
 
 ### 4.4 Review (no time-based spaced repetition)
 - There is **no time-based scheduling** and no per-letter mastery level (no Leitner boxes, no SM-2/FSRS).
-- Review is **driven by the path**: each lesson contains ~4 review questions. Half target letters from the **2 previous lessons**, half target **older letters picked at random**.
+- Review is **driven by the path**: each lesson contains ~4 review questions. Half target letters from the **2 previous lessons**, half target **older letters picked at random**. When one half has too few letters, the other fills in; lesson 1 has no review and lesson 2 reviews the 3 letters of lesson 1.
 - A letter is considered learned once its lesson is completed; the review questions in later lessons keep it fresh.
 
 ### 4.5 Lesson progress model
@@ -109,7 +109,8 @@ Uppercase + lowercase glyph (Bulgarian shape), **recorded sound** (autoplay), Fr
 
 ### 5.3 Rules
 - **Case**: whenever possible, letters are shown with **both forms** (e.g. Дд). Words are written in lowercase (Bulgarian shapes), with a capital for proper names.
-- **MCQ distractors**: random letters among those already known, and sometimes deliberately confusable ones (В/B, Н/H, Р/P, С/C, У/Y, Х/X; Ш/Щ, И/Й, Ц/Щ, Ъ/Ь).
+- **MCQ distractors**: random letters among those already known, and sometimes deliberately confusable ones (В/B, Н/H, Р/P, С/C, У/Y, Х/X; Ш/Щ, И/Й, Ц/Щ, Ъ/Ь). For letter → sound questions, a trap can also be the Latin reading of a look-alike (Р → « p », lowercase д → « g »). In the first lesson, fewer than 4 letters are known, so the remaining choices are letters from later lessons (they are never read, only offered as wrong answers).
+- A missed question comes back with its choices reshuffled, so it cannot be answered by position.
 - **MCQ validation**: immediate on tap/click. Keys 1–4 select an answer on desktop.
 - **Reading validation**: "Validate" button, or Enter on a physical keyboard.
 - **"I don't know"** button on every question: counts as a wrong answer, shows the answer, and the question comes back later (§4.5).
@@ -134,6 +135,7 @@ Uppercase + lowercase glyph (Bulgarian shape), **recorded sound** (autoplay), Fr
   | Ш | ch, sh |
   | Ч | tch, ch |
 
+- A word-final **-ия** may also be spelled « ia », as in the official transliteration (София → Sofia, България → Balgaria).
 - **No typo tolerance**: one wrong letter makes the answer wrong.
 - On a wrong answer, the answer is aligned letter by letter with the accepted variants and the **wrong letters are highlighted**. When the answer is too different to align, the whole expected answer is shown.
 
@@ -151,7 +153,7 @@ Uppercase + lowercase glyph (Bulgarian shape), **recorded sound** (autoplay), Fr
 
 ## 6. Progress and persistence
 
-- **Saved data** (browser `localStorage` only): the **list of completed lessons** and **whether the final exam was passed**. Nothing else: no per-letter statistics, no unfinished lesson state.
+- **Saved data** (browser `localStorage` only): the **list of completed lessons**, **whether the final exam was passed**, and the **settings** (sound, sound effects, whether the welcome screen was already shown). Nothing else: no per-letter statistics, no unfinished lesson state. "Reset my progress" keeps the settings.
 - **Alphabet screen**: each letter is shown as *learned* (its lesson is completed) or *not yet*.
 - **End-of-lesson summary**: score (first-try success rate) and the letters missed during this lesson.
 - No limit on the number of lessons per day.
@@ -216,6 +218,7 @@ Files are generated **once** by a Bulgarian text-to-speech voice, then served as
 - Criteria: accuracy of a letter's **isolated** sound (hard for TTS, especially Ъ, Щ, Ж), naturalness of words, cost, license terms for the generated files.
 - Watch out: TTS mispronounces isolated letters; we may need to feed it a syllable or a phonetic transcription (SSML) rather than the bare letter.
 - Deliverable for this step: a short list of test letters and words, listened to on each provider, then a decision recorded here.
+- **Beta**: ships without recordings. The app looks up `src/lib/assets/audio/<letter or word>.{opus,mp3}`; audio buttons, autoplay and the voice setting only appear once files exist, so recordings can be added without code changes.
 
 ### 10.2 Internationalization
 
@@ -263,3 +266,6 @@ French-only interface for the MVP, but **no hard-coded text in components**: all
 | D11 | Answer input | **In-app AZERTY keyboard on touch devices**, physical keyboard on desktop (§5.4) |
 | D12 | Content format | **Typed TypeScript data files + invariant tests** (§9) |
 | D13 | Theme | **Single bright, gamified theme**; dark mode later (§8) |
+| D14 | Rendering | Pages prerendered as shells, **rendered in the browser only** (`ssr = false`): everything shown depends on `localStorage` |
+| D15 | Sound effects | **Synthesized with Web Audio** (no files to download or cache) |
+| D16 | Beta scope | **v0.9.0-beta**: full MVP except recorded voice; not deployed; UI redesign planned after the beta |
