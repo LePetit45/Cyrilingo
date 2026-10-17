@@ -73,6 +73,9 @@ export const fr = {
 	feedback: {
 		correct: ['Bravo !', 'Excellent !', 'Parfait !', 'Bien joué !', 'Super !'],
 		wrong: 'Pas tout à fait…',
+		/** Announced to screen readers after an answer. */
+		announceCorrect: 'Bonne réponse.',
+		announceWrong: 'Mauvaise réponse.',
 		dontKnow: 'Voici la réponse',
 		answer: 'Réponse :',
 		yourAnswer: 'Ta réponse :',

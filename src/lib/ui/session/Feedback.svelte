@@ -42,22 +42,16 @@
 	const title = $derived(correct ? praise : dontKnow ? m.feedback.dontKnow : m.feedback.wrong);
 	const reminders = $derived(correct || !showMnemonics ? [] : missedLetters.slice(0, 2));
 
-	let continueButton: HTMLElement | undefined = $state();
+	// Focus Continue, so Enter (or Space) moves on with the button's own behavior and keyboard
+	// users land on the next action.
+	let continueArea: HTMLElement | undefined = $state();
 	$effect(() => {
-		continueButton?.focus();
+		continueArea?.querySelector('button')?.focus();
 	});
-
-	function onkeydown(event: KeyboardEvent) {
-		if (event.key !== 'Enter' || event.defaultPrevented || event.repeat) return;
-		event.preventDefault();
-		oncontinue();
-	}
 </script>
 
-<svelte:window {onkeydown} />
-
-<div class={['feedback', correct ? 'correct' : 'wrong']} role="status">
-	<p class="title">{title}</p>
+<section class={['feedback', correct ? 'correct' : 'wrong']} aria-labelledby="feedback-title">
+	<p class="title" id="feedback-title">{title}</p>
 
 	{#if question.kind === 'reading'}
 		<div class="reading">
@@ -105,12 +99,12 @@
 		</p>
 	{/each}
 
-	<div class="continue" bind:this={continueButton} tabindex="-1">
+	<div class="continue" bind:this={continueArea}>
 		<Button variant={correct ? 'success' : 'danger'} wide onclick={oncontinue}>
 			{m.common.continue}
 		</Button>
 	</div>
-</div>
+</section>
 
 <style>
 	.feedback {
@@ -206,7 +200,6 @@
 
 	.continue {
 		margin-top: 0.5rem;
-		outline: none;
 	}
 
 	@keyframes slide-up {

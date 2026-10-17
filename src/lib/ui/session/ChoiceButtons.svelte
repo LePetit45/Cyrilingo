@@ -9,6 +9,7 @@
 
 <script lang="ts">
 	import Cyrillic from '../Cyrillic.svelte';
+	import { isShortcutBlocked } from '../keyboard.js';
 
 	// The 4 answers of a multiple-choice question (spec §5.2). Validated as soon as one is picked,
 	// by tap, click or keys 1–4 (spec §5.3).
@@ -29,7 +30,7 @@
 	} = $props();
 
 	function onkeydown(event: KeyboardEvent) {
-		if (revealed || event.defaultPrevented || event.repeat) return;
+		if (revealed || isShortcutBlocked(event)) return;
 		if (event.target instanceof HTMLInputElement) return;
 		const index = Number(event.key) - 1;
 		const choice = choices[index];

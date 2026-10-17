@@ -58,7 +58,7 @@ export async function answerCorrectly(page: Page) {
 				.join('')
 		);
 	}
-	const feedback = page.getByRole('status').filter({ hasText: 'Continuer' });
+	const feedback = page.locator('.feedback');
 	await expect(feedback).not.toContainText('Pas tout à fait');
 	await feedback.getByRole('button', { name: 'Continuer' }).click();
 }

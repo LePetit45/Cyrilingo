@@ -12,6 +12,7 @@
 		type Summary
 	} from '#lib/core/engine/session.js';
 	import { shuffle } from '#lib/core/random.js';
+	import { tick } from 'svelte';
 	import { checkReading, type ReadingCheck } from '#lib/core/reading.js';
 	import { m } from '#lib/i18n/index.js';
 	import { playEffect, vibrateWrong } from '../audio/effects.js';
@@ -57,6 +58,7 @@
 	let result = $state<Result | undefined>();
 	let typed = $state('');
 	let shaking = $state(false);
+	let prompt: HTMLElement | undefined = $state();
 
 	const question = $derived(currentQuestion(session));
 
@@ -103,28 +105,47 @@
 		record({ correct: check.correct, dontKnow: false, check });
 	}
 
-	function dontKnow() {
+	function dontKnow(event: MouseEvent) {
+		// "Je ne sais pas" sits where Continue was: the second click of a double click or double
+		// tap on Continue must not answer the next question.
+		if (event.detail > 1) return;
 		record({ correct: false, dontKnow: true });
 	}
 
-	function next() {
+	async function next() {
 		if (!result) return;
 		session = answer(session, result);
 		result = undefined;
 		typed = '';
 		shaking = false;
 		shown++;
-		if (isFinished(session)) onfinish(summarize(session));
+		if (isFinished(session)) {
+			onfinish(summarize(session));
+			return;
+		}
+		// Move focus to the new question, as the Continue button that had it is gone. A reading
+		// on a desktop focuses its text field instead.
+		await tick();
+		if (
+			currentQuestion(session)?.kind !== 'reading' ||
+			!document.querySelector('#reading-answer')
+		) {
+			prompt?.focus();
+		}
 	}
 </script>
 
 <SessionHeader progress={progress(session)} {quitTitle} />
 
+<p class="visually-hidden" role="status">
+	{result ? (result.correct ? m.feedback.announceCorrect : m.feedback.announceWrong) : ''}
+</p>
+
 {#if question}
 	{#key shown}
 		<section class={['question', { shaking }]} onanimationend={() => (shaking = false)}>
 			{#if question.kind === 'letterToSound'}
-				<h1 class="prompt">{m.question.letterToSound}</h1>
+				<h1 class="prompt" tabindex="-1" bind:this={prompt}>{m.question.letterToSound}</h1>
 				<p class="shown letter"><Cyrillic>{letterGlyph(question.letter)}</Cyrillic></p>
 				<ChoiceButtons
 					{choices}
@@ -134,7 +155,7 @@
 					onchoose={choose}
 				/>
 			{:else if question.kind === 'soundToLetter'}
-				<h1 class="prompt">{m.question.soundToLetter}</h1>
+				<h1 class="prompt" tabindex="-1" bind:this={prompt}>{m.question.soundToLetter}</h1>
 				<div class="shown sound">
 					<span>« {phoneticOf(question.letter)} »</span>
 					<AudioButton name={question.letter} />
@@ -147,7 +168,7 @@
 					onchoose={choose}
 				/>
 			{:else}
-				<h1 class="prompt">
+				<h1 class="prompt" tabindex="-1" bind:this={prompt}>
 					{isWord(question.reading) ? m.question.readWord : m.question.readSyllable}
 				</h1>
 				<p class="shown word"><Cyrillic>{question.reading}</Cyrillic></p>
@@ -194,6 +215,7 @@
 
 	.prompt {
 		margin: 0;
+		outline: none;
 		font-size: 1.375rem;
 	}
 

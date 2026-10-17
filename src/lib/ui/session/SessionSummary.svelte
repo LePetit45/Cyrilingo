@@ -15,11 +15,17 @@
 	}: { title: string; summary: Summary; nextHref: string; onreplay: () => void } = $props();
 
 	const percent = $derived(Math.round(summary.rate * 100));
+
+	// Announce the end of the session by moving focus to its title.
+	let heading: HTMLElement | undefined = $state();
+	$effect(() => {
+		heading?.focus();
+	});
 </script>
 
 <section class="summary" aria-labelledby="summary-title">
 	<div class="trophy" aria-hidden="true"><Icon name="star" size={64} /></div>
-	<h1 id="summary-title">{title}</h1>
+	<h1 id="summary-title" tabindex="-1" bind:this={heading}>{title}</h1>
 
 	<div class="score">
 		<span class="percent">{percent} %</span>
@@ -74,6 +80,7 @@
 
 	h1 {
 		margin: 0;
+		outline: none;
 		font-size: 2rem;
 	}
 

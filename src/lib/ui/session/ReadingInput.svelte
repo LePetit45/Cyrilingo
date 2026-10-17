@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { m } from '#lib/i18n/index.js';
 	import Button from '../Button.svelte';
+	import { isShortcutBlocked } from '../keyboard.js';
 	import OnScreenKeyboard from './OnScreenKeyboard.svelte';
 
 	// Answer input of a reading question (spec §5.4): the in-app AZERTY keyboard on touch devices
@@ -23,7 +24,19 @@
 	function submit() {
 		if (canSubmit && !disabled) onsubmit();
 	}
+
+	// A hardware keyboard on a touch device (tablet keyboard, touchscreen laptop) types too.
+	function onkeydown(event: KeyboardEvent) {
+		if (!touch || disabled || isShortcutBlocked(event)) return;
+		if (/^[a-z]$/i.test(event.key)) value += event.key.toLowerCase();
+		else if (event.key === 'Backspace') value = value.slice(0, -1);
+		else if (event.key === 'Enter') submit();
+		else return;
+		event.preventDefault();
+	}
 </script>
+
+<svelte:window {onkeydown} />
 
 {#if touch}
 	<div class="display" class:disabled aria-live="polite">

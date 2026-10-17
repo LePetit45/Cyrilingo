@@ -19,7 +19,7 @@ test('completes a lesson from start to finish', async ({ page }) => {
 	const bar = page.getByRole('progressbar', { name: 'Progression' });
 	await expect(bar).toHaveAttribute('aria-valuenow', '0');
 	await page.getByRole('button', { name: 'Je ne sais pas' }).click();
-	await expect(page.getByRole('status')).toContainText('Voici la réponse');
+	await expect(page.locator('.feedback')).toContainText('Voici la réponse');
 	await page.getByRole('button', { name: 'Continuer' }).click();
 	await expect(bar).toHaveAttribute('aria-valuenow', '0');
 
@@ -45,8 +45,8 @@ test('highlights the wrong letters of a reading', async ({ page }) => {
 		await answerCorrectly(page);
 	}
 	await typeAnswer(page, 'xxxxxx');
-	await expect(page.getByRole('status')).toContainText('Pas tout à fait');
-	await expect(page.getByRole('status')).toContainText('Réponse :');
+	await expect(page.locator('.feedback')).toContainText('Pas tout à fait');
+	await expect(page.locator('.feedback')).toContainText('Réponse :');
 });
 
 test('asks for confirmation before leaving a lesson', async ({ page }) => {
@@ -60,4 +60,39 @@ test('asks for confirmation before leaving a lesson', async ({ page }) => {
 	await page.getByRole('button', { name: 'Quitter' }).click();
 	await page.getByRole('dialog').getByRole('button', { name: 'Quitter' }).click();
 	await expect(page).toHaveURL(/\/$/);
+});
+
+test.describe('keyboard and taps', () => {
+	test.beforeEach(async ({ page }) => {
+		await page.goto('/lesson/l3');
+		for (let i = 0; i < 3; i++) {
+			await page.getByRole('button', { name: /Suivant|Aux questions/ }).click();
+		}
+	});
+
+	test('Enter on the quit button opens the confirmation, even during feedback', async ({
+		page
+	}) => {
+		await page.getByRole('button', { name: 'Je ne sais pas' }).click();
+		await expect(page.getByRole('button', { name: 'Continuer' })).toBeFocused();
+		await page.getByRole('button', { name: 'Quitter' }).focus();
+		await page.keyboard.press('Enter');
+		await expect(page.getByRole('dialog')).toBeVisible();
+		await page.keyboard.press('Escape');
+		await expect(page.locator('.feedback')).toBeVisible();
+	});
+
+	test('number keys do nothing while the quit confirmation is open', async ({ page }) => {
+		await page.getByRole('button', { name: 'Quitter' }).click();
+		await page.keyboard.press('1');
+		await page.getByRole('button', { name: 'Rester' }).click();
+		await expect(page.locator('.feedback')).toHaveCount(0);
+	});
+
+	test('a double tap on Continue does not answer the next question', async ({ page }) => {
+		await page.getByRole('button', { name: 'Je ne sais pas' }).click();
+		await page.getByRole('button', { name: 'Continuer' }).dblclick();
+		await expect(page.locator('.feedback')).toHaveCount(0);
+		await expect(page.getByRole('button', { name: 'Je ne sais pas' })).toBeVisible();
+	});
 });
