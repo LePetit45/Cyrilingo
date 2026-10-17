@@ -1,10 +1,10 @@
 # Cyrilingo — Specifications
 
-> Status: **draft v0.2**. Still to specify: exercise rules in detail, screens and visual design, content production, deployment target, non-functional requirements.
+> Status: **draft v0.3**. All areas are specified at MVP level. Remaining open items: audio provider (§10.1), letter-by-letter content (written during implementation, §9).
 
 ## 1. Vision
 
-A web app that helps someone used to the Latin alphabet (initial target audience: French speakers) **read and recognize the Bulgarian Cyrillic alphabet** quickly, through short, repeated sessions.
+A web app that helps someone used to the Latin alphabet (initial target audience: French speakers) **read and recognize the Bulgarian Cyrillic alphabet** quickly, through short, repeated, game-like sessions.
 
 Concrete goal: by the end of the course, the user can sound out any Bulgarian word (signs, menus, proper names), even without understanding its meaning.
 
@@ -17,7 +17,7 @@ Concrete goal: by the end of the course, the user can sound out any Bulgarian wo
 
 - French speakers with no prior knowledge of Cyrillic.
 - Typical use: preparing a trip, moving to Bulgaria, or a first step before learning the language.
-- Short sessions (one lesson ≈ 6–8 minutes), on mobile as well as desktop.
+- Short sessions (one lesson ≈ 6–8 minutes), on mobile first, desktop as well.
 
 ## 3. Learning content
 
@@ -45,12 +45,6 @@ Concrete goal: by the end of the course, the user can sound out any Bulgarian wo
 Both are displayed (D1). The French phonetic transliteration is the reference for learning; the official one is shown next to it (and accepted in typed answers) so learners can recognize signs.
 - **Official Bulgarian** (2009 system, English-based): Ж = zh, Ш = sh, Ч = ch, Ц = ts, Щ = sht, Ъ = a, Ю = yu, Я = ya. This is the one used on signs and passports.
 - **Phonetic for French speakers**: Ж = j, Ш = ch, Ч = tch, Ц = ts, Щ = cht, Ъ = eu, Ю = iou, Я = ia.
-
-### 3.5 Word corpus
-Reading words are chosen to be **guessable by a French speaker** once decoded, so reading feels rewarding:
-такси, кафе, банка, хотел, ресторант, телефон, метро, театър, музей, шоколад, паспорт, аптека, България, София, Пловдив…
-
-Each word is tagged with the letters it contains, and carries its French translation and its stressed vowel.
 
 ## 4. Course structure
 
@@ -87,7 +81,7 @@ Syllables (ма, ко, те…) bridge the gap between letters and words, and fi
 ### 4.5 Lesson progress model
 - A progress bar shows how far the user is in the lesson.
 - **Correct answer**: the bar moves forward.
-- **Wrong answer**: the bar does not move, and the missed question comes back later in the same lesson.
+- **Wrong answer** (or "I don't know"): the bar does not move, and the missed question comes back later in the same lesson.
 - The lesson ends when **every question has been answered correctly once** (100%). It can therefore always be completed, and its length is the planned questions plus the misses.
 - Leaving a lesson midway **discards it**: nothing about an unfinished lesson is saved.
 
@@ -95,58 +89,126 @@ Syllables (ма, ко, те…) bridge the gap between letters and words, and fi
 - Named after the Preslav Literary School in Bulgaria, where the Cyrillic alphabet was developed. Title awarded on success (French UI string): **« Titre de saint-maître absolue du cyrillique »**.
 - **30 questions** covering all 30 letters, mixing the three exercise types, with a majority of word reading.
 - No mnemonic hints during the exam.
-- **Real score**: unlike lessons, missed questions are not repeated; every mistake counts. Passing requires **≥ 90%** correct answers (consistent with §8).
+- **Real score**: unlike lessons, missed questions are not repeated; every mistake counts. Passing requires **≥ 90%** correct answers (consistent with §12).
 - Can be taken at any time and retaken any number of times.
 - On success: a **diploma screen with an animation**. The user can type a first name to display on the diploma; it is not saved.
 
 ### 4.7 Free review
-- Secondary entry point on the home screen: **"Free review"**, 12 questions picked at random among the letters of completed lessons.
+- Secondary entry point on the home screen: **"Free review"**, 12 questions picked at random among the letters of completed lessons, drawing words from the whole corpus (§9).
 - Uses the same progress model as lessons (§4.5). Nothing is saved.
 
 ## 5. Exercises
 
 ### 5.1 Letter discovery card
-Uppercase + lowercase glyph (Bulgarian shape), **recorded sound** (autoplay), French + official transliterations, mnemonic, 2–3 example words, note on the "standard" shape and pronunciation nuances where relevant.
+Uppercase + lowercase glyph (Bulgarian shape), **recorded sound** (autoplay), French + official transliterations, mnemonic (text + optional emoji), 2–3 example words, note on the "standard" shape and pronunciation nuances where relevant.
 
 ### 5.2 Exercise types
 1. **Letter → sound MCQ**: a Cyrillic letter is shown → pick its transliteration among 4.
-2. **Sound → letter MCQ**: a sound / transliteration is shown → pick the Cyrillic letter among 4.
-3. **Reading**: a Cyrillic syllable or word is shown → type it in Latin letters. Both transliterations (French phonetic and official) are accepted.
+2. **Sound → letter MCQ**: the French phonetic transliteration is shown in large type (e.g. « tch »), with an audio button → pick the Cyrillic letter among 4.
+3. **Reading**: a Cyrillic syllable or word is shown → type it in Latin letters (§5.4).
 
 ### 5.3 Rules
 - **Case**: whenever possible, letters are shown with **both forms** (e.g. Дд). Words are written in lowercase (Bulgarian shapes), with a capital for proper names.
 - **MCQ distractors**: random letters among those already known, and sometimes deliberately confusable ones (В/B, Н/H, Р/P, С/C, У/Y, Х/X; Ш/Щ, И/Й, Ц/Щ, Ъ/Ь).
-- **Wrong reading answer**: the answer is compared letter by letter with the accepted transliterations, and the **wrong letters are highlighted** in the feedback. When the answer is too different to align, the whole expected answer is shown.
-- **Feedback after a wrong answer**: correct answer, sound, and a reminder of the letter's mnemonic.
-- **After any reading answer**: French translation of the word, stressed vowel underlined, and audio.
-- **Audio**: plays automatically on discovery cards and after each answer; during a question it only plays through a button (otherwise it would give the answer away).
+- **MCQ validation**: immediate on tap/click. Keys 1–4 select an answer on desktop.
+- **Reading validation**: "Validate" button, or Enter on a physical keyboard.
+- **"I don't know"** button on every question: counts as a wrong answer, shows the answer, and the question comes back later (§4.5).
 - Response time is not taken into account.
 
-## 6. Progress, persistence and motivation
+#### Reading answer checking
+- Case, spaces and hyphens are ignored. Accented letters are accepted as their unaccented version (« ă » = « a »).
+- Each Cyrillic letter is validated independently against its list of accepted Latin variants, so both transliterations can be **mixed within one word** (« chokolad », « shokolad »).
+- Accepted variants for ambiguous letters (the full table is a reviewed data file):
 
-- **Saved data** (browser storage only): the **list of completed lessons** and **whether the final exam was passed**. Nothing else: no per-letter statistics, no unfinished lesson state.
-- **Settings**: a "Reset my progress" button.
-- **Alphabet chart**: each letter is shown as *learned* (its lesson is completed) or *not yet*.
+  | Letter | Accepted |
+  |---|---|
+  | Ъ | a, eu, ă, u |
+  | Й | y, i |
+  | Х | h, kh |
+  | Ж | j, zh |
+  | Ц | ts, tz |
+  | Ю | iou, yu, ju |
+  | Я | ia, ya, ja |
+  | У | ou, u |
+  | Щ | cht, sht |
+  | Ш | ch, sh |
+  | Ч | tch, ch |
+
+- **No typo tolerance**: one wrong letter makes the answer wrong.
+- On a wrong answer, the answer is aligned letter by letter with the accepted variants and the **wrong letters are highlighted**. When the answer is too different to align, the whole expected answer is shown.
+
+#### Feedback
+- **After a wrong answer**: correct answer, sound, and a reminder of the letter's mnemonic.
+- **After any reading answer**: French translation of the word, stressed vowel underlined, and audio.
+- **Audio** plays automatically on discovery cards and after each answer; during a question it only plays through a button (otherwise it would give the answer away).
+
+### 5.4 Answer input
+- **Touch devices** (phones, tablets; detected with the `(pointer: coarse)` media query, not screen width): reading answers are typed on an **on-screen keyboard built into the app**. The native keyboard is never opened (input uses `inputmode="none"`).
+  - Reasons: a consistent, game-like UI; no autocorrect or autocomplete from the native keyboard (it would "fix" « chokolad » into « chocolat »); no layout jump when the native keyboard opens.
+  - Layout: **AZERTY** Latin letters (target audience is French), backspace, and validate key. No accented keys (not needed, see §5.3).
+- **Desktop**: no on-screen keyboard; a regular text field typed with the physical keyboard, with browser autocorrect, autocomplete, autocapitalization and spellcheck disabled.
+- The on-screen keyboard component is designed so a **Cyrillic layout** can be added later for the dictation mode (§13).
+
+## 6. Progress and persistence
+
+- **Saved data** (browser `localStorage` only): the **list of completed lessons** and **whether the final exam was passed**. Nothing else: no per-letter statistics, no unfinished lesson state.
+- **Alphabet screen**: each letter is shown as *learned* (its lesson is completed) or *not yet*.
 - **End-of-lesson summary**: score (first-try success rate) and the letters missed during this lesson.
-- **Home screen**: the path (§4.1), a primary **"Continue"** button opening the suggested lesson, and a secondary **"Free review"** button (§4.7).
 - No limit on the number of lessons per day.
 - No XP, streaks or badges in the MVP.
 
-## 7. Technical constraints
+## 7. Screens and navigation
+
+### 7.1 Screens
+- **Home**: the path (§4.1), a primary **"Continue"** button opening the suggested lesson, and a secondary **"Free review"** button (§4.7).
+- **Lesson**: discovery cards → questions → summary.
+- **Free review**.
+- **Final exam** and **Diploma**.
+- **Alphabet**: the 30 letters with their learned / not yet state. Tapping a letter opens its discovery card, even if not learned yet (consistent with free navigation).
+- **Settings**: sound on/off, sound effects on/off, "Reset my progress" (with confirmation).
+- **About**.
+
+### 7.2 Navigation
+- Mobile: **bottom tab bar** with *Path / Alphabet / Settings*. It is hidden during a lesson, a free review and the exam.
+- Leaving a lesson: **✕ button** at the top, with a confirmation: « Ta progression dans cette leçon sera perdue. »
+- **First launch**: a single welcome screen (3 lines of explanation + "Start" button opening lesson 1). No tutorial.
+- **Desktop**: a centered column of about 480 px, same UI as mobile; questions are playable with the keyboard.
+
+## 8. Visual identity and feedback
+
+- **Fun and gamified first.** The UI must feel like a game: bright, saturated colors, big rounded buttons with a pressed effect, chunky readable typography, generous glyph sizes, lively feedback.
+- **Single bright theme** in the MVP; dark mode goes to the backlog.
+- No mascot in the MVP.
+- **Animations**: progress bar, shake on a wrong answer, small celebration on a correct answer, confetti on the diploma. Light vibration on mobile on a wrong answer (where supported).
+- **Sound effects**: discreet correct / wrong sounds, can be turned off in the settings.
+- **Name and icon**: "Cyrilingo" is kept. Until a real logo exists, a fun stylized rendering of the name is used as the icon.
+
+## 9. Content production
+
+- **Authoring**: Claude writes a first draft (letter cards, mnemonics, lesson composition, corpus), the project owner reviews and corrects.
+- **Validation**: no native speaker available. Spelling, translations and stress are checked against reference sources: Wiktionary (shows stress for Bulgarian words) and online Bulgarian dictionaries, plus a listening check with the generated audio.
+- **Corpus size**: about **120 words + 60 syllables**, enough for the 10 lessons, the exam and free review.
+- **Word choice**: a mix of words guessable by a French speaker (loanwords, international words, city names) and common Bulgarian words, with no fixed ratio. Every word carries its French translation and the index of its stressed vowel.
+- **Mnemonics**: text (+ optional emoji) in the MVP; illustrations later.
+- **Format**: **typed TypeScript data files** in the repo (letters, words, syllables, lesson definitions, transliteration table). The compiler catches broken references (e.g. a lesson pointing at a missing word), and **unit tests check content invariants**: every letter is introduced in exactly one lesson, a lesson only uses letters from itself and earlier lessons, every stress index points at a vowel, every word is transliterable with the accepted-variants table.
+
+## 10. Technical constraints
 
 - **Static application** (SPA), no backend for the MVP.
-- Minimal progress data stored in the browser (`localStorage`), see §6.
 - Installable **PWA** that works offline (handy when traveling).
-- Free hosting: GitHub Pages ❓ (requires a public repo or a paid GitHub plan; see D6).
 - **Stack (D4)**: SvelteKit + Svelte 5 + TypeScript, static build via `adapter-static`. Switching to a server adapter will allow adding a backend (accounts, sync) without a rewrite.
 - PWA via `vite-plugin-pwa` (or SvelteKit's built-in service worker).
 - Possible app store distribution: Capacitor (webview). A fully native app is out of scope.
 - **Architecture**: all business logic (alphabet data, lesson definitions, corpus, lesson engine, answer checking, progress persistence) lives in plain TypeScript modules with no dependency on Svelte. Svelte is only used for the UI, which limits the cost of a future framework change.
 - Font supporting Bulgarian localization (`lang="bg"` + OpenType `locl` feature), required given D2. Candidate: Sofia Sans (Bulgarian type foundry); support to be checked on all target browsers.
 - Audio: short files (Opus/MP3) per letter and per corpus word, precached by the PWA for offline use.
+- **Hosting**: **Cloudflare Pages** (free, works with a private repo), deploying `main` automatically, with a **preview deployment for every pull request**. No custom domain in the MVP (`*.pages.dev` address).
+- **Supported browsers**: last 2 versions of Chrome, Firefox, Edge and Safari; Safari iOS 16+.
+- **Performance** (optimized): Lighthouse mobile performance score ≥ 90; first load < 2 s on 4G; app bundle < 300 KB excluding audio; total audio < 5 MB.
+- **Analytics**: none in the MVP: no cookies, no consent banner. Success criteria are checked through tests with a few real users.
 - Accessibility: contrast, keyboard navigation, generous font sizes for glyphs.
 
-### 7.1 Audio production (to explore together)
+### 10.1 Audio production (to explore together)
 
 Files are generated **once** by a Bulgarian text-to-speech voice, then served as static assets. The provider is chosen **after hands-on trials run by the project owner**, before any implementation.
 
@@ -155,35 +217,49 @@ Files are generated **once** by a Bulgarian text-to-speech voice, then served as
 - Watch out: TTS mispronounces isolated letters; we may need to feed it a syllable or a phonetic transcription (SSML) rather than the bare letter.
 - Deliverable for this step: a short list of test letters and words, listened to on each provider, then a decision recorded here.
 
-### 7.2 Internationalization
+### 10.2 Internationalization
 
 French-only interface for the MVP, but **no hard-coded text in components**: all labels and learning content (mnemonics, sound explanations) are centralized per locale, so English can be added later.
 
-## 8. Success criteria
+## 11. Quality and workflow
+
+- **Unit tests** (Vitest) for all business logic: answer checking, lesson composition, persistence, content invariants (§9).
+- **End-to-end test** (Playwright) for the main flow: completing a lesson from start to finish.
+- **CI**: GitHub Actions on every pull request: lint, type check, tests. Deployment is handled by Cloudflare Pages.
+- **Git workflow**: one branch + one pull request per feature, even solo, squash-merged. No direct commits to `main`, except for documentation.
+- **License**: none while the repo is private; to be decided if it goes public.
+
+## 12. Success criteria
 
 - A user who has completed the course passes the final exam (≥ 90% of words read correctly).
 - The full course can be completed in about a week at 10 min/day.
 
-## 9. Backlog (after MVP)
+## 13. Backlog (after MVP)
 - "Real signs" mode: photos of signs, menus, shopfronts to decode.
-- Dictation: hear a word → type it in Cyrillic (phonetic virtual keyboard).
-- Timed mode / daily challenge / streaks.
+- Dictation: hear a word → type it in Cyrillic (Cyrillic layout of the in-app keyboard).
+- Timed mode / daily challenge / XP / streaks / badges.
+- Mascot, illustrated mnemonics, real logo.
+- Dark mode.
 - Export or share the diploma as an image.
+- Custom domain.
 - User accounts and multi-device sync.
 - English interface.
 
-## 10. Decisions
+## 14. Decisions
 
 | # | Question | Decision |
 |---|---|---|
 | D1 | Displayed transliteration | **Both** (French phonetic as reference + official) |
 | D2 | Bulgarian lowercase typography | **From the start** |
 | D3 | Audio in the MVP | **Recordings** |
-| D3b | Recording source | **TTS generated once**; provider chosen after trials (§7.1) |
+| D3b | Recording source | **TTS generated once**; provider chosen after trials (§10.1) |
 | D4 | Front-end stack | **SvelteKit (static) + Svelte 5 + TS** |
 | D5 | Interface language | **FR for the MVP**, centralized strings to add EN later |
-| D6 | Repo visibility / license / hosting | Private repo (current) ❓ GitHub Pages needs a public repo or a paid plan |
+| D6 | Repo visibility / hosting / license | **Private repo, Cloudflare Pages**, no license for now |
 | D7 | Spaced repetition | **None time-based**; review driven by the path (§4.4) |
 | D8 | Lesson unlocking | **Free navigation**, suggested order only (§4.2) |
 | D9 | Lesson progress model | **Bar frozen on error, missed question repeated, 100% to finish** (§4.5) |
 | D10 | Persistence | **Completed lessons + exam passed only** (§6) |
+| D11 | Answer input | **In-app AZERTY keyboard on touch devices**, physical keyboard on desktop (§5.4) |
+| D12 | Content format | **Typed TypeScript data files + invariant tests** (§9) |
+| D13 | Theme | **Single bright, gamified theme**; dark mode later (§8) |
