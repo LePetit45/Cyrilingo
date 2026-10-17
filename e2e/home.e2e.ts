@@ -45,6 +45,10 @@ test.describe('home', () => {
 		await expect(page.locator('.letters[lang="bg"]').first()).toHaveText('А Т М');
 	});
 
+	test('shows the letters read so far', async ({ page }) => {
+		await expect(page.getByText('0 lettres lues sur 30')).toBeAttached();
+	});
+
 	test('opens the suggested lesson with Commencer', async ({ page }) => {
 		await page.getByRole('link', { name: 'Commencer' }).click();
 		await expect(page).toHaveURL(/\/lesson\/l1$/);
@@ -52,12 +56,9 @@ test.describe('home', () => {
 
 	test('navigates with the tab bar', async ({ page }) => {
 		const nav = page.getByRole('navigation', { name: 'Navigation principale' });
-		await nav.getByRole('link', { name: 'Réglages' }).click();
+		await nav.getByRole('link', { name: 'Plus' }).click();
 		await expect(page.getByRole('heading', { level: 1 })).toHaveText('Réglages');
-		await expect(nav.getByRole('link', { name: 'Réglages' })).toHaveAttribute(
-			'aria-current',
-			'page'
-		);
+		await expect(nav.getByRole('link', { name: 'Plus' })).toHaveAttribute('aria-current', 'page');
 		await nav.getByRole('link', { name: 'Parcours' }).click();
 		await expect(page.getByRole('heading', { level: 1 })).toHaveText('Cyrilingo');
 	});

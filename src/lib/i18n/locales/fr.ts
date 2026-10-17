@@ -9,7 +9,8 @@ export const fr = {
 		label: 'Navigation principale',
 		path: 'Parcours',
 		alphabet: 'Alphabet',
-		settings: 'Réglages'
+		review: 'Révision',
+		more: 'Plus'
 	},
 	common: {
 		close: 'Fermer',
@@ -28,10 +29,9 @@ export const fr = {
 	},
 	home: {
 		title: 'Ton parcours',
-		continue: 'Continuer',
 		start: 'Commencer',
-		freeReview: 'Révision libre',
-		freeReviewHint: 'Termine une leçon pour débloquer la révision libre.',
+		lettersRead: (count: number, total: number) => `${count} lettres lues sur ${total}`,
+		section: (number: number, letters: number) => `Section ${number} · ${letters} lettres`,
 		lesson: (number: number) => `Leçon ${number}`,
 		lessonStates: {
 			completed: 'Terminée',
@@ -39,10 +39,16 @@ export const fr = {
 			notDone: 'Pas encore faite'
 		},
 		exam: 'L’Épreuve de Preslav',
-		examHint: 'L’épreuve finale : 30 questions sur toutes les lettres.',
-		examPassed: 'Réussie !',
-		allDone: 'Tu as terminé toutes les leçons. L’épreuve finale t’attend !',
-		allDoneAndPassed: 'Tu as tout terminé. Bravo, saint-maître du cyrillique !'
+		examHint: 'L’épreuve finale : 30 questions sur toutes les lettres.',
+		examPassed: 'Réussie !',
+		allDone: 'Tu as terminé toutes les leçons. L’épreuve finale t’attend !',
+		allDoneAndPassed: 'Tu as tout terminé. Bravo, saint-maître du cyrillique !',
+		progressTitle: 'Ta progression',
+		lettersReadShort: (total: number) => `/ ${total} lettres lues`,
+		freeReview: 'Révision libre',
+		freeReviewText: 'Repasse sur les lettres déjà vues, sans pression.',
+		freeReviewHint: 'Termine une leçon pour débloquer la révision libre.',
+		review: 'Réviser'
 	},
 	card: {
 		newLetter: 'Nouvelle lettre',

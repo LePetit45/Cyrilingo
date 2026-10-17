@@ -14,7 +14,10 @@ test.describe('free review', () => {
 	test('asks 12 questions on completed lessons', async ({ page }) => {
 		await skipWelcome(page, { completedLessons: ['l1', 'l2'], examPassed: false });
 		await page.goto('/');
-		await page.getByRole('link', { name: 'Révision libre' }).click();
+		await page
+			.getByRole('navigation', { name: 'Navigation principale' })
+			.getByRole('link', { name: 'Révision' })
+			.click();
 		for (let i = 0; i < 12; i++) await answerCorrectly(page);
 		await expect(page.getByRole('heading', { level: 1 })).toHaveText(/^Révision terminée/);
 		await expect(page.getByText('100 %')).toBeVisible();
