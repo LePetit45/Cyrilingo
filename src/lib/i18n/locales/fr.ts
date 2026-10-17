@@ -51,12 +51,10 @@ export const fr = {
 		review: 'Réviser'
 	},
 	card: {
-		newLetter: 'Nouvelle lettre',
 		letter: 'Lettre',
 		readAs: 'Se lit',
 		official: 'officiel',
 		sound: 'Le son',
-		mnemonic: 'Pour s’en souvenir',
 		examples: 'Exemples',
 		note: 'Bon à savoir',
 		standardShape: 'Hors de Bulgarie (en russe par exemple), la minuscule s’écrit souvent :',
@@ -72,7 +70,7 @@ export const fr = {
 		readSyllable: 'Lis cette syllabe',
 		answerLabel: 'Ta lecture, en lettres latines',
 		answerPlaceholder: 'Écris ce que tu lis',
-		validate: 'Valider',
+		check: 'Vérifier',
 		dontKnow: 'Je ne sais pas',
 		keyHint: 'Astuce : touches 1 à 4 pour répondre'
 	},
@@ -91,8 +89,7 @@ export const fr = {
 	},
 	keyboard: {
 		label: 'Clavier',
-		backspace: 'Effacer',
-		validate: 'Valider'
+		backspace: 'Effacer'
 	},
 	session: {
 		quit: 'Quitter',

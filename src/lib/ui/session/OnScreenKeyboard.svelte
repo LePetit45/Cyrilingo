@@ -7,21 +7,18 @@
 	import { m } from '#lib/i18n/index.js';
 	import Icon from '../Icon.svelte';
 
-	// In-app keyboard for touch devices (spec §5.4): no autocorrect, no layout jump.
+	// In-app keyboard for touch devices (spec §5.4): no autocorrect, no layout jump. Answers are
+	// checked with the session's « Vérifier » button.
 	let {
 		layout = AZERTY,
 		disabled = false,
-		canSubmit,
 		onkey,
-		onbackspace,
-		onsubmit
+		onbackspace
 	}: {
 		layout?: readonly string[];
 		disabled?: boolean;
-		canSubmit: boolean;
 		onkey: (key: string) => void;
 		onbackspace: () => void;
-		onsubmit: () => void;
 	} = $props();
 </script>
 
@@ -44,9 +41,6 @@
 			{/if}
 		</div>
 	{/each}
-	<button type="button" class="submit" disabled={disabled || !canSubmit} onclick={onsubmit}>
-		{m.keyboard.validate}
-	</button>
 </div>
 
 <style>
@@ -89,34 +83,5 @@
 
 	.key.wide {
 		flex-basis: 4rem;
-	}
-
-	.submit {
-		height: 3.25rem;
-		margin-top: 0.25rem;
-		font-size: 1.1875rem;
-		font-weight: 800;
-		text-transform: uppercase;
-		letter-spacing: 0.02em;
-		color: #fff;
-		background: var(--color-success);
-		border: 2px solid var(--color-success-dark);
-		border-radius: var(--radius-md);
-		box-shadow: 0 4px 0 var(--color-success-dark);
-		touch-action: manipulation;
-		cursor: pointer;
-	}
-
-	.submit:disabled {
-		color: var(--color-text-muted);
-		background: var(--color-surface-muted);
-		border-color: var(--color-border-dark);
-		box-shadow: 0 4px 0 var(--color-border-dark);
-		cursor: not-allowed;
-	}
-
-	.submit:active:not(:disabled) {
-		transform: translateY(4px);
-		box-shadow: none;
 	}
 </style>

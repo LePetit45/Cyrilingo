@@ -7,12 +7,13 @@
 	import ProgressBar from '../ProgressBar.svelte';
 
 	// ✕ button with a confirmation, since leaving discards the session (spec §4.5, §7.2), and the
-	// progress bar.
+	// progress bar or a short label (« Lettre 1 sur 3 »).
 	let {
 		progress,
+		label,
 		quitTitle = m.session.quitTitle,
 		quitMessage = m.session.quitMessage
-	}: { progress?: number; quitTitle?: string; quitMessage?: string } = $props();
+	}: { progress?: number; label?: string; quitTitle?: string; quitMessage?: string } = $props();
 
 	let confirming = $state(false);
 </script>
@@ -28,6 +29,8 @@
 	</button>
 	{#if progress !== undefined}
 		<ProgressBar value={progress} />
+	{:else if label}
+		<p class="label">{label}</p>
 	{/if}
 </header>
 
@@ -64,5 +67,14 @@
 
 	.quit:hover {
 		background: var(--color-surface-muted);
+	}
+
+	/* Centered on the screen: the ✕ button on the left is balanced by the same space on the right. */
+	.label {
+		flex: 1;
+		margin: 0 3.5rem 0 0;
+		font-weight: 800;
+		text-align: center;
+		color: var(--color-text-muted);
 	}
 </style>

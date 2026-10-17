@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { m } from '#lib/i18n/index.js';
-	import Button from '../Button.svelte';
 	import { isShortcutBlocked } from '../keyboard.js';
 	import OnScreenKeyboard from './OnScreenKeyboard.svelte';
 
 	// Answer input of a reading question (spec §5.4): the in-app AZERTY keyboard on touch devices
 	// (the native one never opens), a plain text field typed with the physical keyboard elsewhere.
+	// Enter submits; the session's « Vérifier » button does too.
 	let {
 		value = $bindable(''),
 		disabled,
@@ -43,18 +43,18 @@
 		<span class="visually-hidden">{m.question.answerLabel}</span>
 		{#if value}
 			<span class="typed">{value}</span>
+			{#if !disabled}<span class="caret" aria-hidden="true"></span>{/if}
 		{:else}
+			<!-- Empty: the caret sits at the start, where typing begins, before the placeholder. -->
+			{#if !disabled}<span class="caret empty" aria-hidden="true"></span>{/if}
 			<span class="placeholder">{m.question.answerPlaceholder}</span>
 		{/if}
-		{#if !disabled}<span class="caret" aria-hidden="true"></span>{/if}
 	</div>
 	<!-- Once answered, the keyboard makes room for the feedback. -->
 	{#if !disabled}
 		<OnScreenKeyboard
-			{canSubmit}
 			onkey={(key) => (value += key)}
 			onbackspace={() => (value = value.slice(0, -1))}
-			onsubmit={submit}
 		/>
 	{/if}
 {:else}
@@ -85,9 +85,6 @@
 				}
 			}}
 		/>
-		<Button type="submit" variant="success" wide disabled={disabled || !canSubmit}>
-			{m.question.validate}
-		</Button>
 	</form>
 {/if}
 
@@ -118,13 +115,9 @@
 		width: 2px;
 		height: 1.6rem;
 		margin-left: 2px;
+		flex: none;
 		background: var(--color-accent);
 		animation: blink 1s steps(1) infinite;
-	}
-
-	.desktop {
-		display: grid;
-		gap: 1rem;
 	}
 
 	input {
@@ -153,6 +146,10 @@
 
 	input:disabled {
 		background: var(--color-surface-muted);
+	}
+
+	.caret.empty {
+		margin: 0 2px 0 0;
 	}
 
 	@keyframes blink {

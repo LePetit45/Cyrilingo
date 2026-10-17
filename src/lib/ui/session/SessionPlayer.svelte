@@ -59,10 +59,13 @@
 	let shown = $state(0);
 	let result = $state<Result | undefined>();
 	let typed = $state('');
+	/** Height of the bottom bar, kept free below the question so nothing hides behind it. */
+	let footerHeight = $state(0);
 	let shaking = $state(false);
 	let prompt: HTMLElement | undefined = $state();
 
 	const question = $derived(currentQuestion(session));
+	const canCheck = $derived(typed.trim() !== '');
 
 	const choices = $derived.by((): Choice[] => {
 		void shown;
@@ -102,7 +105,7 @@
 	}
 
 	function submitReading() {
-		if (!question || question.kind !== 'reading') return;
+		if (!question || question.kind !== 'reading' || !canCheck) return;
 		const check = checkReading(question.reading, typed);
 		record({ correct: check.correct, dontKnow: false, check });
 	}
@@ -185,21 +188,36 @@
 		</section>
 	{/key}
 
-	{#if result}
-		<Feedback
-			{question}
-			correct={result.correct}
-			dontKnow={result.dontKnow}
-			check={result.check}
-			missedLetters={result.missedLetters}
-			{showMnemonics}
-			oncontinue={next}
-		/>
-	{:else}
-		<div class="dont-know">
-			<Button variant="ghost" wide onclick={dontKnow}>{m.question.dontKnow}</Button>
-		</div>
-	{/if}
+	<div class="footer-space" style:height="{footerHeight}px"></div>
+
+	<!-- Bottom bar across the whole width: the actions, replaced by the feedback once answered. -->
+	<div
+		class={['footer', result && (result.correct ? 'correct' : 'wrong')]}
+		bind:offsetHeight={footerHeight}
+	>
+		{#if result}
+			<Feedback
+				{question}
+				correct={result.correct}
+				dontKnow={result.dontKnow}
+				check={result.check}
+				missedLetters={result.missedLetters}
+				{showMnemonics}
+				oncontinue={next}
+			/>
+		{:else}
+			<div class="actions">
+				<Button variant="secondary" class="dont-know" onclick={dontKnow}
+					>{m.question.dontKnow}</Button
+				>
+				{#if question.kind === 'reading'}
+					<Button class="check" disabled={!canCheck} onclick={submitReading}
+						>{m.question.check}</Button
+					>
+				{/if}
+			</div>
+		{/if}
+	</div>
 {/if}
 
 <style>
@@ -251,8 +269,86 @@
 		margin-top: auto;
 	}
 
-	.dont-know {
-		padding-top: 0.5rem;
+	@media (min-width: 900px) {
+		/* No in-app keyboard here: the text field stays next to the word. */
+		.input {
+			margin-top: 1rem;
+		}
+	}
+
+	.footer-space {
+		flex: none;
+	}
+
+	.footer {
+		--footer-width: var(--column-width);
+		position: fixed;
+		inset: auto 0 0;
+		z-index: 5;
+		padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom));
+		background: var(--color-bg);
+		border-top: 2px solid var(--color-border);
+	}
+
+	.footer.correct,
+	.footer.wrong {
+		background: var(--color-success-light);
+		border-top-color: transparent;
+		animation: slide-up 220ms cubic-bezier(0.2, 1.2, 0.5, 1);
+	}
+
+	.footer.wrong {
+		background: var(--color-error-light);
+	}
+
+	.actions {
+		display: flex;
+		gap: 0.75rem;
+		max-width: var(--footer-width);
+		margin: 0 auto;
+	}
+
+	.actions :global(.check) {
+		flex: 1;
+	}
+
+	/* Dark text on white reads fine smaller, which keeps « Je ne sais pas » on one line. Alone
+	   (multiple-choice questions answer on tap), it takes the whole width on phones. */
+	.actions :global(.dont-know) {
+		flex: 1;
+		padding-inline: 1rem;
+		font-size: 1rem;
+		white-space: nowrap;
+	}
+
+	.actions :global(.dont-know:not(:only-child)) {
+		flex: none;
+	}
+
+	@media (min-width: 900px) {
+		.footer {
+			--footer-width: 60rem;
+			padding-top: 1.5rem;
+			padding-bottom: 1.5rem;
+		}
+
+		.actions {
+			justify-content: space-between;
+		}
+
+		.actions :global(.check) {
+			flex: 0 0 12rem;
+		}
+
+		.actions :global(.dont-know) {
+			flex: none;
+		}
+	}
+
+	@keyframes slide-up {
+		from {
+			transform: translateY(100%);
+		}
 	}
 
 	@keyframes shake {

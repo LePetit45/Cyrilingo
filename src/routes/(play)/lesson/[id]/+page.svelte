@@ -59,12 +59,11 @@
 {#if phase.name === 'cards'}
 	{@const index = phase.index}
 	{@const last = index === data.lesson.letters.length - 1}
-	<SessionHeader />
+	<SessionHeader label={m.card.position(index + 1, data.lesson.letters.length)} />
 	<div class="cards">
-		<p class="position">{m.card.position(index + 1, data.lesson.letters.length)}</p>
 		{#key index}
 			<div class="card">
-				<LetterCard letter={data.lesson.letters[index]} eyebrow={m.card.newLetter} />
+				<LetterCard letter={data.lesson.letters[index]} eyebrow={null} />
 			</div>
 		{/key}
 		<div class="next">
@@ -98,23 +97,23 @@
 		gap: 1rem;
 	}
 
-	.position {
-		margin: 0;
-		font-weight: 800;
-		text-align: center;
-		color: var(--color-text-muted);
-	}
-
+	/* Centered in the space between the header and the bottom bar. */
 	.card {
+		width: calc(100% - 1rem);
+		max-width: 28rem;
+		margin: auto;
 		animation: enter 260ms ease-out;
 	}
 
+	/* Bottom bar like the one of the questions, with room below the button for the browser's
+	   own toolbar. */
 	.next {
 		position: sticky;
 		bottom: 0;
-		margin-top: auto;
-		padding: 0.75rem 0 0.25rem;
-		background: linear-gradient(to bottom, transparent, var(--color-bg) 30%);
+		margin: 0 -1rem calc(-1rem - env(safe-area-inset-bottom));
+		padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom));
+		background: var(--color-bg);
+		border-top: 2px solid var(--color-border);
 	}
 
 	@keyframes enter {

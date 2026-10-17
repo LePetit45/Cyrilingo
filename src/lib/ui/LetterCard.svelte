@@ -9,9 +9,11 @@
 	import { officialOf, phoneticOf, phoneticReading, translationOf } from './letters.js';
 	import StressedWord from './StressedWord.svelte';
 
-	// Letter discovery card (spec §5.1): glyphs, sound, both transliterations, mnemonic, examples
-	// and notes. Used in lessons and on the alphabet screen.
-	let { letter, eyebrow = m.card.letter }: { letter: BulgarianLetter; eyebrow?: string } = $props();
+	// Letter discovery card (spec §5.1): glyphs, sound, both transliterations, examples and notes.
+	// Used in lessons and on the alphabet screen. The mnemonic shows up after a wrong answer.
+	// The eyebrow can be left out where the screen already says it (« Lettre 1 sur 3 » in lessons).
+	let { letter, eyebrow = m.card.letter }: { letter: BulgarianLetter; eyebrow?: string | null } =
+		$props();
 
 	const data = $derived(LETTERS[letter]);
 	const text = $derived(content.letters[letter]);
@@ -20,7 +22,7 @@
 </script>
 
 <article class="card" aria-labelledby="card-{letter}">
-	<p class="eyebrow">{eyebrow}</p>
+	{#if eyebrow}<p class="eyebrow">{eyebrow}</p>{/if}
 	<h2 id="card-{letter}" class="glyphs">
 		<Cyrillic>{letter}</Cyrillic>
 		<Cyrillic>{lower}</Cyrillic>
@@ -29,26 +31,16 @@
 		<p class="taught-as"><Cyrillic>{data.taughtAs}</Cyrillic></p>
 	{/if}
 
-	<div class="sound">
-		<span class="label">{m.card.readAs}</span>
-		<span class="phonetic">« {phoneticOf(letter)} »</span>
-		{#if official !== phoneticOf(letter)}
-			<span class="official">{m.card.official} : {official}</span>
-		{/if}
-		<AudioButton name={letter} autoplay />
-	</div>
-
-	<section>
-		<h3>{m.card.sound}</h3>
-		<p>{text.sound}</p>
-	</section>
-
-	<section class="mnemonic">
-		<h3>{m.card.mnemonic}</h3>
-		<p>
-			{#if text.emoji}<span class="emoji" aria-hidden="true">{text.emoji}</span>{/if}
-			{text.mnemonic}
-		</p>
+	<section class="sound" aria-label={m.card.sound}>
+		<div class="reading">
+			<span class="label">{m.card.readAs}</span>
+			<span class="phonetic">« {phoneticOf(letter)} »</span>
+			{#if official !== phoneticOf(letter)}
+				<span class="official">{m.card.official} : {official}</span>
+			{/if}
+			<AudioButton name={letter} autoplay />
+		</div>
+		<p class="sound-text">{text.sound}</p>
 	</section>
 
 	<section>
@@ -81,8 +73,8 @@
 <style>
 	.card {
 		display: grid;
-		gap: 1rem;
-		padding: 1.25rem;
+		gap: 0.75rem;
+		padding: 1rem 1.25rem 1.25rem;
 		background: var(--color-surface);
 		border: 2px solid var(--color-border);
 		border-radius: var(--radius-lg);
@@ -105,27 +97,39 @@
 		align-items: baseline;
 		gap: 1.25rem;
 		margin: 0;
-		font-size: 5.5rem;
+		font-size: 5rem;
 		line-height: 1;
 	}
 
 	.taught-as {
 		margin: -0.5rem 0 0;
-		font-size: 2.25rem;
+		font-size: 1.875rem;
 		font-weight: 900;
 		text-align: center;
 		color: var(--color-accent-dark);
 	}
 
+	/* Some air between the glyphs and the reading box. */
 	.sound {
+		margin-top: 2.0625rem;
+		gap: 0.375rem;
+		padding: 0.625rem 0.875rem 0.75rem;
+		background: var(--color-surface-muted);
+		border-radius: var(--radius-md);
+	}
+
+	.reading {
 		display: flex;
 		flex-wrap: wrap;
 		align-items: center;
 		justify-content: center;
 		gap: 0.25rem 0.75rem;
-		padding: 0.75rem;
-		background: var(--color-surface-muted);
-		border-radius: var(--radius-md);
+	}
+
+	.sound-text {
+		font-size: 1rem;
+		line-height: 1.4;
+		text-align: center;
 	}
 
 	.label {
@@ -137,6 +141,21 @@
 		font-size: 1.75rem;
 		font-weight: 900;
 		color: var(--color-primary-dark);
+	}
+
+	/* Short phone screens: smaller glyphs, so the whole card fits without scrolling. */
+	@media (max-height: 700px) {
+		.card {
+			padding: 0.875rem 1rem 1rem;
+		}
+
+		.glyphs {
+			font-size: 3.5rem;
+		}
+
+		.sound {
+			margin-top: 0.5rem;
+		}
 	}
 
 	.official {
@@ -162,19 +181,9 @@
 		margin: 0;
 	}
 
-	.mnemonic p {
-		font-weight: 700;
-	}
-
-	.emoji {
-		margin-right: 0.25rem;
-		font-size: 1.5rem;
-		vertical-align: -0.15em;
-	}
-
 	.examples {
 		display: grid;
-		gap: 0.375rem;
+		gap: 0.25rem;
 		margin: 0;
 		padding: 0;
 		list-style: none;
@@ -185,7 +194,7 @@
 		flex-wrap: wrap;
 		align-items: baseline;
 		gap: 0 0.625rem;
-		font-size: 1.375rem;
+		font-size: 1.25rem;
 		font-weight: 800;
 	}
 
@@ -214,6 +223,7 @@
 	.standard-glyph {
 		font-size: 1.75rem;
 		font-weight: 800;
+		line-height: 1;
 		vertical-align: -0.1em;
 	}
 </style>

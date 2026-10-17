@@ -20,4 +20,11 @@
 		/* The answer feedback slides in from below: it must not stretch the page while it does. */
 		overflow: clip;
 	}
+
+	@media (min-width: 900px) {
+		main {
+			max-width: 37.5rem;
+			padding-top: 2rem;
+		}
+	}
 </style>

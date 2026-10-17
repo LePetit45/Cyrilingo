@@ -100,7 +100,7 @@ Syllables (ма, ко, те…) bridge the gap between letters and words, and fi
 ## 5. Exercises
 
 ### 5.1 Letter discovery card
-Uppercase + lowercase glyph (Bulgarian shape), **recorded sound** (autoplay), French + official transliterations, mnemonic (text + optional emoji), 2–3 example words, note on the "standard" shape and pronunciation nuances where relevant.
+Uppercase + lowercase glyph (Bulgarian shape), **recorded sound** (autoplay), French + official transliterations, 2–3 example words, note on the "standard" shape and pronunciation nuances where relevant. The mnemonic (text + optional emoji) is not on the card: it is shown as a reminder after a wrong answer (§5.3), where it helps most.
 
 ### 5.2 Exercise types
 1. **Letter → sound MCQ**: a Cyrillic letter is shown → pick its transliteration among 4.
@@ -111,8 +111,8 @@ Uppercase + lowercase glyph (Bulgarian shape), **recorded sound** (autoplay), Fr
 - **Case**: whenever possible, letters are shown with **both forms** (e.g. Дд). Words are written in lowercase (Bulgarian shapes), with a capital for proper names.
 - **MCQ distractors**: random letters among those already known, and sometimes deliberately confusable ones (В/B, Н/H, Р/P, С/C, У/Y, Х/X; Ш/Щ, И/Й, Ц/Щ, Ъ/Ь). For letter → sound questions, a trap can also be the Latin reading of a look-alike (Р → « p », lowercase д → « g »). In the first lesson, fewer than 4 letters are known, so the remaining choices are letters from later lessons (they are never read, only offered as wrong answers).
 - A missed question comes back with its choices reshuffled, so it cannot be answered by position.
-- **MCQ validation**: select a choice, then confirm with the **« Vérifier »** button (or Enter). Selecting another choice before confirming changes the selection. Keys 1–4 select a choice on desktop. The button stays inactive until a choice is selected.
-- **Reading validation**: the same **« Vérifier »** button, or Enter on a physical keyboard.
+- **MCQ validation**: immediate on tap/click. Keys 1–4 answer on desktop.
+- **Reading validation**: **« Vérifier »** button in the bottom bar, or Enter on a physical keyboard. The button stays inactive until something is typed.
 - **"I don't know"** button on every question: counts as a wrong answer, shows the answer, and the question comes back later (§4.5).
 - Response time is not taken into account.
 
@@ -274,5 +274,5 @@ French-only interface for the MVP, but **no hard-coded text in components**: all
 | D14 | Rendering | Pages prerendered as shells, **rendered in the browser only** (`ssr = false`): everything shown depends on `localStorage` |
 | D15 | Sound effects | **Synthesized with Web Audio** (no files to download or cache) |
 | D16 | Beta scope | **v0.9.0-beta**: full MVP except recorded voice; not deployed; UI redesign planned after the beta |
-| D17 | Answer confirmation | **Select, then « Vérifier »** for every question; feedback in a bottom panel (§5.3) |
+| D17 | Answer confirmation | **MCQ checked on tap**, readings with « Vérifier »; feedback in a bottom panel (§5.3) |
 | D18 | Daily streaks | **Never**: not in the spirit of the app (§6) |
