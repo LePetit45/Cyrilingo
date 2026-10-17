@@ -132,7 +132,7 @@
 			currentQuestion(session)?.kind !== 'reading' ||
 			!document.querySelector('#reading-answer')
 		) {
-			prompt?.focus();
+			prompt?.focus({ preventScroll: true });
 		}
 	}
 </script>
