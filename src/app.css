@@ -1,18 +1,43 @@
-/* Global styles and design tokens. Single bright theme for the MVP (spec §8, D13). */
+/* Global styles and design tokens. Single bright, gamified theme for the MVP (spec §8, D13). */
 
 :root {
 	--color-bg: #fff8ec;
 	--color-surface: #ffffff;
+	--color-surface-muted: #fdf1dc;
 	--color-text: #1f1b2e;
 	--color-text-muted: #5c566e;
 	--color-primary: #ff5a36;
 	--color-primary-dark: #d43d1c;
 	--color-accent: #3a7bff;
+	--color-accent-dark: #2457c9;
 	--color-border: #f0e2c8;
+	--color-border-dark: #dcc9a6;
+
+	--color-success: #22b35e;
+	--color-success-dark: #178a46;
+	--color-success-light: #dcf8e6;
+	--color-error: #f2433a;
+	--color-error-dark: #c32a22;
+	--color-error-light: #ffe3e0;
+	--color-gold: #ffc233;
+	--color-gold-dark: #d99a00;
+
+	/* One color per path section (spec §3.2). */
+	--color-allies: #22b35e;
+	--color-allies-dark: #178a46;
+	--color-false-friends: #ff8a1f;
+	--color-false-friends-dark: #d36700;
+	--color-greek-cousins: #3a7bff;
+	--color-greek-cousins-dark: #2457c9;
+	--color-newcomers: #9b5cff;
+	--color-newcomers-dark: #7435dd;
 
 	--radius-lg: 20px;
 	--radius-md: 14px;
+	--radius-sm: 10px;
 	--column-width: 480px;
+	--tab-bar-height: 4.25rem;
+	--press-depth: 4px;
 
 	--font-sans: 'Sofia Sans Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 
@@ -30,6 +55,7 @@ html {
 	color: var(--color-text);
 	background: var(--color-bg);
 	-webkit-text-size-adjust: 100%;
+	-webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -37,4 +63,49 @@ body {
 	min-height: 100dvh;
 	font-size: 1.125rem;
 	line-height: 1.5;
+}
+
+h1,
+h2,
+h3 {
+	line-height: 1.2;
+	font-weight: 900;
+}
+
+a {
+	color: var(--color-accent-dark);
+	font-weight: 700;
+}
+
+button {
+	font: inherit;
+	color: inherit;
+}
+
+:focus-visible {
+	outline: 3px solid var(--color-accent);
+	outline-offset: 3px;
+}
+
+/* Visible to screen readers only. */
+.visually-hidden {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+	border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+	}
 }
