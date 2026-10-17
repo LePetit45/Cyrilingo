@@ -17,6 +17,7 @@
 	--color-accent: #1a8fd0;
 	--color-accent-dark: #106d9f;
 	--color-accent-light: #ddf3ff;
+	--color-accent-border: #84d8ff;
 	--color-border: #e5e5e5;
 	--color-border-dark: #d9d9d9;
 
@@ -44,6 +45,10 @@
 	--radius-md: 16px;
 	--radius-sm: 10px;
 	--column-width: 480px;
+	/* Navigation sidebar on wide screens (900px and up). */
+	--sidebar-width: 15rem;
+	/* Right info column next to the path on very wide screens (1200px and up). */
+	--rail-width: 20rem;
 	--tab-bar-height: 4.25rem;
 	--press-depth: 4px;
 
