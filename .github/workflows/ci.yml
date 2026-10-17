@@ -1,9 +1,10 @@
 name: CI
 
+# Pull requests only: main only receives squash merges of green pull requests, so running again
+# there would be a duplicate. A manual run stays possible from the Actions tab.
 on:
   pull_request:
-  push:
-    branches: [main]
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
