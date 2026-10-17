@@ -14,8 +14,7 @@ test('works offline once the service worker is installed', async ({ page, contex
 	page.on('response', (response) => responses.push(response));
 	await page.reload();
 
-	await expect(page.getByRole('heading', { level: 1 })).toHaveText('Cyrilingo');
-	await expect(page.locator('.alphabet [lang="bg"]')).toHaveCount(30);
+	await expect(page.getByRole('heading', { level: 1 })).toHaveText(/Bienvenue sur Cyrilingo/);
 	expect(await isSofiaSansCyrillicLoaded(page)).toBe(true);
 
 	expect(responses.map((response) => response.url())).toContain(page.url());

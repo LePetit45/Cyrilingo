@@ -1,7 +1,7 @@
 import type { BulgarianLetter } from '../../core/alphabet.js';
 import type { Word } from '../../core/content/corpus.js';
 import type { SectionId } from '../../core/content/types.js';
-import type { Locale } from '../index.js';
+import { DEFAULT_LOCALE, type Locale } from '../index.js';
 import { fr } from './fr.js';
 
 export interface SectionText {
@@ -37,3 +37,6 @@ const catalogs: Record<Locale, LearningContent> = { fr };
 export function getLearningContent(locale: Locale): LearningContent {
 	return catalogs[locale];
 }
+
+/** Learning content for the current locale. The MVP is French-only (spec D5). */
+export const content = getLearningContent(DEFAULT_LOCALE);
