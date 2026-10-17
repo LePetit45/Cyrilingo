@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { version } from '$app/env';
 	import { m } from '#lib/i18n/index.js';
 	import Icon from '#lib/ui/Icon.svelte';
+	import { version } from '../../../../package.json';
 </script>
 
 <a class="back" href={resolve('/(tabs)/settings')}><Icon name="back" size={20} />{m.about.back}</a>
