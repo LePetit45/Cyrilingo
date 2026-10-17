@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { BULGARIAN_ALPHABET, toLowercase } from '../../core/alphabet.js';
 import { lessonIntroducing, lettersKnownIn } from '../../core/content/course.js';
+import { WORDS, type Word } from '../../core/content/corpus.js';
 import { LETTERS } from '../../core/content/letters.js';
 import { cyrillicLettersIn, isSpelledBy, normalizeLatin } from '../../core/content/testing.js';
 import { SECTION_IDS } from '../../core/content/types.js';
@@ -43,6 +44,14 @@ describe.each(LOCALES)('learning content (%s)', (locale) => {
 			for (const quoted of cyrillicLettersIn(sound + mnemonic + note)) {
 				expect(known, `${letter} card quotes ${quoted}`).toContain(quoted);
 			}
+		}
+	});
+
+	it('translates every word, without Cyrillic', () => {
+		for (const word of Object.keys(WORDS) as Word[]) {
+			const translation = content.words[word];
+			expect(translation.trim(), word).not.toBe('');
+			expect(cyrillicLettersIn(translation), word).toEqual([]);
 		}
 	});
 });

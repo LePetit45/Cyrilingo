@@ -1,4 +1,5 @@
 import type { BulgarianLetter } from '../../core/alphabet.js';
+import type { Word } from '../../core/content/corpus.js';
 import type { SectionId } from '../../core/content/types.js';
 import type { Locale } from '../index.js';
 import { fr } from './fr.js';
@@ -27,6 +28,8 @@ export interface LetterText {
 export interface LearningContent {
 	sections: Readonly<Record<SectionId, SectionText>>;
 	letters: Readonly<Record<BulgarianLetter, LetterText>>;
+	/** Translation of every corpus word, shown after a reading answer (spec §5.3). */
+	words: Readonly<Record<Word, string>>;
 }
 
 const catalogs: Record<Locale, LearningContent> = { fr };
