@@ -17,6 +17,7 @@
 	import { m } from '#lib/i18n/index.js';
 	import { playEffect, vibrateWrong } from '../audio/effects.js';
 	import AudioButton from '../AudioButton.svelte';
+	import BottomBar from '../BottomBar.svelte';
 	import Button from '../Button.svelte';
 	import Cyrillic from '../Cyrillic.svelte';
 	import { letterGlyph, phoneticOf, soundChoiceText } from '../letters.js';
@@ -59,8 +60,6 @@
 	let shown = $state(0);
 	let result = $state<Result | undefined>();
 	let typed = $state('');
-	/** Height of the bottom bar, kept free below the question so nothing hides behind it. */
-	let footerHeight = $state(0);
 	let shaking = $state(false);
 	let prompt: HTMLElement | undefined = $state();
 
@@ -93,10 +92,25 @@
 			missedLetters: next.correct ? [] : lettersMissed(question, next.check)
 		};
 		if (app.settings.soundEffects) playEffect(next.correct ? 'correct' : 'wrong');
+		revealAnswer();
 		if (!next.correct) {
 			vibrateWrong();
 			shaking = true;
 		}
+	}
+
+	// The feedback panel covers the bottom of the screen: on short screens, scroll so the answers
+	// end just above it. Two frames let the space kept for the taller panel settle first.
+	function revealAnswer() {
+		requestAnimationFrame(() =>
+			requestAnimationFrame(() => {
+				const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+				window.scrollTo({
+					top: document.documentElement.scrollHeight,
+					behavior: reduce ? 'auto' : 'smooth'
+				});
+			})
+		);
 	}
 
 	function choose(key: string) {
@@ -131,6 +145,7 @@
 		// Move focus to the new question, as the Continue button that had it is gone. A reading
 		// on a desktop focuses its text field instead.
 		await tick();
+		window.scrollTo({ top: 0 });
 		if (
 			currentQuestion(session)?.kind !== 'reading' ||
 			!document.querySelector('#reading-answer')
@@ -188,14 +203,9 @@
 		</section>
 	{/key}
 
-	<div class="footer-space" style:height="{footerHeight}px"></div>
-
-	<!-- Bottom bar across the whole width: the actions, replaced by the feedback once answered. -->
-	<div
-		class={['footer', result && (result.correct ? 'correct' : 'wrong')]}
-		bind:offsetHeight={footerHeight}
-	>
-		{#if result}
+	<!-- The actions, replaced by the feedback once answered. -->
+	{#if result}
+		<BottomBar tone={result.correct ? 'correct' : 'wrong'}>
 			<Feedback
 				{question}
 				correct={result.correct}
@@ -205,19 +215,16 @@
 				{showMnemonics}
 				oncontinue={next}
 			/>
-		{:else}
-			<div class="actions">
-				<Button variant="secondary" class="dont-know" onclick={dontKnow}
-					>{m.question.dontKnow}</Button
+		</BottomBar>
+	{:else}
+		<BottomBar actions>
+			<Button variant="secondary" class="side" onclick={dontKnow}>{m.question.dontKnow}</Button>
+			{#if question.kind === 'reading'}
+				<Button class="grow" disabled={!canCheck} onclick={submitReading}>{m.question.check}</Button
 				>
-				{#if question.kind === 'reading'}
-					<Button class="check" disabled={!canCheck} onclick={submitReading}
-						>{m.question.check}</Button
-					>
-				{/if}
-			</div>
-		{/if}
-	</div>
+			{/if}
+		</BottomBar>
+	{/if}
 {/if}
 
 <style>
@@ -255,6 +262,17 @@
 		font-size: 6rem;
 	}
 
+	/* Short phone screens: more room for the feedback panel. */
+	@media (max-height: 700px) {
+		.shown {
+			min-height: 6rem;
+		}
+
+		.letter {
+			font-size: 4.75rem;
+		}
+	}
+
 	.sound {
 		font-size: 3.25rem;
 		color: var(--color-primary-dark);
@@ -273,81 +291,6 @@
 		/* No in-app keyboard here: the text field stays next to the word. */
 		.input {
 			margin-top: 1rem;
-		}
-	}
-
-	.footer-space {
-		flex: none;
-	}
-
-	.footer {
-		--footer-width: var(--column-width);
-		position: fixed;
-		inset: auto 0 0;
-		z-index: 5;
-		padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom));
-		background: var(--color-bg);
-		border-top: 2px solid var(--color-border);
-	}
-
-	.footer.correct,
-	.footer.wrong {
-		background: var(--color-success-light);
-		border-top-color: transparent;
-		animation: slide-up 220ms cubic-bezier(0.2, 1.2, 0.5, 1);
-	}
-
-	.footer.wrong {
-		background: var(--color-error-light);
-	}
-
-	.actions {
-		display: flex;
-		gap: 0.75rem;
-		max-width: var(--footer-width);
-		margin: 0 auto;
-	}
-
-	.actions :global(.check) {
-		flex: 1;
-	}
-
-	/* Dark text on white reads fine smaller, which keeps « Je ne sais pas » on one line. Alone
-	   (multiple-choice questions answer on tap), it takes the whole width on phones. */
-	.actions :global(.dont-know) {
-		flex: 1;
-		padding-inline: 1rem;
-		font-size: 1rem;
-		white-space: nowrap;
-	}
-
-	.actions :global(.dont-know:not(:only-child)) {
-		flex: none;
-	}
-
-	@media (min-width: 900px) {
-		.footer {
-			--footer-width: 60rem;
-			padding-top: 1.5rem;
-			padding-bottom: 1.5rem;
-		}
-
-		.actions {
-			justify-content: space-between;
-		}
-
-		.actions :global(.check) {
-			flex: 0 0 12rem;
-		}
-
-		.actions :global(.dont-know) {
-			flex: none;
-		}
-	}
-
-	@keyframes slide-up {
-		from {
-			transform: translateY(100%);
 		}
 	}
 
