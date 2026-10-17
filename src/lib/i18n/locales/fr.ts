@@ -108,6 +108,8 @@ export const fr = {
 	review: {
 		title: 'Révision libre',
 		empty: 'Termine au moins une leçon pour pouvoir réviser.',
+		quitTitle: 'Quitter la révision ?',
+		quitMessage: 'Cette révision ne sera pas enregistrée.',
 		backHome: 'Retour au parcours'
 	},
 	exam: {
@@ -118,6 +120,8 @@ export const fr = {
 			'Pas d’indice ni de seconde chance. Il faut au moins 27 bonnes réponses pour réussir.'
 		],
 		start: 'Commencer l’épreuve',
+		quitTitle: 'Abandonner l’épreuve ?',
+		quitMessage: 'Tes réponses à cette épreuve seront perdues.',
 		passedTitle: 'Épreuve réussie !',
 		failedTitle: 'Presque !',
 		score: (correct: number, total: number) => `${correct} / ${total}`,
@@ -132,6 +136,8 @@ export const fr = {
 		awardedTo: 'décerne à',
 		defaultName: 'toi',
 		theTitle: 'le titre de',
+		/** Bulgarian, shown with the Bulgarian letter shapes. */
+		signature: 'Преслав',
 		title: 'Saint-maître absolue du cyrillique',
 		nameLabel: 'Ton prénom (il n’est pas enregistré)',
 		namePlaceholder: 'Ton prénom',
