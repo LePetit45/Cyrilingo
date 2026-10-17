@@ -96,7 +96,7 @@
 		letter-spacing: 0.08em;
 		text-transform: uppercase;
 		text-align: center;
-		color: var(--color-primary);
+		color: var(--color-primary-dark);
 	}
 
 	.glyphs {

@@ -41,7 +41,8 @@
 		gap: 0.5rem;
 		min-height: 3.25rem;
 		padding: 0.75rem 1.5rem;
-		font-size: 1.125rem;
+		/* 19px bold counts as large text for contrast (WCAG: 14pt bold). */
+		font-size: 1.1875rem;
 		font-weight: 800;
 		letter-spacing: 0.02em;
 		text-transform: uppercase;

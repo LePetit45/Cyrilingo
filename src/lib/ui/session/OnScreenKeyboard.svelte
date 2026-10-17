@@ -94,7 +94,7 @@
 	.submit {
 		height: 3.25rem;
 		margin-top: 0.25rem;
-		font-size: 1.125rem;
+		font-size: 1.1875rem;
 		font-weight: 800;
 		text-transform: uppercase;
 		letter-spacing: 0.02em;
