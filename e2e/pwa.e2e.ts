@@ -1,4 +1,5 @@
-import { expect, test, type Response } from '@playwright/test';
+import type { Response } from '@playwright/test';
+import { expect, test } from './test.js';
 import { isSofiaSansCyrillicLoaded } from './fonts.js';
 
 test('works offline once the service worker is installed', async ({ page, context }) => {

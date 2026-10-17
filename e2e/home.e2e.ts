@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './test.js';
 import { isSofiaSansCyrillicLoaded } from './fonts.js';
 import { skipWelcome } from './storage.js';
 
