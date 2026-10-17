@@ -111,8 +111,8 @@ Uppercase + lowercase glyph (Bulgarian shape), **recorded sound** (autoplay), Fr
 - **Case**: whenever possible, letters are shown with **both forms** (e.g. Дд). Words are written in lowercase (Bulgarian shapes), with a capital for proper names.
 - **MCQ distractors**: random letters among those already known, and sometimes deliberately confusable ones (В/B, Н/H, Р/P, С/C, У/Y, Х/X; Ш/Щ, И/Й, Ц/Щ, Ъ/Ь). For letter → sound questions, a trap can also be the Latin reading of a look-alike (Р → « p », lowercase д → « g »). In the first lesson, fewer than 4 letters are known, so the remaining choices are letters from later lessons (they are never read, only offered as wrong answers).
 - A missed question comes back with its choices reshuffled, so it cannot be answered by position.
-- **MCQ validation**: immediate on tap/click. Keys 1–4 select an answer on desktop.
-- **Reading validation**: "Validate" button, or Enter on a physical keyboard.
+- **MCQ validation**: select a choice, then confirm with the **« Vérifier »** button (or Enter). Selecting another choice before confirming changes the selection. Keys 1–4 select a choice on desktop. The button stays inactive until a choice is selected.
+- **Reading validation**: the same **« Vérifier »** button, or Enter on a physical keyboard.
 - **"I don't know"** button on every question: counts as a wrong answer, shows the answer, and the question comes back later (§4.5).
 - Response time is not taken into account.
 
@@ -140,6 +140,7 @@ Uppercase + lowercase glyph (Bulgarian shape), **recorded sound** (autoplay), Fr
 - On a wrong answer, the answer is aligned letter by letter with the accepted variants and the **wrong letters are highlighted**. When the answer is too different to align, the whole expected answer is shown.
 
 #### Feedback
+- Shown in a **colored panel at the bottom of the screen** (green after a right answer, red after a wrong one) that replaces the action buttons, with a button to go on (« Continuer » / « Compris », or Enter). The question stays visible above it, with the right choice in green and the wrong one in red.
 - **After a wrong answer**: correct answer, sound, and a reminder of the letter's mnemonic.
 - **After any reading answer**: French translation of the word, stressed vowel underlined, and audio.
 - **Audio** plays automatically on discovery cards and after each answer; during a question it only plays through a button (otherwise it would give the answer away).
@@ -157,12 +158,13 @@ Uppercase + lowercase glyph (Bulgarian shape), **recorded sound** (autoplay), Fr
 - **Alphabet screen**: each letter is shown as *learned* (its lesson is completed) or *not yet*.
 - **End-of-lesson summary**: score (first-try success rate) and the letters missed during this lesson.
 - No limit on the number of lessons per day.
-- No XP, streaks or badges in the MVP.
+- No XP or badges in the MVP.
+- **No daily streaks, ever**: the app must not pressure learners to come back every day.
 
 ## 7. Screens and navigation
 
 ### 7.1 Screens
-- **Home**: the path (§4.1), a primary **"Continue"** button opening the suggested lesson, and a secondary **"Free review"** button (§4.7).
+- **Home**: a top bar with the number of letters already read (e.g. « 14/30 »), a banner naming the current section, and the path (§4.1). The suggested lesson is the highlighted node with a « Commencer » bubble. Lessons not suggested yet stay tappable (free navigation, §4.2), only styled as not done.
 - **Lesson**: discovery cards → questions → summary.
 - **Free review**.
 - **Final exam** and **Diploma**.
@@ -171,17 +173,20 @@ Uppercase + lowercase glyph (Bulgarian shape), **recorded sound** (autoplay), Fr
 - **About**.
 
 ### 7.2 Navigation
-- Mobile: **bottom tab bar** with *Path / Alphabet / Settings*. It is hidden during a lesson, a free review and the exam.
+- Mobile: **bottom tab bar** with *Path / Alphabet / Free review / More* (« More » holds the settings and the about page). It is hidden during a lesson, a free review and the exam.
 - Leaving a lesson: **✕ button** at the top, with a confirmation: « Ta progression dans cette leçon sera perdue. »
 - **First launch**: a single welcome screen (3 lines of explanation + "Start" button opening lesson 1). No tutorial.
-- **Desktop**: a centered column of about 480 px, same UI as mobile; questions are playable with the keyboard.
+- **Desktop**: the tab bar becomes a **left sidebar** (logo + labelled entries); the path stays in a centered column, with a **right column** showing progress per letter group, a free review card and the final exam card. Lessons, free review and the exam take the whole window (no sidebar), with a centered play area and the feedback panel across the full width. Questions are playable with the keyboard, and the shortcuts (1–4, Enter) are shown on screen.
 
 ## 8. Visual identity and feedback
 
-- **Fun and gamified first.** The UI must feel like a game: bright, saturated colors, big rounded buttons with a pressed effect, chunky readable typography, generous glyph sizes, lively feedback.
-- **Single bright theme** in the MVP; dark mode goes to the backlog.
+- **Fun and gamified first**, inspired by the visual language of Duolingo (not a copy: no name, mascot, proprietary font or exact brand colors taken from it).
+- **Light theme**: white background, light gray 2 px borders, dark gray text. Dark mode goes to the backlog.
+- **Chunky 3D elements**: buttons, path nodes, cards and answer tiles have a darker bottom edge (« lip ») that flattens when pressed. Main buttons are uppercase, bold and letter-spaced.
+- **Colors**: green for the main action and right answers, red for wrong answers, blue for selection and secondary actions, gold for celebrations. Each path section has its own color: Allies green, False friends pink, Greek cousins blue, Newcomers purple. Not-done path nodes are gray.
+- **Typography**: Nunito (rounded, free) for the interface; Sofia Sans for every Cyrillic text (Bulgarian shapes, §3.3, §10).
 - No mascot in the MVP.
-- **Animations**: progress bar, shake on a wrong answer, small celebration on a correct answer, confetti on the diploma. Light vibration on mobile on a wrong answer (where supported).
+- **Animations**: progress bar, bouncing « Commencer » bubble on the suggested lesson, shake on a wrong answer, small celebration on a correct answer, confetti on the diploma. Light vibration on mobile on a wrong answer (where supported).
 - **Sound effects**: discreet correct / wrong sounds, can be turned off in the settings.
 - **Name and icon**: "Cyrilingo" is kept. Until a real logo exists, a fun stylized rendering of the name is used as the icon.
 
@@ -240,7 +245,7 @@ French-only interface for the MVP, but **no hard-coded text in components**: all
 ## 13. Backlog (after MVP)
 - "Real signs" mode: photos of signs, menus, shopfronts to decode.
 - Dictation: hear a word → type it in Cyrillic (Cyrillic layout of the in-app keyboard).
-- Timed mode / daily challenge / XP / streaks / badges.
+- Timed mode / XP / badges.
 - Mascot, illustrated mnemonics, real logo.
 - Dark mode.
 - Export or share the diploma as an image.
@@ -265,7 +270,9 @@ French-only interface for the MVP, but **no hard-coded text in components**: all
 | D10 | Persistence | **Completed lessons + exam passed only** (§6) |
 | D11 | Answer input | **In-app AZERTY keyboard on touch devices**, physical keyboard on desktop (§5.4) |
 | D12 | Content format | **Typed TypeScript data files + invariant tests** (§9) |
-| D13 | Theme | **Single bright, gamified theme**; dark mode later (§8) |
+| D13 | Theme | **Single light, gamified theme** inspired by Duolingo's visual language; dark mode later (§8) |
 | D14 | Rendering | Pages prerendered as shells, **rendered in the browser only** (`ssr = false`): everything shown depends on `localStorage` |
 | D15 | Sound effects | **Synthesized with Web Audio** (no files to download or cache) |
 | D16 | Beta scope | **v0.9.0-beta**: full MVP except recorded voice; not deployed; UI redesign planned after the beta |
+| D17 | Answer confirmation | **Select, then « Vérifier »** for every question; feedback in a bottom panel (§5.3) |
+| D18 | Daily streaks | **Never**: not in the spirit of the app (§6) |
