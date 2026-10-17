@@ -1,4 +1,6 @@
-/* Global styles and design tokens. Single bright, gamified theme for the MVP (spec §8, D13). */
+/* Global styles and design tokens. Single bright, gamified theme for the MVP (spec §8, D13).
+   White text on the saturated colors is kept to large bold text (buttons, titles, glyphs), where
+   they reach the WCAG 3:1 contrast for large text; smaller text uses the dark tokens. */
 
 :root {
 	--color-bg: #fff8ec;
@@ -6,15 +8,15 @@
 	--color-surface-muted: #fdf1dc;
 	--color-text: #1f1b2e;
 	--color-text-muted: #5c566e;
-	--color-primary: #ff5a36;
-	--color-primary-dark: #d43d1c;
+	--color-primary: #f54e28;
+	--color-primary-dark: #c93814;
 	--color-accent: #3a7bff;
 	--color-accent-dark: #2457c9;
 	--color-border: #f0e2c8;
 	--color-border-dark: #dcc9a6;
 
-	--color-success: #22b35e;
-	--color-success-dark: #178a46;
+	--color-success: #1ea555;
+	--color-success-dark: #137a3d;
 	--color-success-light: #dcf8e6;
 	--color-error: #f2433a;
 	--color-error-dark: #c32a22;
@@ -23,10 +25,10 @@
 	--color-gold-dark: #d99a00;
 
 	/* One color per path section (spec §3.2). */
-	--color-allies: #22b35e;
-	--color-allies-dark: #178a46;
-	--color-false-friends: #ff8a1f;
-	--color-false-friends-dark: #d36700;
+	--color-allies: #1ea555;
+	--color-allies-dark: #137a3d;
+	--color-false-friends: #eb6f00;
+	--color-false-friends-dark: #b85600;
 	--color-greek-cousins: #3a7bff;
 	--color-greek-cousins-dark: #2457c9;
 	--color-newcomers: #9b5cff;

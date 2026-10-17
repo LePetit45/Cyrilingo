@@ -85,7 +85,7 @@
 	}
 
 	a.active {
-		color: var(--color-primary);
+		color: var(--color-primary-dark);
 	}
 
 	a.active :global(svg) {

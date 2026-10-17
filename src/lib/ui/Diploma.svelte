@@ -64,7 +64,7 @@
 		font-weight: 900;
 		letter-spacing: 0.12em;
 		text-transform: uppercase;
-		color: var(--color-gold-dark);
+		color: #8a6100;
 	}
 
 	h1 {

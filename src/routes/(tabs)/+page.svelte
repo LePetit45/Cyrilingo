@@ -62,10 +62,8 @@
 	<h2 class="visually-hidden">{m.home.title}</h2>
 	{#each sections as section (section.id)}
 		<section class="section {section.id}" aria-labelledby="section-{section.id}">
-			<div class="banner">
-				<h3 id="section-{section.id}">{content.sections[section.id].title}</h3>
-				<p>{content.sections[section.id].intro}</p>
-			</div>
+			<h3 class="banner" id="section-{section.id}">{content.sections[section.id].title}</h3>
+			<p class="intro">{content.sections[section.id].intro}</p>
 			<ol class="trail">
 				{#each section.lessons as { lesson, number } (lesson.id)}
 					{@const state = lessonState(app.progress, lesson.id)}
@@ -155,22 +153,20 @@
 	}
 
 	.banner {
-		padding: 1rem 1.25rem;
+		margin: 0;
+		padding: 0.875rem 1.25rem;
+		font-size: 1.375rem;
 		color: #fff;
 		background: var(--section);
 		border-radius: var(--radius-lg);
 		box-shadow: 0 5px 0 var(--section-dark);
 	}
 
-	.banner h3 {
-		margin: 0 0 0.25rem;
-		font-size: 1.375rem;
-	}
-
-	.banner p {
-		margin: 0;
+	.intro {
+		margin: 0.75rem 0.25rem 0;
 		font-size: 1rem;
 		line-height: 1.4;
+		color: var(--color-text-muted);
 	}
 
 	.trail {
