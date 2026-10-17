@@ -4,5 +4,7 @@
 		"strict": true,
 		"types": ["$app/types", "node"]
 	},
-	"include": ["src", "e2e", "vite.config.ts", "playwright.config.ts"]
+	"include": ["src", "e2e", "vite.config.ts", "playwright.config.ts"],
+	// The service worker has its own tsconfig (WebWorker types instead of DOM).
+	"exclude": ["src/service-worker"]
 }
