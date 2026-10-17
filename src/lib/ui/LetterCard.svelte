@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
 	import { toLowercase, type BulgarianLetter } from '#lib/core/alphabet.js';
 	import { CARD_EXAMPLES } from '#lib/core/content/corpus.js';
 	import { LETTERS } from '#lib/core/content/letters.js';
@@ -11,9 +12,13 @@
 
 	// Letter discovery card (spec §5.1): glyphs, sound, both transliterations, examples and notes.
 	// Used in lessons and on the alphabet screen. The mnemonic shows up after a wrong answer.
-	// The eyebrow can be left out where the screen already says it (« Lettre 1 sur 3 » in lessons).
-	let { letter, eyebrow = m.card.letter }: { letter: BulgarianLetter; eyebrow?: string | null } =
-		$props();
+	// The eyebrow can be left out where the screen already says it (« Lettre 1 sur 3 » in lessons),
+	// or replaced by a header of the screen's own (the alphabet window's ✕ and learned state).
+	let {
+		letter,
+		eyebrow = m.card.letter,
+		header
+	}: { letter: BulgarianLetter; eyebrow?: string | null; header?: Snippet } = $props();
 
 	const data = $derived(LETTERS[letter]);
 	const text = $derived(content.letters[letter]);
@@ -22,7 +27,11 @@
 </script>
 
 <article class="card" aria-labelledby="card-{letter}">
-	{#if eyebrow}<p class="eyebrow">{eyebrow}</p>{/if}
+	{#if header}
+		{@render header()}
+	{:else if eyebrow}
+		<p class="eyebrow">{eyebrow}</p>
+	{/if}
 	<h2 id="card-{letter}" class="glyphs">
 		<Cyrillic>{letter}</Cyrillic>
 		<Cyrillic>{lower}</Cyrillic>

@@ -1,15 +1,15 @@
 <script lang="ts">
 	import { BULGARIAN_ALPHABET, toLowercase, type BulgarianLetter } from '#lib/core/alphabet.js';
-	import { lessonIntroducing } from '#lib/core/content/course.js';
 	import { isLetterLearned } from '#lib/core/progress.js';
 	import { m } from '#lib/i18n/index.js';
 	import Cyrillic from '#lib/ui/Cyrillic.svelte';
 	import Icon from '#lib/ui/Icon.svelte';
 	import LetterCard from '#lib/ui/LetterCard.svelte';
+	import ProgressBar from '#lib/ui/ProgressBar.svelte';
 	import { app } from '#lib/ui/state/app.svelte.js';
 
-	// The 30 letters, learned (their lesson is completed) or not yet (spec §6, §7.1). Any letter
-	// opens its discovery card, learned or not (free navigation, spec §4.2).
+	// The 30 letters, learned (their lesson is completed, in green) or not yet (in white) (spec §6,
+	// §7.1). Any letter opens its discovery card, learned or not (free navigation, spec §4.2).
 	const learnedCount = $derived(
 		BULGARIAN_ALPHABET.filter((letter) => isLetterLearned(app.progress, letter)).length
 	);
@@ -28,7 +28,10 @@
 </svelte:head>
 
 <h1>{m.alphabet.title}</h1>
-<p class="count">{m.alphabet.learnedCount(learnedCount, BULGARIAN_ALPHABET.length)}</p>
+<div class="progress">
+	<p class="count">{m.alphabet.learnedCount(learnedCount, BULGARIAN_ALPHABET.length)}</p>
+	<ProgressBar value={learnedCount / BULGARIAN_ALPHABET.length} />
+</div>
 
 <ul class="grid">
 	{#each BULGARIAN_ALPHABET as letter (letter)}
@@ -36,13 +39,11 @@
 		<li>
 			<button
 				type="button"
-				class={['letter', lessonIntroducing(letter).section, { learned }]}
+				class={['letter', { learned }]}
 				onclick={() => open(letter)}
 				aria-label="{letter}, {learned ? m.alphabet.learned : m.alphabet.notLearned}"
 			>
 				<Cyrillic>{letter}{toLowercase(letter)}</Cyrillic>
-				{#if learned}<span class="check" aria-hidden="true"><Icon name="check" size={14} /></span
-					>{/if}
 			</button>
 		</li>
 	{/each}
@@ -57,10 +58,25 @@
 	}}
 >
 	{#if selected}
-		<button type="button" class="close" aria-label={m.common.close} onclick={() => dialog?.close()}>
-			<Icon name="close" size={26} />
-		</button>
-		<LetterCard letter={selected} />
+		{@const learned = isLetterLearned(app.progress, selected)}
+		<LetterCard letter={selected}>
+			{#snippet header()}
+				<div class="card-header">
+					<button
+						type="button"
+						class="close"
+						aria-label={m.common.close}
+						onclick={() => dialog?.close()}
+					>
+						<Icon name="close" size={28} />
+					</button>
+					<p class={['status', { learned }]}>
+						{#if learned}<Icon name="check" size={18} />{/if}
+						{learned ? m.alphabet.learned : m.alphabet.notLearned}
+					</p>
+				</div>
+			{/snippet}
+		</LetterCard>
 	{/if}
 </dialog>
 
@@ -70,8 +86,14 @@
 		font-size: 2rem;
 	}
 
+	.progress {
+		display: grid;
+		gap: 0.5rem;
+		margin: 0.25rem 0 1.5rem;
+	}
+
 	.count {
-		margin: 0.25rem 0 1.25rem;
+		margin: 0;
 		font-weight: 700;
 		color: var(--color-text-muted);
 	}
@@ -79,17 +101,13 @@
 	.grid {
 		display: grid;
 		grid-template-columns: repeat(5, 1fr);
-		gap: 0.5rem;
+		gap: 0.625rem;
 		margin: 0;
 		padding: 0;
 		list-style: none;
 	}
 
 	.letter {
-		--section: var(--color-allies);
-		--section-dark: var(--color-allies-dark);
-
-		position: relative;
 		display: grid;
 		place-items: center;
 		width: 100%;
@@ -111,43 +129,19 @@
 		box-shadow: 0 1px 0 var(--color-border-dark);
 	}
 
-	.falseFriends {
-		--section: var(--color-false-friends);
-		--section-dark: var(--color-false-friends-dark);
-	}
-
-	.greekCousins {
-		--section: var(--color-greek-cousins);
-		--section-dark: var(--color-greek-cousins-dark);
-	}
-
-	.newcomers {
-		--section: var(--color-newcomers);
-		--section-dark: var(--color-newcomers-dark);
-	}
-
 	.letter.learned {
 		color: #fff;
-		background: var(--section);
-		border-color: var(--section-dark);
-		box-shadow: 0 4px 0 var(--section-dark);
+		background: var(--color-primary);
+		border-color: var(--color-primary-dark);
+		box-shadow: 0 4px 0 var(--color-primary-dark);
 	}
 
-	.check {
-		position: absolute;
-		top: 0.25rem;
-		right: 0.25rem;
-		display: grid;
-		place-items: center;
-		width: 1.125rem;
-		height: 1.125rem;
-		color: var(--section-dark);
-		background: #fff;
-		border-radius: 50%;
+	.letter.learned:active {
+		box-shadow: 0 1px 0 var(--color-primary-dark);
 	}
 
 	dialog {
-		width: min(calc(100% - 1.5rem), var(--column-width));
+		width: min(calc(100% - 1.5rem), 28rem);
 		max-height: calc(100dvh - 2rem);
 		padding: 0;
 		overflow-y: auto;
@@ -163,20 +157,47 @@
 		background: rgb(31 27 46 / 0.5);
 	}
 
+	/* Same layout as the lesson header: ✕ on the left, the label centered on the card. */
+	.card-header {
+		display: flex;
+		align-items: center;
+		margin: -0.5rem -0.75rem 0;
+	}
+
 	.close {
-		position: sticky;
-		top: 0.5rem;
-		z-index: 1;
 		display: grid;
+		flex: none;
 		place-items: center;
 		width: 2.75rem;
 		height: 2.75rem;
-		margin: 0.5rem 0.5rem -3.25rem auto;
+		padding: 0;
 		color: var(--color-text-muted);
-		background: var(--color-surface);
-		border: 2px solid var(--color-border);
+		background: none;
+		border: none;
 		border-radius: 50%;
 		cursor: pointer;
+	}
+
+	.close:hover {
+		background: var(--color-surface-muted);
+	}
+
+	.status {
+		display: flex;
+		flex: 1;
+		align-items: center;
+		justify-content: center;
+		gap: 0.25rem;
+		margin: 0 2.75rem 0 0;
+		font-size: 0.875rem;
+		font-weight: 900;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--color-text-muted);
+	}
+
+	.status.learned {
+		color: var(--color-primary-dark);
 	}
 
 	@keyframes rise {
