@@ -5,6 +5,7 @@
 	import { suggestedLesson } from '#lib/core/progress.js';
 	import { m } from '#lib/i18n/index.js';
 	import { playEffect } from '#lib/ui/audio/effects.js';
+	import BottomBar from '#lib/ui/BottomBar.svelte';
 	import Button from '#lib/ui/Button.svelte';
 	import LetterCard from '#lib/ui/LetterCard.svelte';
 	import SessionHeader from '#lib/ui/session/SessionHeader.svelte';
@@ -66,15 +67,15 @@
 				<LetterCard letter={data.lesson.letters[index]} eyebrow={null} />
 			</div>
 		{/key}
-		<div class="next">
+		<BottomBar actions>
 			<Button
-				wide
+				class="grow"
 				variant={last ? 'success' : 'primary'}
 				onclick={() => (phase = last ? { name: 'play' } : { name: 'cards', index: index + 1 })}
 			>
 				{last ? m.card.start : m.card.next}
 			</Button>
-		</div>
+		</BottomBar>
 	</div>
 {:else if phase.name === 'play'}
 	{#key run}
@@ -84,6 +85,7 @@
 	<SessionSummary
 		title={m.summary.lessonTitle}
 		summary={phase.summary}
+		newLetters={data.lesson.letters}
 		{nextHref}
 		onreplay={replay}
 	/>
@@ -103,17 +105,6 @@
 		max-width: 28rem;
 		margin: auto;
 		animation: enter 260ms ease-out;
-	}
-
-	/* Bottom bar like the one of the questions, with room below the button for the browser's
-	   own toolbar. */
-	.next {
-		position: sticky;
-		bottom: 0;
-		margin: 0 -1rem calc(-1rem - env(safe-area-inset-bottom));
-		padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom));
-		background: var(--color-bg);
-		border-top: 2px solid var(--color-border);
 	}
 
 	@keyframes enter {

@@ -30,6 +30,8 @@
 	--color-gold: #ffc21a;
 	--color-gold-dark: #d99e00;
 	--color-gold-light: #fff5d6;
+	/* Gold text, dark enough to read on white. */
+	--color-gold-ink: #8a6100;
 
 	/* One color per path section (spec §3.2, §8). */
 	--color-allies: #43a00e;

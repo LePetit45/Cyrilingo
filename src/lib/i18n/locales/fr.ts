@@ -102,7 +102,10 @@ export const fr = {
 	summary: {
 		lessonTitle: 'Leçon terminée !',
 		reviewTitle: 'Révision terminée !',
-		firstTry: 'Réussi du premier coup',
+		firstTry: 'Du premier coup',
+		lettersRead: 'Lettres lues',
+		newLetters: (count: number) => `Tu sais lire ${count} nouvelles lettres de plus.`,
+		learned: 'Lettres apprises',
 		missed: 'Lettres à revoir',
 		noMiss: 'Aucune erreur, chapeau !',
 		next: 'Continuer',
