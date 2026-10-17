@@ -17,5 +17,7 @@
 		min-height: 100dvh;
 		margin: 0 auto;
 		padding: 0.75rem 1rem calc(1rem + env(safe-area-inset-bottom));
+		/* The answer feedback slides in from below: it must not stretch the page while it does. */
+		overflow: clip;
 	}
 </style>

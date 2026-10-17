@@ -43,10 +43,11 @@
 	const reminders = $derived(correct || !showMnemonics ? [] : missedLetters.slice(0, 2));
 
 	// Focus Continue, so Enter (or Space) moves on with the button's own behavior and keyboard
-	// users land on the next action.
+	// users land on the next action. Without scrolling: the panel is still sliding in from below
+	// the screen, and the browser would scroll the page down to the button, then snap it back.
 	let continueArea: HTMLElement | undefined = $state();
 	$effect(() => {
-		continueArea?.querySelector('button')?.focus();
+		continueArea?.querySelector('button')?.focus({ preventScroll: true });
 	});
 </script>
 
