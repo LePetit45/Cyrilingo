@@ -35,7 +35,7 @@ export async function typeAnswer(page: Page, answer: string) {
 		return;
 	}
 	for (const key of answer) await keyboard.getByRole('button', { name: key, exact: true }).click();
-	await keyboard.getByRole('button', { name: 'Valider' }).click();
+	await page.getByRole('button', { name: 'Vérifier' }).click();
 }
 
 /** Answers the current question correctly, then continues. */

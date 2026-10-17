@@ -7,6 +7,7 @@
 	import AudioButton from '../AudioButton.svelte';
 	import Button from '../Button.svelte';
 	import Cyrillic from '../Cyrillic.svelte';
+	import Icon from '../Icon.svelte';
 	import {
 		letterGlyph,
 		officialOf,
@@ -17,8 +18,9 @@
 	} from '../letters.js';
 	import StressedWord from '../StressedWord.svelte';
 
-	// Shown after each answer (spec §5.3): the right answer, the wrong letters, a mnemonic reminder
-	// (not during the exam) and, after a reading, the translation with the stressed vowel.
+	// Colored panel at the bottom of the screen after each answer (spec §5.3): the right answer, the
+	// wrong letters, a mnemonic reminder (not during the exam) and, after a reading, the translation
+	// with the stressed vowel.
 	let {
 		question,
 		correct,
@@ -52,56 +54,70 @@
 </script>
 
 <section class={['feedback', correct ? 'correct' : 'wrong']} aria-labelledby="feedback-title">
-	<p class="title" id="feedback-title">{title}</p>
+	<div class="details">
+		<p class="title" id="feedback-title">
+			<span class="verdict-icon" aria-hidden="true"
+				><Icon name={correct ? 'check' : 'close'} size={20} /></span
+			>{title}
+		</p>
 
-	{#if question.kind === 'reading'}
-		<div class="reading">
-			<StressedWord reading={question.reading} />
-			<AudioButton name={question.reading} autoplay />
-		</div>
-		{#if !correct}
+		{#if question.kind === 'reading'}
+			<div class="reading">
+				<StressedWord reading={question.reading} />
+				<AudioButton name={question.reading} autoplay />
+			</div>
+			{#if !correct}
+				<p class="answer">
+					{m.feedback.answer}
+					<strong>{phoneticReading(question.reading)}</strong>
+					{#if officialTransliteration(question.reading) !== phoneticReading(question.reading)}
+						<span class="official">({officialTransliteration(question.reading)})</span>
+					{/if}
+				</p>
+				{#if check?.letters}
+					<p class="typed">
+						{m.feedback.yourAnswer}
+						<span class="segments"
+							>{#each check.letters as letter, index (index)}<span
+									class={['segment', { wrong: !letter.correct }]}>{letter.typed || '_'}</span
+								>{/each}</span
+						>
+					</p>
+				{/if}
+			{/if}
+			{#if translationOf(question.reading)}
+				<p class="meaning">{m.feedback.meaning} {translationOf(question.reading)}</p>
+			{/if}
+		{:else if !correct}
 			<p class="answer">
-				{m.feedback.answer}
-				<strong>{phoneticReading(question.reading)}</strong>
-				{#if officialTransliteration(question.reading) !== phoneticReading(question.reading)}
-					<span class="official">({officialTransliteration(question.reading)})</span>
+				<Cyrillic class="glyph">{letterGlyph(question.letter)}</Cyrillic>
+				→ <strong>« {phoneticOf(question.letter)} »</strong>
+				{#if officialOf(question.letter) !== phoneticOf(question.letter)}
+					<span class="official">({officialOf(question.letter)})</span>
 				{/if}
 			</p>
-			{#if check?.letters}
-				<p class="typed">
-					{m.feedback.yourAnswer}
-					<span class="segments"
-						>{#each check.letters as letter, index (index)}<span
-								class={['segment', { wrong: !letter.correct }]}>{letter.typed || '_'}</span
-							>{/each}</span
-					>
-				</p>
-			{/if}
 		{/if}
-		{#if translationOf(question.reading)}
-			<p class="meaning">{m.feedback.meaning} {translationOf(question.reading)}</p>
-		{/if}
-	{:else if !correct}
-		<p class="answer">
-			<Cyrillic class="glyph">{letterGlyph(question.letter)}</Cyrillic>
-			→ <strong>« {phoneticOf(question.letter)} »</strong>
-			{#if officialOf(question.letter) !== phoneticOf(question.letter)}
-				<span class="official">({officialOf(question.letter)})</span>
-			{/if}
-		</p>
-	{/if}
 
-	{#each reminders as letter (letter)}
-		<p class="reminder">
-			<span class="reminder-label">{m.feedback.reminder}</span>
-			<Cyrillic class="glyph">{letterGlyph(letter)}</Cyrillic>
-			{content.letters[letter].emoji ?? ''}
-			{content.letters[letter].mnemonic}
-		</p>
-	{/each}
+		{#each reminders as letter (letter)}
+			<p class="reminder">
+				<span class="reminder-label">{m.feedback.reminder}</span>
+				<Cyrillic class="glyph">{letterGlyph(letter)}</Cyrillic>
+				{content.letters[letter].emoji ?? ''}
+				{content.letters[letter].mnemonic}
+			</p>
+		{/each}
+	</div>
 
 	<div class="continue" bind:this={continueArea}>
-		<Button variant={correct ? 'success' : 'danger'} wide onclick={oncontinue}>
+		<!-- The second click of a double click on « Vérifier », which sat here, must not skip the
+		     feedback. -->
+		<Button
+			variant={correct ? 'success' : 'danger'}
+			wide
+			onclick={(event) => {
+				if (event.detail <= 1) oncontinue();
+			}}
+		>
 			{m.common.continue}
 		</Button>
 	</div>
@@ -110,25 +126,21 @@
 <style>
 	.feedback {
 		--tone: var(--color-success-dark);
-		--tone-bg: var(--color-success-light);
 
 		display: grid;
-		gap: 0.5rem;
-		position: sticky;
-		bottom: 0;
-		z-index: 1;
-		margin: 1rem -1rem calc(-1rem - env(safe-area-inset-bottom));
-		padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom));
+		gap: 0.875rem;
+		max-width: var(--footer-width);
+		margin: 0 auto;
 		color: var(--tone);
-		background: var(--tone-bg);
-		border-top: 3px solid currentColor;
-		border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-		animation: slide-up 220ms cubic-bezier(0.2, 1.2, 0.5, 1);
 	}
 
 	.wrong {
 		--tone: var(--color-error-dark);
-		--tone-bg: var(--color-error-light);
+	}
+
+	.details {
+		display: grid;
+		gap: 0.5rem;
 	}
 
 	p {
@@ -136,8 +148,21 @@
 	}
 
 	.title {
+		display: flex;
+		align-items: center;
+		gap: 0.625rem;
 		font-size: 1.5rem;
 		font-weight: 900;
+	}
+
+	.verdict-icon {
+		display: grid;
+		flex: none;
+		place-items: center;
+		width: 2rem;
+		height: 2rem;
+		background: var(--color-surface);
+		border-radius: 50%;
 	}
 
 	.reading {
@@ -199,13 +224,15 @@
 		color: var(--color-text-muted);
 	}
 
-	.continue {
-		margin-top: 0.5rem;
-	}
+	@media (min-width: 900px) {
+		.feedback {
+			grid-template-columns: 1fr auto;
+			align-items: center;
+			gap: 2rem;
+		}
 
-	@keyframes slide-up {
-		from {
-			transform: translateY(100%);
+		.continue {
+			min-width: 12rem;
 		}
 	}
 </style>

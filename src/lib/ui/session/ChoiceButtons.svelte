@@ -11,8 +11,8 @@
 	import Cyrillic from '../Cyrillic.svelte';
 	import { isShortcutBlocked } from '../keyboard.js';
 
-	// The 4 answers of a multiple-choice question (spec §5.2). Validated as soon as one is picked,
-	// by tap, click or keys 1–4 (spec §5.3).
+	// The 4 answers of a multiple-choice question (spec §5.2). Checked as soon as one is picked, by
+	// tap, click or keys 1–4 (spec §5.3).
 	let {
 		choices,
 		correctKey,
@@ -77,6 +77,12 @@
 		margin: 0;
 		padding: 0;
 		list-style: none;
+	}
+
+	@media (min-width: 900px) {
+		.choices {
+			grid-template-columns: repeat(4, 1fr);
+		}
 	}
 
 	.choice {
