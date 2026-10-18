@@ -16,11 +16,11 @@
 		phoneticReading,
 		translationOf
 	} from '../letters.js';
-	import StressedWord from '../StressedWord.svelte';
+	import HighlightedReading from '../HighlightedReading.svelte';
 
 	// Colored panel at the bottom of the screen after each answer (spec §5.3): the right answer, the
-	// wrong letters, a mnemonic reminder (not during the exam) and, after a reading, the translation
-	// with the stressed vowel.
+	// wrong letters, a mnemonic reminder (not during the exam) and, after a reading, the word with the
+	// letter being learned underlined, and its translation.
 	let {
 		question,
 		correct,
@@ -63,7 +63,7 @@
 
 		{#if question.kind === 'reading'}
 			<div class="reading">
-				<StressedWord reading={question.reading} />
+				<HighlightedReading reading={question.reading} letter={question.letter} />
 				<AudioButton name={question.reading} autoplay />
 			</div>
 			{#if !correct}

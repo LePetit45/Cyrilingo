@@ -8,7 +8,7 @@
 	import AudioButton from './AudioButton.svelte';
 	import Cyrillic from './Cyrillic.svelte';
 	import { officialOf, phoneticOf, phoneticReading, translationOf } from './letters.js';
-	import StressedWord from './StressedWord.svelte';
+	import HighlightedReading from './HighlightedReading.svelte';
 
 	// Letter discovery card (spec §5.1): glyphs, sound, both transliterations, examples and notes.
 	// Used in lessons and on the alphabet screen. The mnemonic shows up after a wrong answer.
@@ -57,7 +57,7 @@
 		<ul class="examples">
 			{#each CARD_EXAMPLES[letter] as word (word)}
 				<li>
-					<StressedWord reading={word} />
+					<HighlightedReading reading={word} {letter} />
 					<span class="translit">{phoneticReading(word)}</span>
 					<span class="translation">{translationOf(word)}</span>
 				</li>

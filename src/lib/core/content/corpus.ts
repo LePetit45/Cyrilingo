@@ -1,7 +1,10 @@
 import type { BulgarianLetter } from '../alphabet.js';
 
 export interface WordData {
-	/** Index of the stressed vowel in the word, underlined in reading feedback (spec §5.3, §9). */
+	/**
+	 * Index of the stressed vowel in the word (spec §9). Not shown on screen, where the audio carries
+	 * the stress (spec §5.3), but kept to check the generated recordings.
+	 */
 	stress: number;
 }
 
