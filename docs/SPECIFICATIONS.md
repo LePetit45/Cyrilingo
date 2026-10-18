@@ -1,6 +1,6 @@
 # Cyrilingo — Specifications
 
-> Status: **v0.4**, implemented as the **v0.10.0-beta** (redesigned UI, §8). Live at https://cyrilingo.pages.dev. Recordings generated with Azure Speech (§10.1). Remaining open item: review of the drafted content by the project owner (§9).
+> Status: **v0.4**, implemented as **v1.0.0**. Live at https://cyrilingo.pages.dev. Recordings generated with Azure Speech (§10.1). Remaining open item: review of the drafted content by the project owner (§9).
 
 ## 1. Vision
 

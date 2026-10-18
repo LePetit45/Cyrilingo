@@ -1,7 +1,7 @@
 {
 	"name": "cyrilingo",
 	"private": true,
-	"version": "0.10.0-beta",
+	"version": "1.0.0",
 	"description": "Learn to read the Bulgarian Cyrillic alphabet.",
 	"type": "module",
 	"engines": {
