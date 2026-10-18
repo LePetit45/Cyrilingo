@@ -1,6 +1,6 @@
 # Cyrilingo — Specifications
 
-> Status: **v0.4**, implemented as the **v0.9.0-beta**. Remaining open items: audio provider (§10.1, the beta ships without recordings), review of the drafted content by the project owner (§9), UI redesign after the beta.
+> Status: **v0.4**, implemented as the **v0.10.0-beta** (redesigned UI, §8). Remaining open items: deployment on Cloudflare Pages (§10), audio provider (§10.1, no recordings yet), review of the drafted content by the project owner (§9).
 
 ## 1. Vision
 
