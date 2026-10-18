@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Question } from '#lib/core/engine/questions.js';
-	import type { ReadingCheck } from '#lib/core/reading.js';
+	import { answerRuns, type ReadingCheck } from '#lib/core/reading.js';
 	import { m } from '#lib/i18n/index.js';
 	import AudioButton from '../AudioButton.svelte';
 	import Button from '../Button.svelte';
@@ -70,9 +70,9 @@
 				{#if check?.letters}
 					<p class="typed">
 						{m.feedback.yourAnswer}
-						<span class="segments"
-							>{#each check.letters as letter, index (index)}<span
-									class={['segment', { wrong: !letter.correct }]}>{letter.typed || '_'}</span
+						<span class="runs"
+							>{#each answerRuns(check.letters) as run, index (index)}<span
+									class={['run', { wrong: !run.correct, missing: !run.text }]}>{run.text}</span
 								>{/each}</span
 						>
 					</p>
@@ -179,16 +179,26 @@
 		font-weight: 900;
 	}
 
-	.segments {
+	.runs {
 		font-weight: 800;
 		letter-spacing: 0.02em;
 	}
 
-	.segment.wrong {
-		padding: 0 0.1em;
+	.run.wrong {
+		padding: 0 0.15em;
+		margin: 0 0.05em;
 		color: #fff;
 		background: var(--color-error);
 		border-radius: 4px;
+	}
+
+	/* Letters left out: a narrow empty mark where they belong. */
+	.run.missing {
+		display: inline-block;
+		width: 0.5em;
+		height: 1em;
+		padding: 0;
+		vertical-align: -0.15em;
 	}
 
 	@media (min-width: 900px) {
