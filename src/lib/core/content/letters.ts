@@ -7,7 +7,8 @@ import type { LetterData } from './types.js';
  * transliterations can be mixed within one word.
  *
  * `distinctBulgarianLowercase` matches the letters Sofia Sans draws differently under its Russian
- * `locl` substitutions: Bulgarian shapes are the font's defaults.
+ * `locl` substitutions: Bulgarian shapes are the font's defaults. л is not flagged: the app
+ * shows its standard shape (see scripts/fonts/patch-sofia-sans.py).
  */
 export const LETTERS: Readonly<Record<BulgarianLetter, LetterData>> = {
 	А: { official: 'a', accepted: ['a'], distinctBulgarianLowercase: false },
@@ -21,7 +22,7 @@ export const LETTERS: Readonly<Record<BulgarianLetter, LetterData>> = {
 	И: { official: 'i', accepted: ['i'], distinctBulgarianLowercase: true },
 	Й: { official: 'y', accepted: ['y', 'i'], distinctBulgarianLowercase: true },
 	К: { official: 'k', accepted: ['k'], distinctBulgarianLowercase: true },
-	Л: { official: 'l', accepted: ['l'], distinctBulgarianLowercase: true },
+	Л: { official: 'l', accepted: ['l'], distinctBulgarianLowercase: false },
 	М: { official: 'm', accepted: ['m'], distinctBulgarianLowercase: false },
 	Н: { official: 'n', accepted: ['n'], distinctBulgarianLowercase: false },
 	О: { official: 'o', accepted: ['o'], distinctBulgarianLowercase: false },
