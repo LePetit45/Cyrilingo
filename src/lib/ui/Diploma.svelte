@@ -46,7 +46,7 @@
 		gap: 0.375rem;
 		padding: 2rem 1.25rem 1.5rem;
 		text-align: center;
-		background: radial-gradient(circle at 50% 0%, #fffdf5, #fff1c9);
+		background: var(--color-gold-light);
 		border: 3px solid var(--color-gold);
 		outline: 2px solid var(--color-gold);
 		outline-offset: -10px;
@@ -114,7 +114,7 @@
 		background: var(--color-error);
 		border-radius: 50%;
 		box-shadow:
-			0 0 0 4px #ffb4ae,
+			0 0 0 4px var(--color-error-light),
 			0 4px 0 4px var(--color-error-dark);
 		transform: rotate(-12deg);
 	}
