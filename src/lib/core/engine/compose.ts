@@ -6,6 +6,7 @@ import { pick, shuffle, type Random } from '../random.js';
 import { lettersIn } from '../reading.js';
 import {
 	letterToSound,
+	pickReading,
 	readingFor,
 	soundToLetter,
 	type Question,
@@ -21,26 +22,42 @@ export const EXAM_QUESTION_COUNT = BULGARIAN_ALPHABET.length;
 /** Reading questions in the final exam: a majority (spec §4.6). */
 export const EXAM_READING_COUNT = 16;
 
-/** The questions of a lesson, in play order (spec §4.3). Discovery cards come before them. */
+/** Readings mixing new and previously learned letters in a lesson (spec §4.3, step 3). */
+export const MIXED_READING_COUNT = 3;
+
+/**
+ * The questions of a lesson, in play order (spec §4.3). Discovery cards come before them. Its
+ * readings are drawn at random from the corpus, so replaying a lesson shows other words.
+ */
 export function composeLesson(lessonId: string, random: Random): Question[] {
 	const lesson = getLesson(lessonId);
 	const known = lettersKnownIn(lessonId);
-	const used: Reading[] = [...lesson.letterReadings, ...lesson.mixedReadings];
+	const used: Reading[] = [];
 
 	// Step 2: every new letter goes through the three exercise types.
-	const newLetters = lesson.letters.flatMap((letter, index): Question[] => [
+	const newLetters = lesson.letters.flatMap((letter): Question[] => [
 		letterToSound(letter, known, random),
 		soundToLetter(letter, known, random),
-		{ kind: 'reading', reading: lesson.letterReadings[index], letter }
+		questionFor(letter, 'reading', known, used, random)
 	]);
-	// Step 3: readings mixing new and previously learned letters.
-	const mixed = lesson.mixedReadings.map((reading): Question => ({ kind: 'reading', reading }));
+	// Step 3: readings mixing new and previously learned letters (only new ones in lesson 1).
+	const isNew = (letter: BulgarianLetter) => lesson.letters.includes(letter);
+	const isMixed = (reading: Reading) =>
+		lettersIn(reading).some(isNew) &&
+		(known.length === lesson.letters.length || !lettersIn(reading).every(isNew));
+	const mixed: Question[] = [];
+	for (let i = 0; i < MIXED_READING_COUNT; i++) {
+		const reading = pickReading(isMixed, known, used, random);
+		if (!reading) break;
+		used.push(reading);
+		mixed.push({ kind: 'reading', reading });
+	}
 	// Step 4: review of earlier letters.
 	const review = reviewLetters(lessonId, random).map((letter) =>
 		questionFor(letter, randomKind(random), known, used, random)
 	);
 
-	return [...spread(newLetters, random), ...shuffle(mixed, random), ...shuffle(review, random)];
+	return [...spread(newLetters, random), ...mixed, ...shuffle(review, random)];
 }
 
 /**

@@ -12,73 +12,53 @@ export const LESSONS: readonly Lesson[] = [
 	{
 		id: 'l1',
 		section: 'allies',
-		letters: ['А', 'Т', 'М'],
-		letterReadings: ['ам', 'тата', 'мама'],
-		mixedReadings: ['там', 'мат', 'та']
+		letters: ['А', 'Т', 'М']
 	},
 	{
 		id: 'l2',
 		section: 'allies',
-		letters: ['Е', 'О', 'К'],
-		letterReadings: ['ето', 'атом', 'котка'],
-		mixedReadings: ['комета', 'тема', 'така']
+		letters: ['Е', 'О', 'К']
 	},
 	{
 		id: 'l3',
 		section: 'falseFriends',
-		letters: ['Н', 'С', 'Р'],
-		letterReadings: ['нос', 'маса', 'море'],
-		mixedReadings: ['ресторант', 'сестра', 'метро']
+		letters: ['Н', 'С', 'Р']
 	},
 	{
 		id: 'l4',
 		section: 'falseFriends',
-		letters: ['В', 'У', 'Х'],
-		letterReadings: ['Варна', 'тук', 'ехо'],
-		mixedReadings: ['Москва', 'утро', 'муха']
+		letters: ['В', 'У', 'Х']
 	},
 	{
 		id: 'l5',
 		section: 'greekCousins',
-		letters: ['И', 'Д', 'Л'],
-		letterReadings: ['кино', 'вода', 'лимон'],
-		mixedReadings: ['хотел', 'такси', 'сирене']
+		letters: ['И', 'Д', 'Л']
 	},
 	{
 		id: 'l6',
 		section: 'greekCousins',
-		letters: ['П', 'З', 'Б'],
-		letterReadings: ['парк', 'зима', 'бира'],
-		mixedReadings: ['паспорт', 'банан', 'автобус']
+		letters: ['П', 'З', 'Б']
 	},
 	{
 		id: 'l7',
 		section: 'greekCousins',
-		letters: ['Г', 'Й', 'Ф'],
-		letterReadings: ['много', 'трамвай', 'кафе'],
-		mixedReadings: ['телефон', 'футбол', 'гара']
+		letters: ['Г', 'Й', 'Ф']
 	},
 	{
 		id: 'l8',
 		section: 'newcomers',
-		letters: ['Ъ', 'Я', 'Ч'],
-		letterReadings: ['път', 'мляко', 'чай'],
-		mixedReadings: ['България', 'човек', 'театър']
+		letters: ['Ъ', 'Я', 'Ч']
 	},
 	// Щ is introduced right after Ш, as Ш + т.
 	{
 		id: 'l9',
 		section: 'newcomers',
-		letters: ['Ш', 'Ж', 'Щ'],
-		letterReadings: ['шапка', 'жена', 'още'],
-		mixedReadings: ['шоколад', 'къща', 'плаж']
+		letters: ['Ш', 'Ж', 'Щ']
 	},
 	{
 		id: 'l10',
 		section: 'newcomers',
-		letters: ['Ц', 'Ю', 'Ь'],
-		letterReadings: ['пица', 'меню', 'шофьор'],
-		mixedReadings: ['цирк', 'бульон', 'улица']
+		letters: ['Ц', 'Ю', 'Ь']
 	}
 ];
 

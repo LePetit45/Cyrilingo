@@ -31,27 +31,56 @@ describe('composeLesson', () => {
 	});
 
 	it('takes every new letter through the three exercise types', () => {
-		const lesson = getLesson('l4');
-		const questions = composeLesson('l4', seededRandom(2)).slice(0, 9);
-		for (const [index, letter] of lesson.letters.entries()) {
-			const onLetter = questions.filter((question) => question.letter === letter);
-			expect(onLetter.map((question) => question.kind).sort()).toEqual([
-				'letterToSound',
-				'reading',
-				'soundToLetter'
-			]);
-			expect(onLetter.find((question) => question.kind === 'reading')).toMatchObject({
-				reading: lesson.letterReadings[index]
-			});
+		for (const lesson of LESSONS) {
+			for (const seed of SEEDS) {
+				const questions = composeLesson(lesson.id, seededRandom(seed)).slice(0, 9);
+				for (const letter of lesson.letters) {
+					const onLetter = questions.filter((question) => question.letter === letter);
+					expect(onLetter.map((question) => question.kind).sort()).toEqual([
+						'letterToSound',
+						'reading',
+						'soundToLetter'
+					]);
+					const reading = onLetter.find((question) => question.kind === 'reading');
+					expect(lettersIn(reading?.kind === 'reading' ? reading.reading : '')).toContain(letter);
+				}
+			}
 		}
 	});
 
-	it('follows with the mixed readings', () => {
-		const lesson = getLesson('l6');
-		const questions = composeLesson('l6', seededRandom(3)).slice(9, 12);
-		expect(
-			questions.map((question) => question.kind === 'reading' && question.reading).sort()
-		).toEqual([...lesson.mixedReadings].sort());
+	it('follows with readings mixing new and earlier letters', () => {
+		for (const lesson of LESSONS.slice(1)) {
+			for (const seed of SEEDS) {
+				const mixed = composeLesson(lesson.id, seededRandom(seed)).slice(9, 12);
+				for (const question of mixed) {
+					expect(question.kind).toBe('reading');
+					const letters = question.kind === 'reading' ? lettersIn(question.reading) : [];
+					const isNew = (letter: BulgarianLetter) => lesson.letters.includes(letter);
+					expect(letters.some(isNew)).toBe(true);
+					expect(letters.some((letter) => !isNew(letter))).toBe(true);
+				}
+			}
+		}
+	});
+
+	it('reads words rather than syllables from the second lesson on', () => {
+		for (const lesson of LESSONS.slice(1)) {
+			for (const seed of SEEDS) {
+				for (const question of composeLesson(lesson.id, seededRandom(seed)).slice(0, 12)) {
+					if (question.kind === 'reading') expect(isWord(question.reading)).toBe(true);
+				}
+			}
+		}
+	});
+
+	it('shows other words when a lesson is replayed', () => {
+		const readings = (seed: number) =>
+			composeLesson('l6', seededRandom(seed)).flatMap((question) =>
+				question.kind === 'reading' ? [question.reading] : []
+			);
+		const first = readings(1);
+		const shared = readings(2).filter((reading) => first.includes(reading));
+		expect(shared.length).toBeLessThan(first.length / 2);
 	});
 
 	it('ends with review questions on earlier letters', () => {
