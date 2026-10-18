@@ -107,7 +107,8 @@ export const fr = {
 		missed: 'Lettres à revoir',
 		noMiss: 'Aucune erreur, chapeau !',
 		next: 'Continuer',
-		replay: 'Recommencer'
+		replay: 'Recommencer',
+		home: 'Accueil'
 	},
 	review: {
 		title: 'Révision libre',

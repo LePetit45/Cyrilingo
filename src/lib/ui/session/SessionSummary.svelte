@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import { BULGARIAN_ALPHABET, type BulgarianLetter } from '#lib/core/alphabet.js';
 	import type { Summary } from '#lib/core/engine/session.js';
 	import { isLetterLearned } from '#lib/core/progress.js';
@@ -10,7 +11,8 @@
 	import { app } from '../state/app.svelte.js';
 
 	// End-of-session summary (spec §6): first-try success rate and the letters missed. After a
-	// lesson, also the letters it taught and how many letters are read so far.
+	// lesson, also the letters it taught and how many letters are read so far. The side button
+	// replays the session when `onreplay` is given (free review), or else goes back home.
 	let {
 		title,
 		summary,
@@ -23,9 +25,10 @@
 		/** The letters a completed lesson taught; left out for a free review. */
 		newLetters?: readonly BulgarianLetter[];
 		nextHref: string;
-		onreplay: () => void;
+		onreplay?: () => void;
 	} = $props();
 
+	const home = resolve('/(tabs)');
 	const percent = $derived(Math.round(summary.rate * 100));
 	const learnedCount = $derived(
 		BULGARIAN_ALPHABET.filter((letter) => isLetterLearned(app.progress, letter)).length
@@ -92,7 +95,11 @@
 	</div>
 
 	<BottomBar actions>
-		<Button variant="secondary" class="side" onclick={onreplay}>{m.summary.replay}</Button>
+		{#if onreplay}
+			<Button variant="secondary" class="side" onclick={onreplay}>{m.summary.replay}</Button>
+		{:else if nextHref !== home}
+			<Button variant="secondary" class="side" href={home}>{m.summary.home}</Button>
+		{/if}
 		<Button href={nextHref} class="grow">{m.summary.next}</Button>
 	</BottomBar>
 </section>

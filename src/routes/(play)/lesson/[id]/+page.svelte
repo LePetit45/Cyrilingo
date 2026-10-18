@@ -22,13 +22,7 @@
 		{ name: 'cards'; index: number } | { name: 'play' } | { name: 'done'; summary: Summary };
 
 	let phase = $state<Phase>({ name: 'cards', index: 0 });
-	/** Bumped to replay the lesson from scratch, with freshly shuffled questions. */
-	let run = $state(0);
-
-	const questions = $derived.by(() => {
-		void run;
-		return composeLesson(data.lesson.id, Math.random);
-	});
+	const questions = $derived(composeLesson(data.lesson.id, Math.random));
 
 	// Opening another lesson reuses this page component: start over.
 	$effect.pre(() => {
@@ -45,11 +39,6 @@
 		app.completeLesson(data.lesson.id);
 		if (app.settings.soundEffects) playEffect('complete');
 		phase = { name: 'done', summary };
-	}
-
-	function replay() {
-		run++;
-		phase = { name: 'cards', index: 0 };
 	}
 </script>
 
@@ -78,16 +67,13 @@
 		</BottomBar>
 	</div>
 {:else if phase.name === 'play'}
-	{#key run}
-		<SessionPlayer {questions} repeatMisses onfinish={finish} />
-	{/key}
+	<SessionPlayer {questions} repeatMisses onfinish={finish} />
 {:else}
 	<SessionSummary
 		title={m.summary.lessonTitle}
 		summary={phase.summary}
 		newLetters={data.lesson.letters}
 		{nextHref}
-		onreplay={replay}
 	/>
 {/if}
 
