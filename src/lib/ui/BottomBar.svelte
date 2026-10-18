@@ -88,8 +88,10 @@
 			justify-content: space-between;
 		}
 
+		/* At least 12rem, wider for a long label (« Commencer l'épreuve ») so it stays on one line. */
 		.actions :global(.grow) {
-			flex: 0 0 12rem;
+			flex: none;
+			min-width: 12rem;
 			margin-left: auto;
 		}
 

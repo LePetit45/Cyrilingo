@@ -5,8 +5,8 @@
 	import { m } from '#lib/i18n/index.js';
 	import BottomBar from '../BottomBar.svelte';
 	import Button from '../Button.svelte';
-	import Cyrillic from '../Cyrillic.svelte';
-	import { letterGlyph } from '../letters.js';
+	import LetterChips from '../LetterChips.svelte';
+	import StatBlock from '../StatBlock.svelte';
 	import { app } from '../state/app.svelte.js';
 
 	// End-of-session summary (spec §6): first-try success rate and the letters missed. After a
@@ -67,34 +67,24 @@
 		{/if}
 
 		<div class="stats">
-			<div class="stat accuracy">
-				<span class="stat-label">{m.summary.firstTry}</span>
-				<span class="stat-value">{percent} %</span>
-			</div>
+			<StatBlock label={m.summary.firstTry} value="{percent} %" />
 			{#if newLetters}
-				<div class="stat letters">
-					<span class="stat-label">{m.summary.lettersRead}</span>
-					<span class="stat-value">{learnedCount}/{BULGARIAN_ALPHABET.length}</span>
-				</div>
+				<StatBlock
+					label={m.summary.lettersRead}
+					value="{learnedCount}/{BULGARIAN_ALPHABET.length}"
+					tone="accent"
+				/>
 			{/if}
 		</div>
 
 		{#if newLetters}
-			<ul class="chips" aria-label={m.summary.learned}>
-				{#each newLetters as letter (letter)}
-					<li><Cyrillic>{letterGlyph(letter)}</Cyrillic></li>
-				{/each}
-			</ul>
+			<LetterChips letters={newLetters} label={m.summary.learned} />
 		{/if}
 
 		{#if summary.missedLetters.length > 0}
 			<div class="missed">
 				<h2>{m.summary.missed}</h2>
-				<ul class="chips">
-					{#each summary.missedLetters as letter (letter)}
-						<li><Cyrillic>{letterGlyph(letter)}</Cyrillic></li>
-					{/each}
-				</ul>
+				<LetterChips letters={summary.missedLetters} missed />
 			</div>
 		{:else}
 			<p class="perfect">{m.summary.noMiss}</p>
@@ -157,69 +147,10 @@
 		margin-top: 0.5rem;
 	}
 
-	/* A colored band with the label, above a white box with the value. */
-	.stat {
-		--tone: var(--color-success-dark);
-		display: grid;
-		flex: 1;
-		overflow: hidden;
-		background: var(--tone);
-		border: 2px solid var(--tone);
-		border-radius: var(--radius-md);
-	}
-
-	.letters {
-		--tone: var(--color-accent-dark);
-	}
-
-	.stat-label {
-		padding: 0.25rem 0.5rem;
-		font-size: 0.75rem;
-		font-weight: 900;
-		letter-spacing: 0.06em;
-		text-transform: uppercase;
-		color: #fff;
-	}
-
-	.stat-value {
-		padding: 0.625rem 0;
-		font-size: 1.5rem;
-		font-weight: 900;
-		color: var(--tone);
-		background: var(--color-surface);
-		border-radius: calc(var(--radius-md) - 2px);
-	}
-
-	.chips {
-		display: flex;
-		flex-wrap: wrap;
-		justify-content: center;
-		gap: 0.5rem;
-		margin: 0;
-		padding: 0;
-		list-style: none;
-	}
-
-	.chips li {
-		padding: 0.125rem 0.75rem;
-		font-size: 1.625rem;
-		font-weight: 800;
-		border: 2px solid var(--color-border);
-		border-radius: var(--radius-sm);
-		box-shadow: 0 3px 0 var(--color-border);
-	}
-
 	.missed h2 {
 		margin: 0 0 0.5rem;
 		font-size: 1rem;
 		color: var(--color-text-muted);
-	}
-
-	.missed li {
-		color: var(--color-error-dark);
-		background: var(--color-error-light);
-		border-color: var(--color-error-light);
-		box-shadow: none;
 	}
 
 	.perfect {
