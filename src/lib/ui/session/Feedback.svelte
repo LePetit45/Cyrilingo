@@ -18,7 +18,7 @@
 
 	// Colored panel at the bottom of the screen after each answer (spec §5.3): the right answer, the
 	// wrong letters and, after a reading, the word with the letter being learned underlined, and its
-	// translation.
+	// translation. The recording of the letter or reading plays as the panel opens.
 	let {
 		question,
 		correct,
@@ -81,14 +81,19 @@
 			{#if translationOf(question.reading)}
 				<p class="meaning">{m.feedback.meaning} {translationOf(question.reading)}</p>
 			{/if}
-		{:else if !correct}
-			<p class="answer">
-				<Cyrillic class="glyph">{letterGlyph(question.letter)}</Cyrillic>
-				→ <strong>« {phoneticOf(question.letter)} »</strong>
-				{#if officialOf(question.letter) !== phoneticOf(question.letter)}
-					<span class="official">({officialOf(question.letter)})</span>
-				{/if}
-			</p>
+		{:else}
+			<!-- The letter's sound, right or wrong: the question could not play it without giving the
+			     answer away. -->
+			<div class="letter">
+				<p class="answer">
+					<Cyrillic class="glyph">{letterGlyph(question.letter)}</Cyrillic>
+					→ <strong>« {phoneticOf(question.letter)} »</strong>
+					{#if officialOf(question.letter) !== phoneticOf(question.letter)}
+						<span class="official">({officialOf(question.letter)})</span>
+					{/if}
+				</p>
+				<AudioButton name={question.letter} autoplay />
+			</div>
 		{/if}
 	</div>
 
@@ -156,6 +161,12 @@
 		font-size: 1.75rem;
 		font-weight: 900;
 		color: var(--color-text);
+	}
+
+	.letter {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
 	}
 
 	.answer,

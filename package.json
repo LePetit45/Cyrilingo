@@ -19,7 +19,9 @@
 		"test": "npm run test:unit -- --run && npm run test:e2e",
 		"test:unit": "vitest",
 		"test:e2e": "playwright test",
-		"icons": "node scripts/generate-icons.js"
+		"icons": "node scripts/generate-icons.js",
+		"audio": "node --env-file=.env.local scripts/audio/generate.ts",
+		"audio:bench": "node --env-file=.env.local scripts/audio/bench.ts"
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",

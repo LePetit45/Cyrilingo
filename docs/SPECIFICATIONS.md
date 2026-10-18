@@ -1,6 +1,6 @@
 # Cyrilingo — Specifications
 
-> Status: **v0.4**, implemented as the **v0.10.0-beta** (redesigned UI, §8). Live at https://cyrilingo.pages.dev. Remaining open items: audio provider (§10.1, no recordings yet), review of the drafted content by the project owner (§9).
+> Status: **v0.4**, implemented as the **v0.10.0-beta** (redesigned UI, §8). Live at https://cyrilingo.pages.dev. Recordings generated with Azure Speech (§10.1). Remaining open item: review of the drafted content by the project owner (§9).
 
 ## 1. Vision
 
@@ -103,7 +103,7 @@ Uppercase + lowercase glyph (Bulgarian shape), **recorded sound** (autoplay), Fr
 
 ### 5.2 Exercise types
 1. **Letter → sound MCQ**: a Cyrillic letter is shown → pick its transliteration among 4.
-2. **Sound → letter MCQ**: the French phonetic transliteration is shown in large type (e.g. « tch »), with an audio button → pick the Cyrillic letter among 4.
+2. **Sound → letter MCQ**: the French phonetic transliteration is shown in large type (e.g. « tch »), with the sound played automatically and an audio button to replay it → pick the Cyrillic letter among 4.
 3. **Reading**: a Cyrillic syllable or word is shown → type it in Latin letters (§5.4).
 
 ### 5.3 Rules
@@ -141,8 +141,10 @@ Uppercase + lowercase glyph (Bulgarian shape), **recorded sound** (autoplay), Fr
 #### Feedback
 - Shown in a **colored panel at the bottom of the screen** (green after a right answer, red after a wrong one) that replaces the action buttons, with a button to go on (« Continuer » / « Compris », or Enter). The question stays visible above it, with the right choice in green and the wrong one in red.
 - **After a wrong answer**: correct answer and sound.
+- **After any letter MCQ**, right or wrong: the letter, its transliteration and its recording (autoplay), since the letter → sound question cannot play it without giving the answer away.
 - **After any reading answer**: the word with the letter being learned underlined (the letter the question was chosen for; none in a lesson's mixed readings), its French translation, and audio. The stress is not marked: the audio carries it.
-- **Audio** plays automatically on discovery cards and after each answer; during a question it only plays through a button (otherwise it would give the answer away).
+- **Audio** plays automatically on discovery cards, on sound → letter questions (the sound is the prompt) and after each answer; during other questions it never plays (it would give the answer away).
+- Next to the audio button of a **word or syllable**, a smaller **« turtle » button** replays it slowed down. Letters have no slow version.
 
 ### 5.4 Answer input
 - **Touch devices** (phones, tablets; detected with the `(pointer: coarse)` media query, not screen width): reading answers are typed on an **on-screen keyboard built into the app**. The native keyboard is never opened (input uses `inputmode="none"`).
@@ -213,15 +215,16 @@ Uppercase + lowercase glyph (Bulgarian shape), **recorded sound** (autoplay), Fr
 - **Analytics**: none in the MVP: no cookies, no consent banner. Success criteria are checked through tests with a few real users.
 - Accessibility: contrast, keyboard navigation, generous font sizes for glyphs.
 
-### 10.1 Audio production (to explore together)
+### 10.1 Audio production
 
-Files are generated **once** by a Bulgarian text-to-speech voice, then served as static assets. The provider is chosen **after hands-on trials run by the project owner**, before any implementation.
+Files are generated **once** by a Bulgarian text-to-speech voice, then committed and served as static assets: the app never calls the provider.
 
-- Candidates to evaluate: Azure Speech (bg-BG neural voices), Google Cloud Text-to-Speech, ElevenLabs (multilingual), others to suggest.
-- Criteria: accuracy of a letter's **isolated** sound (hard for TTS, especially Ъ, Щ, Ж), naturalness of words, cost, license terms for the generated files.
-- Watch out: TTS mispronounces isolated letters; we may need to feed it a syllable or a phonetic transcription (SSML) rather than the bare letter.
-- Deliverable for this step: a short list of test letters and words, listened to on each provider, then a decision recorded here.
-- **Beta**: ships without recordings. The app looks up `src/lib/assets/audio/<letter or word>.{opus,mp3}`; audio buttons, autoplay and the voice setting only appear once files exist, so recordings can be added without code changes.
+- **Provider and voice**: Azure Speech, voice `bg-BG-BorislavNeural`, picked by the project owner by ear over `bg-BG-KalinaNeural` on a bench (`npm run audio:bench`, `scripts/audio/bench.ts`). The free tier (F0) covers the whole course many times over. ElevenLabs stays an option to compare later.
+- **Isolated letters**: TTS mispronounces a bare letter, so the bench compares four inputs per letter (the bare letter, its Bulgarian name such as « жъ », a syllable such as « жа », or its IPA sound through an SSML `phoneme`), and the owner picks one per letter (`LETTER_SPECS` in `scripts/audio/letters.ts`).
+- **Readings**: every corpus word and syllable is recorded at normal speed and slowed down by 25 % (§5.3). The stress placed by the voice was checked by ear on a sample of tricky words against the corpus stress indexes.
+- **Files**: `npm run audio` (`scripts/audio/generate.ts`) writes `src/lib/assets/audio/<LETTER>.mp3`, `<reading>.mp3` and `<reading>.slow.mp3` (MP3 mono, 24 kHz, 48 kbit/s, silences trimmed through SSML). `scripts/audio/manifest.json` records a hash of the SSML behind each file, so a rerun after a corpus edit only generates new or changed clips and deletes obsolete ones. A unit test fails when a letter or reading has no recording.
+- **Credentials**: `AZURE_SPEECH_KEY` and `AZURE_SPEECH_REGION` in `.env.local` (never committed).
+- The app looks up `src/lib/assets/audio/<name>.{opus,mp3}`; audio buttons, autoplay and the voice setting only appear when the files exist.
 
 ### 10.2 Internationalization
 
@@ -258,7 +261,7 @@ French-only interface for the MVP, but **no hard-coded text in components**: all
 | D1 | Displayed transliteration | **Both** (French phonetic as reference + official) |
 | D2 | Bulgarian lowercase typography | **From the start** |
 | D3 | Audio in the MVP | **Recordings** |
-| D3b | Recording source | **TTS generated once**; provider chosen after trials (§10.1) |
+| D3b | Recording source | **TTS generated once**: Azure Speech, voice Borislav, input picked per letter (§10.1) |
 | D4 | Front-end stack | **SvelteKit (static) + Svelte 5 + TS** |
 | D5 | Interface language | **FR for the MVP**, centralized strings to add EN later |
 | D6 | Repo visibility / hosting / license | **Private repo, Cloudflare Pages**, no license for now |
@@ -275,3 +278,4 @@ French-only interface for the MVP, but **no hard-coded text in components**: all
 | D17 | Answer confirmation | **MCQ checked on tap**, readings with « Vérifier »; feedback in a bottom panel (§5.3) |
 | D18 | Daily streaks | **Never**: not in the spirit of the app (§6) |
 | D19 | Lesson readings | **Drawn at random from the corpus** on each play, instead of a fixed list per lesson (§4.2, §4.3) |
+| D20 | Slow playback | **« Turtle » button** on words and syllables, from a second recording slowed down by 25 % (§5.3, §10.1) |

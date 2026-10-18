@@ -176,7 +176,7 @@
 				<h1 class="prompt" tabindex="-1" bind:this={prompt}>{m.question.soundToLetter}</h1>
 				<div class="shown sound">
 					<span>« {phoneticOf(question.letter)} »</span>
-					<AudioButton name={question.letter} />
+					<AudioButton name={question.letter} autoplay />
 				</div>
 				<ChoiceButtons
 					{choices}
