@@ -115,3 +115,10 @@ export function summarize(session: Session): Summary {
 export function isExamPassed(summary: Summary): boolean {
 	return summary.rate >= EXAM_PASS_RATE;
 }
+
+/** The fewest correct answers out of `total` that pass the exam (spec §4.6): 27 out of 30. */
+export function examPassMark(total: number): number {
+	let mark = Math.floor(total * EXAM_PASS_RATE);
+	while (mark / total < EXAM_PASS_RATE) mark++;
+	return mark;
+}

@@ -42,7 +42,7 @@ test.describe('final exam', () => {
 		for (let i = 0; i < 27; i++) await answerCorrectly(page);
 
 		await expect(page.getByRole('heading', { level: 1 })).toHaveText(/^Épreuve réussie/);
-		await expect(page.getByText('27 / 30')).toBeVisible();
+		await expect(page.getByText('27/30')).toBeVisible();
 		await page.getByRole('button', { name: 'Voir mon diplôme' }).click();
 		await expect(page.getByText('Saint-maître absolue du cyrillique')).toBeVisible();
 		await page.getByRole('textbox', { name: /Ton prénom/ }).fill('Alex');
@@ -59,7 +59,7 @@ test.describe('final exam', () => {
 		}
 		for (let i = 0; i < 26; i++) await answerCorrectly(page);
 		await expect(page.getByRole('heading', { level: 1 })).toHaveText(/^Presque/);
-		await expect(page.getByText('26 / 30')).toBeVisible();
+		await expect(page.getByText('26/30')).toBeVisible();
 		await expect(page.getByRole('button', { name: 'Retenter l’épreuve' })).toBeVisible();
 	});
 });

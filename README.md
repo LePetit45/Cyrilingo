@@ -133,4 +133,4 @@ The site is deployed by Cloudflare Pages through its Git integration: `main` goe
 - Build output directory: `build`
 - Node.js version: read from `.nvmrc`
 
-CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs lint, type check, unit tests and end-to-end tests on every pull request and on pushes to `main`.
+CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs lint, type check, unit tests and end-to-end tests on every pull request (not again on `main` after the merge; it can also be started by hand from the Actions tab).

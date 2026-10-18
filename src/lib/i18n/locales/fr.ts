@@ -120,25 +120,26 @@ export const fr = {
 	},
 	exam: {
 		title: 'L’Épreuve de Preslav',
-		intro: [
-			'À Preslav, il y a plus de mille ans, des lettrés ont façonné l’alphabet cyrillique.',
-			'À ton tour de faire tes preuves : 30 questions, une par lettre, surtout des mots à lire.',
-			'Pas d’indice ni de seconde chance. Il faut au moins 27 bonnes réponses pour réussir.'
-		],
+		intro:
+			'À Preslav, il y a plus de mille ans, des lettrés ont façonné l’alphabet cyrillique. À ton tour de faire tes preuves !',
+		rules: 'Une question par lettre, surtout des mots à lire. Pas d’indice ni de seconde chance.',
+		questions: 'Questions',
+		toPass: 'Pour réussir',
+		correct: 'Bonnes réponses',
 		start: 'Commencer l’épreuve',
 		quitTitle: 'Abandonner l’épreuve ?',
 		quitMessage: 'Tes réponses à cette épreuve seront perdues.',
 		passedTitle: 'Épreuve réussie !',
 		failedTitle: 'Presque !',
-		score: (correct: number, total: number) => `${correct} / ${total}`,
-		failedHint: 'Il faut au moins 27 bonnes réponses. Révise un peu et retente ta chance !',
+		score: (correct: number, total: number) => `${correct}/${total}`,
+		failedHint: 'Révise un peu et retente ta chance !',
 		retry: 'Retenter l’épreuve',
 		seeDiploma: 'Voir mon diplôme',
 		backHome: 'Retour au parcours'
 	},
 	diploma: {
 		heading: 'Diplôme',
-		school: 'École littéraire de Preslav',
+		school: 'L’École suprême Cyrilingo',
 		awardedTo: 'décerne à',
 		defaultName: 'toi',
 		theTitle: 'le titre de',
@@ -160,6 +161,9 @@ export const fr = {
 	},
 	settings: {
 		title: 'Réglages',
+		soundSection: 'Sons',
+		progressSection: 'Progression',
+		appSection: 'Application',
 		sound: 'Voix',
 		soundHint: 'Prononciation des lettres et des mots.',
 		soundEffects: 'Effets sonores',

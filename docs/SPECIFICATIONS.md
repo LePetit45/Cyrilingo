@@ -91,7 +91,7 @@ Syllables (ма, ко, те…) bridge the gap between letters and words, and fi
 - No mnemonic hints during the exam.
 - **Real score**: unlike lessons, missed questions are not repeated; every mistake counts. Passing requires **≥ 90%** correct answers (consistent with §12).
 - Can be taken at any time and retaken any number of times.
-- On success: a **diploma screen with an animation**. The user can type a first name to display on the diploma; it is not saved.
+- On success: a **diploma screen with an animation**, issued by « L’École suprême Cyrilingo ». The user can type a first name to display on the diploma; it is not saved.
 
 ### 4.7 Free review
 - Secondary entry point on the home screen: **"Free review"**, 12 questions picked at random among the letters of completed lessons, drawing words from the whole corpus (§9).

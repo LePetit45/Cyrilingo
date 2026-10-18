@@ -4,6 +4,7 @@ import {
 	answer,
 	createSession,
 	currentQuestion,
+	examPassMark,
 	isExamPassed,
 	isFinished,
 	progress,
@@ -115,5 +116,10 @@ describe('an exam session (no repeats)', () => {
 		expect(play(0)).toBe(true);
 		expect(play(3)).toBe(true);
 		expect(play(4)).toBe(false);
+	});
+
+	it('needs 27 correct answers out of 30', () => {
+		expect(examPassMark(30)).toBe(27);
+		expect(examPassMark(10)).toBe(9);
 	});
 });
