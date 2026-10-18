@@ -1,6 +1,6 @@
 # Cyrilingo — Specifications
 
-> Status: **v0.4**, implemented as the **v0.10.0-beta** (redesigned UI, §8). Remaining open items: deployment on Cloudflare Pages (§10), audio provider (§10.1, no recordings yet), review of the drafted content by the project owner (§9).
+> Status: **v0.4**, implemented as the **v0.10.0-beta** (redesigned UI, §8). Live at https://cyrilingo.pages.dev. Remaining open items: audio provider (§10.1, no recordings yet), review of the drafted content by the project owner (§9).
 
 ## 1. Vision
 

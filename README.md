@@ -6,15 +6,16 @@ See [docs/SPECIFICATIONS.md](docs/SPECIFICATIONS.md) for the product specificati
 
 ## Status: v0.10.0-beta
 
+Live at **https://cyrilingo.pages.dev**.
+
 The whole course is playable: the path of 10 lessons, letter discovery cards, the three exercise types with the in-app keyboard on touch devices, free review, the final exam (« L'Épreuve de Preslav ») with its diploma, the alphabet screen and the settings. It works offline once opened. Since v0.10.0-beta every screen uses the light, Duolingo-inspired design (spec §8).
 
 Not in the beta:
 
 - recorded voice: no recordings yet (spec §10.1), audio buttons stay hidden;
-- deployment: the beta is tried locally (see below);
 - the content (mnemonics, words, translations, stress) is a first draft to be reviewed (spec §9).
 
-To try it like the real thing (production build, service worker, offline):
+To try a local build like the real thing (production build, service worker, offline):
 
 ```bash
 npm install
@@ -126,9 +127,9 @@ The manifest is built from [`src/lib/pwa/manifest.ts`](src/lib/pwa/manifest.ts) 
 
 ## Deployment
 
-The site is deployed by Cloudflare Pages through its Git integration: `main` goes to production and every pull request gets a preview deployment. Pages project settings:
+The site is deployed by Cloudflare Pages through its Git integration: `main` goes to production at https://cyrilingo.pages.dev and every pull request gets a preview deployment. Pages project settings:
 
-- Framework preset: SvelteKit (or none)
+- Framework preset: None (the SvelteKit preset expects `adapter-cloudflare` and its `.svelte-kit/cloudflare` output)
 - Build command: `npm run build`
 - Build output directory: `build`
 - Node.js version: read from `.nvmrc`
