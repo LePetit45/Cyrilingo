@@ -60,13 +60,13 @@ Both are displayed (D1). The French phonetic transliteration is the reference fo
 - **Nothing is locked.** Every lesson and the final exam can be opened at any time.
 - The UI suggests the intended order: each lesson has one of three states: *completed*, *suggested* (the first lesson not yet completed), *not done yet*.
 - A completed lesson can be replayed at will.
-- **A lesson assumes all lessons before it in the path are known**, whether the user actually did them or not. As a consequence, the **content of each lesson is fixed and authored in advance** (static data); only the order of questions is shuffled.
+- **A lesson assumes all lessons before it in the path are known**, whether the user actually did them or not. As a consequence, the **letters of each lesson are fixed and authored in advance** (static data). Its readings are **drawn at random from the corpus** among the words readable with those letters, so replaying a lesson shows other words; the order of questions is shuffled too.
 - A lesson never shows a word or syllable containing a letter from a later lesson.
 
 ### 4.3 Lesson flow
 1. **Discovery cards** for the 3 new letters (§5.1).
-2. **9 questions on the new letters**: each letter goes through all three exercise types: letter → sound MCQ, sound → letter MCQ, and a syllable or word reading.
-3. **3 syllables or words** mixing new and previously learned letters.
+2. **9 questions on the new letters**: each letter goes through all three exercise types: letter → sound MCQ, sound → letter MCQ, and a reading of a word containing it (a syllable when too few words exist).
+3. **3 words** mixing new and previously learned letters (syllables in lesson 1).
 4. **4 review questions** (§4.4).
 
 ≈ 16 questions + repeats of missed questions, about 6–8 minutes. Questions within steps 2–4 are shuffled.
@@ -193,7 +193,7 @@ Uppercase + lowercase glyph (Bulgarian shape), **recorded sound** (autoplay), Fr
 
 - **Authoring**: Claude writes a first draft (letter cards, lesson composition, corpus), the project owner reviews and corrects.
 - **Validation**: no native speaker available. Spelling, translations and stress are checked against reference sources: Wiktionary (shows stress for Bulgarian words) and online Bulgarian dictionaries, plus a listening check with the generated audio.
-- **Corpus size**: about **120 words + 60 syllables**, enough for the 10 lessons, the exam and free review.
+- **Corpus size**: about **270 words + 60 syllables**, enough for the 10 lessons to vary from one play to the next, the exam and free review. From lesson 2 on, each new letter has at least 4 candidate words and each lesson at least 12 mixed ones.
 - **Word choice**: a mix of words guessable by a French speaker (loanwords, international words, city names) and common Bulgarian words, with no fixed ratio. Every word carries its French translation and the index of its stressed vowel (not shown, kept to check the recordings).
 - **Format**: **typed TypeScript data files** in the repo (letters, words, syllables, lesson definitions, transliteration table). The compiler catches broken references (e.g. a lesson pointing at a missing word), and **unit tests check content invariants**: every letter is introduced in exactly one lesson, a lesson only uses letters from itself and earlier lessons, every stress index points at a vowel, every word is transliterable with the accepted-variants table.
 
@@ -274,3 +274,4 @@ French-only interface for the MVP, but **no hard-coded text in components**: all
 | D16 | Beta scope | **v0.9.0-beta**: full MVP except recorded voice; not deployed; UI redesign planned after the beta |
 | D17 | Answer confirmation | **MCQ checked on tap**, readings with « Vérifier »; feedback in a bottom panel (§5.3) |
 | D18 | Daily streaks | **Never**: not in the spirit of the app (§6) |
+| D19 | Lesson readings | **Drawn at random from the corpus** on each play, instead of a fixed list per lesson (§4.2, §4.3) |

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { BULGARIAN_ALPHABET, toLowercase, type BulgarianLetter } from '../alphabet.js';
-import { CARD_EXAMPLES, isWord, SYLLABLES, WORDS, type Reading, type Word } from './corpus.js';
+import { CARD_EXAMPLES, isWord, SYLLABLES, WORDS, type Word } from './corpus.js';
 import { LESSONS, lessonIntroducing, lettersKnownIn } from './course.js';
 import { LETTERS } from './letters.js';
 import { cyrillicLettersIn, isSpelledBy } from './testing.js';
@@ -84,40 +84,32 @@ describe('SYLLABLES', () => {
 });
 
 describe('lesson readings', () => {
-	it('only use letters known in the lesson', () => {
-		for (const lesson of LESSONS) {
-			for (const reading of [...lesson.letterReadings, ...lesson.mixedReadings]) {
-				expectOnlyKnownLetters(reading, lesson.id);
-			}
-		}
-	});
+	// Lessons draw their readings from the corpus (spec §4.3): enough candidates make a replayed
+	// lesson show other words.
+	const wordsReadableIn = (lessonId: string) =>
+		words.filter((word) =>
+			cyrillicLettersIn(word).every((letter) => lettersKnownIn(lessonId).includes(letter))
+		);
 
-	it('are distinct within a lesson', () => {
-		for (const lesson of LESSONS) {
-			const readings: Reading[] = [...lesson.letterReadings, ...lesson.mixedReadings];
-			expect(new Set(readings).size, lesson.id).toBe(6);
-		}
-	});
-
-	it('give each new letter a reading that contains it', () => {
-		for (const lesson of LESSONS) {
-			lesson.letters.forEach((letter, index) => {
-				expect(cyrillicLettersIn(lesson.letterReadings[index])).toContain(letter);
-			});
-		}
-	});
-
-	it('mix new and previously learned letters after the first lesson', () => {
+	it('offer several words for each new letter from the second lesson on', () => {
 		for (const lesson of LESSONS.slice(1)) {
-			for (const reading of lesson.mixedReadings) {
-				const letters = cyrillicLettersIn(reading);
-				const isNew = (letter: BulgarianLetter) => lesson.letters.includes(letter);
-				expect(letters.some(isNew), `${lesson.id}: ${reading}`).toBe(true);
-				expect(
-					letters.some((letter) => !isNew(letter)),
-					`${lesson.id}: ${reading}`
-				).toBe(true);
+			for (const letter of lesson.letters) {
+				const candidates = wordsReadableIn(lesson.id).filter((word) =>
+					cyrillicLettersIn(word).includes(letter)
+				);
+				expect(candidates.length, `${lesson.id}: ${letter}`).toBeGreaterThanOrEqual(4);
 			}
+		}
+	});
+
+	it('offer many words mixing new and earlier letters from the second lesson on', () => {
+		for (const lesson of LESSONS.slice(1)) {
+			const isNew = (letter: BulgarianLetter) => lesson.letters.includes(letter);
+			const candidates = wordsReadableIn(lesson.id).filter((word) => {
+				const letters = cyrillicLettersIn(word);
+				return letters.some(isNew) && letters.some((letter) => !isNew(letter));
+			});
+			expect(candidates.length, lesson.id).toBeGreaterThanOrEqual(12);
 		}
 	});
 });
