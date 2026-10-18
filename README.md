@@ -4,9 +4,9 @@ A web app to learn to read the Bulgarian Cyrillic alphabet, designed for native 
 
 See [docs/SPECIFICATIONS.md](docs/SPECIFICATIONS.md) for the product specification.
 
-## Status: v0.9.0-beta
+## Status: v0.10.0-beta
 
-The whole course is playable: the path of 10 lessons, letter discovery cards, the three exercise types with the in-app keyboard on touch devices, free review, the final exam (« L'Épreuve de Preslav ») with its diploma, the alphabet screen and the settings. It works offline once opened.
+The whole course is playable: the path of 10 lessons, letter discovery cards, the three exercise types with the in-app keyboard on touch devices, free review, the final exam (« L'Épreuve de Preslav ») with its diploma, the alphabet screen and the settings. It works offline once opened. Since v0.10.0-beta every screen uses the light, Duolingo-inspired design (spec §8).
 
 Not in the beta:
 
