@@ -22,10 +22,9 @@ describe.each(LOCALES)('learning content (%s)', (locale) => {
 		}
 	});
 
-	it('has a sound and a mnemonic for every letter', () => {
+	it('has a sound for every letter', () => {
 		for (const letter of BULGARIAN_ALPHABET) {
 			expect(content.letters[letter].sound.trim()).not.toBe('');
-			expect(content.letters[letter].mnemonic.trim()).not.toBe('');
 		}
 	});
 
@@ -39,9 +38,9 @@ describe.each(LOCALES)('learning content (%s)', (locale) => {
 
 	it('only quotes letters known by the lesson introducing the letter', () => {
 		for (const letter of BULGARIAN_ALPHABET) {
-			const { sound, mnemonic, note = '' } = content.letters[letter];
+			const { sound, note = '' } = content.letters[letter];
 			const known = lettersKnownIn(lessonIntroducing(letter).id);
-			for (const quoted of cyrillicLettersIn(sound + mnemonic + note)) {
+			for (const quoted of cyrillicLettersIn(sound + note)) {
 				expect(known, `${letter} card quotes ${quoted}`).toContain(quoted);
 			}
 		}

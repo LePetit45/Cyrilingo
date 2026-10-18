@@ -364,6 +364,32 @@
 		position: relative;
 	}
 
+	/* On hover, the disc rises on a taller edge and its letter or icon gives a little wiggle. */
+	@media (hover: hover) {
+		.node:hover .disc {
+			transform: translateY(-3px);
+			box-shadow:
+				inset 0 0.25rem 0 rgb(255 255 255 / 0.22),
+				inset 0 -0.3125rem 0 rgb(0 0 0 / 0.1),
+				0 calc(var(--edge-depth) + 3px) 0 var(--edge);
+			transition-duration: 150ms;
+		}
+
+		.node:hover .disc > :global(*) {
+			animation: wiggle 450ms ease-in-out;
+		}
+	}
+
+	@keyframes wiggle {
+		25% {
+			rotate: -10deg;
+		}
+
+		75% {
+			rotate: 10deg;
+		}
+	}
+
 	.node:active .disc {
 		transform: translateY(5px);
 		box-shadow:

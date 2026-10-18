@@ -16,7 +16,8 @@ export const fr = {
 		close: 'Fermer',
 		cancel: 'Annuler',
 		continue: 'Continuer',
-		listen: 'Écouter'
+		listen: 'Écouter',
+		listenSlowly: 'Écouter lentement'
 	},
 	welcome: {
 		title: 'Bienvenue sur Cyrilingo !',
@@ -83,9 +84,7 @@ export const fr = {
 		dontKnow: 'Voici la réponse',
 		answer: 'Réponse :',
 		yourAnswer: 'Ta réponse :',
-		reminder: 'Rappel',
-		meaning: 'Sens :',
-		stressHint: 'La voyelle soulignée porte l’accent.'
+		meaning: 'Sens :'
 	},
 	keyboard: {
 		label: 'Clavier',
@@ -109,7 +108,8 @@ export const fr = {
 		missed: 'Lettres à revoir',
 		noMiss: 'Aucune erreur, chapeau !',
 		next: 'Continuer',
-		replay: 'Recommencer'
+		replay: 'Recommencer',
+		home: 'Accueil'
 	},
 	review: {
 		title: 'Révision libre',

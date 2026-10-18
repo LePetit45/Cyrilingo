@@ -161,12 +161,26 @@ export function readingFor(
 	random: Random,
 	{ wordsOnly = false } = {}
 ): Reading | undefined {
+	return pickReading(
+		(reading) => lettersIn(reading).includes(letter) && (!wordsOnly || isWord(reading)),
+		known,
+		used,
+		random
+	);
+}
+
+/**
+ * A corpus word (or, failing that, a syllable) for which `matches` is true, readable with the
+ * known letters and not in `used`. Words are preferred over syllables.
+ */
+export function pickReading(
+	matches: (reading: Reading) => boolean,
+	known: readonly BulgarianLetter[],
+	used: readonly Reading[],
+	random: Random
+): Reading | undefined {
 	const candidates = ALL_READINGS.filter(
-		(reading) =>
-			!used.includes(reading) &&
-			lettersIn(reading).includes(letter) &&
-			isReadableWith(reading, known) &&
-			(!wordsOnly || isWord(reading))
+		(reading) => !used.includes(reading) && isReadableWith(reading, known) && matches(reading)
 	);
 	return pick(candidates.filter(isWord), random) ?? pick(candidates, random);
 }

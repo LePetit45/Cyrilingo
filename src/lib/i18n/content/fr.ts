@@ -19,7 +19,7 @@ export const fr: LearningContent = {
 		greekCousins: {
 			title: 'Les cousines grecques',
 			intro:
-				'Nouvelles pour toi, mais souvent héritées de l’alphabet grec. Avec un bon moyen mnémotechnique, elles se devinent vite.'
+				'Nouvelles pour toi, mais souvent héritées de l’alphabet grec : elles se devinent vite.'
 		},
 		newcomers: {
 			title: 'Les nouvelles venues',
@@ -31,187 +31,130 @@ export const fr: LearningContent = {
 		А: {
 			phonetic: 'a',
 			sound: '« a » comme dans « papa ».',
-			mnemonic: 'Exactement comme notre A : rien à apprendre !',
-			emoji: '👍',
 			note: 'Sans accent tonique, а se rapproche du son « eu ».'
 		},
 		Б: {
 			phonetic: 'b',
-			sound: '« b » comme dans « bébé ».',
-			mnemonic: 'Un 6 coiffé d’une casquette : il se lit « b ».',
-			emoji: '🧢'
+			sound: '« b » comme dans « bébé ».'
 		},
 		В: {
 			phonetic: 'v',
-			sound: '« v » comme dans « vélo ».',
-			mnemonic:
-				'Un faux B ! Il se lit « v ». Pense à un B emporté par le vent. En minuscule bulgare aussi, в garde ses deux boucles.',
-			emoji: '🌬️'
+			sound: '« v » comme dans « vélo ».'
 		},
 		Г: {
 			phonetic: 'g',
-			sound: 'Toujours dur, comme dans « gare », même devant е et и.',
-			mnemonic: 'Comme le gamma grec Γ : une grue de chantier vue de profil.',
-			emoji: '🏗️'
+			sound: 'Toujours dur, comme dans « gare », même devant е et и.'
 		},
 		Д: {
 			phonetic: 'd',
-			sound: '« d » comme dans « dos ».',
-			mnemonic:
-				'Comme le delta grec Δ : une petite maison sur ses pieds. En minuscule bulgare, д ressemble à un « g »… mais se lit « d » !',
-			emoji: '🏠'
+			sound: '« d » comme dans « dos ».'
 		},
 		Е: {
 			phonetic: 'e',
-			sound: '« è » comme dans « mère », jamais muet.',
-			mnemonic: 'Comme notre E, mais toujours prononcé, bien ouvert : « è ».'
+			sound: '« è » comme dans « mère », jamais muet.'
 		},
 		Ж: {
 			phonetic: 'j',
-			sound: '« j » comme dans « jour ».',
-			mnemonic: 'Un insecte vu de dessus, qui bourdonne : « jjj ».',
-			emoji: '🪲'
+			sound: '« j » comme dans « jour ».'
 		},
 		З: {
 			phonetic: 'z',
-			sound: '« z » comme dans « zéro ».',
-			mnemonic: 'Un 3 qui zozote : « zzz ».'
+			sound: '« z » comme dans « zéro ».'
 		},
 		И: {
 			phonetic: 'i',
-			sound: '« i » comme dans « ici ».',
-			mnemonic:
-				'Un N dans un miroir, qui se lit « i ». En minuscule bulgare, и ressemble à un « u »… mais se lit toujours « i » !',
-			emoji: '🪞'
+			sound: '« i » comme dans « ici ».'
 		},
 		Й: {
 			phonetic: 'y',
-			sound: '« y » comme dans « yoga », ou le « ï » de « aïe ».',
-			mnemonic: 'Un и qui a mis un petit chapeau : un « i » très bref.',
-			emoji: '🎩'
+			sound: '« y » comme dans « yoga », ou le « ï » de « aïe ».'
 		},
 		К: {
 			phonetic: 'k',
-			sound: '« k » comme dans « kilo ».',
-			mnemonic: 'Comme notre K. En minuscule bulgare aussi, к ressemble à notre k.'
+			sound: '« k » comme dans « kilo ».'
 		},
 		Л: {
 			phonetic: 'l',
-			sound: '« l » comme dans « lune ».',
-			mnemonic: 'Comme le lambda grec Λ : une tente plantée pour la nuit.',
-			emoji: '⛺'
+			sound: '« l » comme dans « lune ».'
 		},
 		М: {
 			phonetic: 'm',
-			sound: '« m » comme dans « maman ».',
-			mnemonic: 'Comme notre M. D’ailleurs, мама veut dire « maman » !',
-			emoji: '👩'
+			sound: '« m » comme dans « maman ».'
 		},
 		Н: {
 			phonetic: 'n',
-			sound: '« n » comme dans « nez ».',
-			mnemonic: 'Un faux H ! Prends un N et redresse sa diagonale : tu obtiens Н, qui se lit « n ».'
+			sound: '« n » comme dans « nez ».'
 		},
 		О: {
 			phonetic: 'o',
 			sound: '« o » comme dans « porte ».',
-			mnemonic: 'Comme notre O, bien rond.',
-			emoji: '⭕',
 			note: 'Sans accent tonique, о se rapproche parfois de « ou ».'
 		},
 		П: {
 			phonetic: 'p',
-			sound: '« p » comme dans « papa ».',
-			mnemonic:
-				'Comme le pi grec Π : une porte. En minuscule bulgare, п ressemble à un « n »… mais se lit « p » !',
-			emoji: '🚪'
+			sound: '« p » comme dans « papa ».'
 		},
 		Р: {
 			phonetic: 'r',
-			sound: '« r » roulé, comme en espagnol ou en italien.',
-			mnemonic: 'Un faux P ! C’est le rhô grec ρ : il se lit « r ».'
+			sound: '« r » roulé, comme en espagnol ou en italien.'
 		},
 		С: {
 			phonetic: 's',
-			sound: '« s » comme dans « sac », jamais « k » ni « z ».',
-			mnemonic: 'Un faux C qui siffle toujours, comme un serpent : « sss ».',
-			emoji: '🐍'
+			sound: '« s » comme dans « sac », jamais « k » ni « z ».'
 		},
 		Т: {
 			phonetic: 't',
-			sound: '« t » comme dans « tête ».',
-			mnemonic:
-				'En majuscule, c’est notre T. Attention : en minuscule bulgare, т a trois jambes comme un « m »… mais se lit toujours « t » !'
+			sound: '« t » comme dans « tête ».'
 		},
 		У: {
 			phonetic: 'ou',
-			sound: '« ou » comme dans « loup ».',
-			mnemonic: 'Un faux Y ! Imagine un hibou aux oreilles en Y qui fait « ouh ! ».',
-			emoji: '🦉'
+			sound: '« ou » comme dans « loup ».'
 		},
 		Ф: {
 			phonetic: 'f',
-			sound: '« f » comme dans « fou ».',
-			mnemonic: 'Comme le phi grec Φ : un rond transpercé par une flèche.',
-			emoji: '🎯'
+			sound: '« f » comme dans « fou ».'
 		},
 		Х: {
 			phonetic: 'kh',
 			sound:
 				'Un « h » soufflé du fond de la gorge, comme la jota espagnole ou le « ch » de « Bach ».',
-			mnemonic: 'Un faux X ! Imagine un X qui se racle la gorge : « khh ».',
 			note: 'Sur les panneaux, on l’écrit simplement « h ».'
 		},
 		Ц: {
 			phonetic: 'ts',
-			sound: '« ts » comme dans « tsar » ou « tsé-tsé ».',
-			mnemonic: 'Un U avec un petit dard en bas : la mouche tsé-tsé !',
-			emoji: '🪰'
+			sound: '« ts » comme dans « tsar » ou « tsé-tsé ».'
 		},
 		Ч: {
 			phonetic: 'tch',
-			sound: '« tch » comme dans « match » ou « atchoum ».',
-			mnemonic: 'Il ressemble à un 4 qui éternue : « atchoum ! »',
-			emoji: '🤧'
+			sound: '« tch » comme dans « match » ou « atchoum ».'
 		},
 		Ш: {
 			phonetic: 'ch',
-			sound: '« ch » comme dans « chat ».',
-			mnemonic: 'Trois doigts levés pour dire « chhh ! »',
-			emoji: '🤫'
+			sound: '« ch » comme dans « chat ».'
 		},
 		Щ: {
 			phonetic: 'cht',
 			sound: '« ch » suivi de « t », comme à la fin de « pschitt ».',
-			mnemonic:
-				'C’est Ш qui traîne une petite queue : le « t » ! Ш + т = Щ, « ch » + « t » = « cht ».',
 			note: 'En russe, cette lettre se lit « chtch ». En bulgare, c’est bien « cht ».'
 		},
 		Ъ: {
 			phonetic: 'eu',
 			sound: 'Un « eu » bref et étouffé, comme le « e » de « le ».',
-			mnemonic: 'Le son qu’on fait quand on hésite : « euh… »',
-			emoji: '🤔',
 			note: 'Très fréquente en bulgare. Sur les panneaux, on l’écrit « a ».'
 		},
 		Ь: {
 			phonetic: 'yo',
 			sound: '« yo » comme dans « yoga ». Ь n’apparaît que devant о.',
-			mnemonic: 'Tout seul, Ь est muet : il a besoin de son ami О pour dire « yo ! », comme йо.',
-			emoji: '👋',
 			note: 'ьо et йо se lisent tous les deux « yo » : on écrit ьо après une consonne, йо ailleurs.'
 		},
 		Ю: {
 			phonetic: 'iou',
 			sound: '« iou » comme dans « youpi ».',
-			mnemonic: 'Un I qui tient un O par la main : « i » + « ou » = « iou ». Youpi !',
-			emoji: '🎉',
 			note: 'Après une consonne, celle-ci se « mouille » légèrement.'
 		},
 		Я: {
 			phonetic: 'ia',
 			sound: '« ia » comme dans « piano ».',
-			mnemonic: 'Un R qui se regarde dans un miroir et s’écrie « ya ! »',
 			note: 'Après une consonne, celle-ci se « mouille » légèrement.'
 		}
 	},
@@ -230,6 +173,14 @@ export const fr: LearningContent = {
 		око: 'œil',
 		така: 'ainsi',
 		комета: 'comète',
+		мак: 'coquelicot',
+		мек: 'mou, doux',
+		кака: 'grande sœur',
+		мокет: 'moquette',
+		макет: 'maquette',
+		атака: 'attaque',
+		мома: 'jeune fille',
+		такт: 'mesure (musique), tact',
 		ресторант: 'restaurant',
 		сестра: 'sœur',
 		нос: 'nez',
@@ -244,6 +195,21 @@ export const fr: LearningContent = {
 		не: 'non',
 		роман: 'roman',
 		река: 'rivière',
+		нота: 'note (de musique)',
+		стена: 'mur',
+		торта: 'gâteau',
+		текст: 'texte',
+		страна: 'pays',
+		марка: 'timbre, marque',
+		антена: 'antenne',
+		сметка: 'addition (au restaurant)',
+		мост: 'pont',
+		оса: 'guêpe',
+		камера: 'caméra',
+		маска: 'masque',
+		аромат: 'arôme',
+		номер: 'numéro',
+		океан: 'océan',
 		Москва: 'Moscou',
 		Варна: 'Varna',
 		тук: 'ici',
@@ -256,6 +222,17 @@ export const fr: LearningContent = {
 		ум: 'esprit, intelligence',
 		муха: 'mouche',
 		ухо: 'oreille',
+		вкусно: 'délicieux',
+		трева: 'herbe',
+		врата: 'porte',
+		нов: 'nouveau',
+		хумор: 'humour',
+		урок: 'leçon',
+		страх: 'peur',
+		автор: 'auteur',
+		курс: 'cours',
+		космонавт: 'cosmonaute',
+		Хавана: 'La Havane',
 		кино: 'cinéma',
 		вода: 'eau',
 		хотел: 'hôtel',
@@ -272,6 +249,26 @@ export const fr: LearningContent = {
 		ден: 'jour',
 		име: 'prénom, nom',
 		Рим: 'Rome',
+		Виена: 'Vienne',
+		дом: 'foyer, chez-soi',
+		лед: 'glace (eau gelée)',
+		лодка: 'barque',
+		сол: 'sel',
+		мед: 'miel',
+		дете: 'enfant',
+		Дунав: 'Danube',
+		молив: 'crayon',
+		адрес: 'adresse',
+		доктор: 'docteur',
+		Мадрид: 'Madrid',
+		три: 'trois',
+		студент: 'étudiant',
+		университет: 'université',
+		домат: 'tomate',
+		сладолед: 'crème glacée',
+		самолет: 'avion',
+		стадион: 'stade',
+		вторник: 'mardi',
 		паспорт: 'passeport',
 		бира: 'bière',
 		банка: 'banque',
@@ -281,13 +278,32 @@ export const fr: LearningContent = {
 		роза: 'rose',
 		супа: 'soupe',
 		пари: 'argent',
-		Бургас: 'Bourgas',
 		Пловдив: 'Plovdiv',
 		банан: 'banane',
 		автобус: 'bus',
 		риба: 'poisson',
 		добре: 'bien',
 		аз: 'je, moi',
+		пет: 'cinq',
+		бебе: 'bébé',
+		брат: 'frère',
+		пиано: 'piano',
+		пазар: 'marché',
+		звезда: 'étoile',
+		плод: 'fruit',
+		небе: 'ciel',
+		писмо: 'lettre (courrier)',
+		Берлин: 'Berlin',
+		зоопарк: 'zoo',
+		закуска: 'petit-déjeuner',
+		бутилка: 'bouteille',
+		музика: 'musique',
+		азбука: 'alphabet',
+		буква: 'lettre (de l’alphabet)',
+		билет: 'billet, ticket',
+		пилот: 'pilote',
+		понеделник: 'lundi',
+		Бургас: 'Bourgas',
 		много: 'beaucoup',
 		град: 'ville',
 		гара: 'gare',
@@ -301,6 +317,24 @@ export const fr: LearningContent = {
 		здравей: 'salut, bonjour',
 		книга: 'livre',
 		филм: 'film',
+		музей: 'musée',
+		герой: 'héros',
+		игра: 'jeu',
+		гост: 'invité',
+		фабрика: 'usine',
+		форма: 'forme',
+		фирма: 'entreprise',
+		фестивал: 'festival',
+		февруари: 'février',
+		край: 'fin, bord',
+		май: 'mai',
+		йога: 'yoga',
+		кафене: 'café (le lieu)',
+		магазин: 'magasin',
+		богат: 'riche',
+		фонтан: 'fontaine',
+		грозде: 'raisin',
+		Китай: 'Chine',
 		България: 'Bulgarie',
 		чай: 'thé',
 		път: 'chemin, route',
@@ -315,6 +349,24 @@ export const fr: LearningContent = {
 		куче: 'chien',
 		благодаря: 'merci',
 		моля: 's’il te plaît',
+		вяра: 'foi',
+		сън: 'sommeil, rêve',
+		лято: 'été',
+		чадър: 'parapluie',
+		чанта: 'sac',
+		ръка: 'main, bras',
+		огън: 'feu',
+		момче: 'garçon',
+		момиче: 'fille',
+		учител: 'enseignant',
+		Италия: 'Italie',
+		ягода: 'fraise',
+		мечка: 'ours',
+		вечер: 'soir',
+		събота: 'samedi',
+		петък: 'vendredi',
+		червен: 'rouge',
+		чорба: 'soupe traditionnelle',
 		шоколад: 'chocolat',
 		жена: 'femme',
 		плаж: 'plage',
@@ -328,6 +380,24 @@ export const fr: LearningContent = {
 		щастие: 'bonheur',
 		нощ: 'nuit',
 		душ: 'douche',
+		нож: 'couteau',
+		жълт: 'jaune',
+		живот: 'vie',
+		жаба: 'grenouille',
+		журналист: 'journaliste',
+		гараж: 'garage',
+		пижама: 'pyjama',
+		шал: 'écharpe',
+		шест: 'six',
+		машина: 'machine',
+		училище: 'école',
+		поща: 'poste',
+		щъркел: 'cigogne',
+		Будапеща: 'Budapest',
+		шах: 'échecs',
+		дъжд: 'pluie',
+		круша: 'poire',
+		вишна: 'griotte',
 		пица: 'pizza',
 		меню: 'menu',
 		шофьор: 'chauffeur',
@@ -340,6 +410,25 @@ export const fr: LearningContent = {
 		любов: 'amour',
 		ключ: 'clé',
 		компютър: 'ordinateur',
-		бульон: 'bouillon'
+		бульон: 'bouillon',
+		сърце: 'cœur',
+		яйце: 'œuf',
+		Франция: 'France',
+		Гърция: 'Grèce',
+		полиция: 'police',
+		станция: 'station',
+		лъжица: 'cuillère',
+		седмица: 'semaine',
+		юг: 'sud',
+		юни: 'juin',
+		бюро: 'bureau',
+		плюс: 'plus',
+		костюм: 'costume',
+		парфюм: 'parfum',
+		медальон: 'médaillon',
+		синьо: 'bleu',
+		фризьор: 'coiffeur',
+		актьор: 'acteur',
+		ликьор: 'liqueur'
 	}
 };

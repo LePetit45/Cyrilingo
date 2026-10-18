@@ -4,16 +4,11 @@ A web app to learn to read the Bulgarian Cyrillic alphabet, designed for native 
 
 See [docs/SPECIFICATIONS.md](docs/SPECIFICATIONS.md) for the product specification.
 
-## Status: v0.10.0-beta
+## Status: v1.0.0
 
 Live at **https://cyrilingo.pages.dev**.
 
-The whole course is playable: the path of 10 lessons, letter discovery cards, the three exercise types with the in-app keyboard on touch devices, free review, the final exam (« L'Épreuve de Preslav ») with its diploma, the alphabet screen and the settings. It works offline once opened. Since v0.10.0-beta every screen uses the light, Duolingo-inspired design (spec §8).
-
-Not in the beta:
-
-- recorded voice: no recordings yet (spec §10.1), audio buttons stay hidden;
-- the content (mnemonics, words, translations, stress) is a first draft to be reviewed (spec §9).
+The whole course is playable: the path of 10 lessons, letter discovery cards, the three exercise types with the in-app keyboard on touch devices, free review, the final exam (« L'Épreuve de Preslav ») with its diploma, the alphabet screen and the settings, all in the light, Duolingo-inspired design (spec §8). Letters, syllables and words come with recorded voice and a slow-playback button (spec §10.1). It works offline once opened.
 
 To try a local build like the real thing (production build, service worker, offline):
 

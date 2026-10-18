@@ -1,6 +1,6 @@
 # Cyrilingo — Specifications
 
-> Status: **v0.4**, implemented as the **v0.10.0-beta** (redesigned UI, §8). Live at https://cyrilingo.pages.dev. Remaining open items: audio provider (§10.1, no recordings yet), review of the drafted content by the project owner (§9).
+> Status: **v0.4**, implemented as **v1.0.0**. Live at https://cyrilingo.pages.dev. Recordings generated with Azure Speech (§10.1). Remaining open item: review of the drafted content by the project owner (§9).
 
 ## 1. Vision
 
@@ -31,7 +31,7 @@ Concrete goal: by the end of the course, the user can sound out any Bulgarian wo
 |---|---|---|
 | **1. Allies**: same shape, same sound | А, Е, К, М, О, Т | Reassuring: you can already read 6 letters |
 | **2. False friends**: Latin shape, different sound | В (v), Н (n), Р (r), С (s), У (u, French "ou"), Х (h/kh) | The real trap: you have to "unlearn" |
-| **3. Greek cousins**: new but guessable | Б (b), Г (g), Д (d), Л (l), П (p), Ф (f), И (i), Й (y), З (z) | Visual mnemonics |
+| **3. Greek cousins**: new but guessable | Б (b), Г (g), Д (d), Л (l), П (p), Ф (f), И (i), Й (y), З (z) | Familiar from the Greek alphabet |
 | **4. Newcomers**: sounds missing from French or spelled differently | Ж (French "j"), Ц (ts), Ч (French "tch"), Ш (French "ch"), Щ (French "cht"), Ъ (short schwa, close to French "eu"), Ь, Ю (yu), Я (ya) | The core of the effort |
 
 ### 3.3 Bulgarian specifics to cover
@@ -60,13 +60,13 @@ Both are displayed (D1). The French phonetic transliteration is the reference fo
 - **Nothing is locked.** Every lesson and the final exam can be opened at any time.
 - The UI suggests the intended order: each lesson has one of three states: *completed*, *suggested* (the first lesson not yet completed), *not done yet*.
 - A completed lesson can be replayed at will.
-- **A lesson assumes all lessons before it in the path are known**, whether the user actually did them or not. As a consequence, the **content of each lesson is fixed and authored in advance** (static data); only the order of questions is shuffled.
+- **A lesson assumes all lessons before it in the path are known**, whether the user actually did them or not. As a consequence, the **letters of each lesson are fixed and authored in advance** (static data). Its readings are **drawn at random from the corpus** among the words readable with those letters, so replaying a lesson shows other words; the order of questions is shuffled too.
 - A lesson never shows a word or syllable containing a letter from a later lesson.
 
 ### 4.3 Lesson flow
 1. **Discovery cards** for the 3 new letters (§5.1).
-2. **9 questions on the new letters**: each letter goes through all three exercise types: letter → sound MCQ, sound → letter MCQ, and a syllable or word reading.
-3. **3 syllables or words** mixing new and previously learned letters.
+2. **9 questions on the new letters**: each letter goes through all three exercise types: letter → sound MCQ, sound → letter MCQ, and a reading of a word containing it (a syllable when too few words exist).
+3. **3 words** mixing new and previously learned letters (syllables in lesson 1).
 4. **4 review questions** (§4.4).
 
 ≈ 16 questions + repeats of missed questions, about 6–8 minutes. Questions within steps 2–4 are shuffled.
@@ -88,7 +88,6 @@ Syllables (ма, ко, те…) bridge the gap between letters and words, and fi
 ### 4.6 Final exam: "L'Épreuve de Preslav"
 - Named after the Preslav Literary School in Bulgaria, where the Cyrillic alphabet was developed. Title awarded on success (French UI string): **« Titre de saint-maître absolue du cyrillique »**.
 - **30 questions** covering all 30 letters, mixing the three exercise types, with a majority of word reading.
-- No mnemonic hints during the exam.
 - **Real score**: unlike lessons, missed questions are not repeated; every mistake counts. Passing requires **≥ 90%** correct answers (consistent with §12).
 - Can be taken at any time and retaken any number of times.
 - On success: a **diploma screen with an animation**, issued by « L’École suprême Cyrilingo ». The user can type a first name to display on the diploma; it is not saved.
@@ -100,11 +99,11 @@ Syllables (ма, ко, те…) bridge the gap between letters and words, and fi
 ## 5. Exercises
 
 ### 5.1 Letter discovery card
-Uppercase + lowercase glyph (Bulgarian shape), **recorded sound** (autoplay), French + official transliterations, 2–3 example words, note on the "standard" shape and pronunciation nuances where relevant. The mnemonic (text + optional emoji) is not on the card: it is shown as a reminder after a wrong answer (§5.3), where it helps most.
+Uppercase + lowercase glyph (Bulgarian shape), **recorded sound** (autoplay), French + official transliterations, 2–3 example words with the letter underlined, note on the "standard" shape and pronunciation nuances where relevant. No mnemonics: the owner found them unhelpful.
 
 ### 5.2 Exercise types
 1. **Letter → sound MCQ**: a Cyrillic letter is shown → pick its transliteration among 4.
-2. **Sound → letter MCQ**: the French phonetic transliteration is shown in large type (e.g. « tch »), with an audio button → pick the Cyrillic letter among 4.
+2. **Sound → letter MCQ**: the French phonetic transliteration is shown in large type (e.g. « tch »), with the sound played automatically and an audio button to replay it → pick the Cyrillic letter among 4.
 3. **Reading**: a Cyrillic syllable or word is shown → type it in Latin letters (§5.4).
 
 ### 5.3 Rules
@@ -141,9 +140,11 @@ Uppercase + lowercase glyph (Bulgarian shape), **recorded sound** (autoplay), Fr
 
 #### Feedback
 - Shown in a **colored panel at the bottom of the screen** (green after a right answer, red after a wrong one) that replaces the action buttons, with a button to go on (« Continuer » / « Compris », or Enter). The question stays visible above it, with the right choice in green and the wrong one in red.
-- **After a wrong answer**: correct answer, sound, and a reminder of the letter's mnemonic.
-- **After any reading answer**: French translation of the word, stressed vowel underlined, and audio.
-- **Audio** plays automatically on discovery cards and after each answer; during a question it only plays through a button (otherwise it would give the answer away).
+- **After a wrong answer**: correct answer and sound.
+- **After any letter MCQ**, right or wrong: the letter, its transliteration and its recording (autoplay), since the letter → sound question cannot play it without giving the answer away.
+- **After any reading answer**: the word with the letter being learned underlined (the letter the question was chosen for; none in a lesson's mixed readings), its French translation, and audio. The stress is not marked: the audio carries it.
+- **Audio** plays automatically on discovery cards, on sound → letter questions (the sound is the prompt) and after each answer; during other questions it never plays (it would give the answer away).
+- Next to the audio button of a **word or syllable**, a smaller **« turtle » button** replays it slowed down. Letters have no slow version.
 
 ### 5.4 Answer input
 - **Touch devices** (phones, tablets; detected with the `(pointer: coarse)` media query, not screen width): reading answers are typed on an **on-screen keyboard built into the app**. The native keyboard is never opened (input uses `inputmode="none"`).
@@ -192,11 +193,10 @@ Uppercase + lowercase glyph (Bulgarian shape), **recorded sound** (autoplay), Fr
 
 ## 9. Content production
 
-- **Authoring**: Claude writes a first draft (letter cards, mnemonics, lesson composition, corpus), the project owner reviews and corrects.
+- **Authoring**: Claude writes a first draft (letter cards, lesson composition, corpus), the project owner reviews and corrects.
 - **Validation**: no native speaker available. Spelling, translations and stress are checked against reference sources: Wiktionary (shows stress for Bulgarian words) and online Bulgarian dictionaries, plus a listening check with the generated audio.
-- **Corpus size**: about **120 words + 60 syllables**, enough for the 10 lessons, the exam and free review.
-- **Word choice**: a mix of words guessable by a French speaker (loanwords, international words, city names) and common Bulgarian words, with no fixed ratio. Every word carries its French translation and the index of its stressed vowel.
-- **Mnemonics**: text (+ optional emoji) in the MVP; illustrations later.
+- **Corpus size**: about **270 words + 60 syllables**, enough for the 10 lessons to vary from one play to the next, the exam and free review. From lesson 2 on, each new letter has at least 4 candidate words and each lesson at least 12 mixed ones.
+- **Word choice**: a mix of words guessable by a French speaker (loanwords, international words, city names) and common Bulgarian words, with no fixed ratio. Every word carries its French translation and the index of its stressed vowel (not shown, kept to check the recordings).
 - **Format**: **typed TypeScript data files** in the repo (letters, words, syllables, lesson definitions, transliteration table). The compiler catches broken references (e.g. a lesson pointing at a missing word), and **unit tests check content invariants**: every letter is introduced in exactly one lesson, a lesson only uses letters from itself and earlier lessons, every stress index points at a vowel, every word is transliterable with the accepted-variants table.
 
 ## 10. Technical constraints
@@ -215,26 +215,27 @@ Uppercase + lowercase glyph (Bulgarian shape), **recorded sound** (autoplay), Fr
 - **Analytics**: none in the MVP: no cookies, no consent banner. Success criteria are checked through tests with a few real users.
 - Accessibility: contrast, keyboard navigation, generous font sizes for glyphs.
 
-### 10.1 Audio production (to explore together)
+### 10.1 Audio production
 
-Files are generated **once** by a Bulgarian text-to-speech voice, then served as static assets. The provider is chosen **after hands-on trials run by the project owner**, before any implementation.
+Files are generated **once** by a Bulgarian text-to-speech voice, then committed and served as static assets: the app never calls the provider.
 
-- Candidates to evaluate: Azure Speech (bg-BG neural voices), Google Cloud Text-to-Speech, ElevenLabs (multilingual), others to suggest.
-- Criteria: accuracy of a letter's **isolated** sound (hard for TTS, especially Ъ, Щ, Ж), naturalness of words, cost, license terms for the generated files.
-- Watch out: TTS mispronounces isolated letters; we may need to feed it a syllable or a phonetic transcription (SSML) rather than the bare letter.
-- Deliverable for this step: a short list of test letters and words, listened to on each provider, then a decision recorded here.
-- **Beta**: ships without recordings. The app looks up `src/lib/assets/audio/<letter or word>.{opus,mp3}`; audio buttons, autoplay and the voice setting only appear once files exist, so recordings can be added without code changes.
+- **Provider and voice**: Azure Speech, voice `bg-BG-BorislavNeural`, picked by the project owner by ear over `bg-BG-KalinaNeural` on a bench (`npm run audio:bench`, `scripts/audio/bench.ts`). The free tier (F0) covers the whole course many times over. ElevenLabs stays an option to compare later.
+- **Isolated letters**: TTS mispronounces a bare letter, so the bench compares four inputs per letter (the bare letter, its Bulgarian name such as « жъ », a syllable such as « жа », or its IPA sound through an SSML `phoneme`), and the owner picks one per letter (`LETTER_SPECS` in `scripts/audio/letters.ts`).
+- **Readings**: every corpus word and syllable is recorded at normal speed and slowed down by 25 % (§5.3). The stress placed by the voice was checked by ear on a sample of tricky words against the corpus stress indexes.
+- **Files**: `npm run audio` (`scripts/audio/generate.ts`) writes `src/lib/assets/audio/<LETTER>.mp3`, `<reading>.mp3` and `<reading>.slow.mp3` (MP3 mono, 24 kHz, 48 kbit/s, silences trimmed through SSML). `scripts/audio/manifest.json` records a hash of the SSML behind each file, so a rerun after a corpus edit only generates new or changed clips and deletes obsolete ones. A unit test fails when a letter or reading has no recording.
+- **Credentials**: `AZURE_SPEECH_KEY` and `AZURE_SPEECH_REGION` in `.env.local` (never committed).
+- The app looks up `src/lib/assets/audio/<name>.{opus,mp3}`; audio buttons, autoplay and the voice setting only appear when the files exist.
 
 ### 10.2 Internationalization
 
-French-only interface for the MVP, but **no hard-coded text in components**: all labels and learning content (mnemonics, sound explanations) are centralized per locale, so English can be added later.
+French-only interface for the MVP, but **no hard-coded text in components**: all labels and learning content (sound explanations, translations) are centralized per locale, so English can be added later.
 
 ## 11. Quality and workflow
 
 - **Unit tests** (Vitest) for all business logic: answer checking, lesson composition, persistence, content invariants (§9).
 - **End-to-end test** (Playwright) for the main flow: completing a lesson from start to finish.
 - **CI**: GitHub Actions on every pull request: lint, type check, tests. Deployment is handled by Cloudflare Pages.
-- **Git workflow**: one branch + one pull request per feature, even solo, squash-merged. No direct commits to `main`, except for documentation.
+- **Git workflow**: one branch + one pull request into `dev` per feature, even solo, squash-merged. No direct commits to `dev` or `main`. A release is a pull request from `dev` into `main` that bumps the version, followed by a GitHub release.
 - **License**: none while the repo is private; to be decided if it goes public.
 
 ## 12. Success criteria
@@ -246,7 +247,7 @@ French-only interface for the MVP, but **no hard-coded text in components**: all
 - "Real signs" mode: photos of signs, menus, shopfronts to decode.
 - Dictation: hear a word → type it in Cyrillic (Cyrillic layout of the in-app keyboard).
 - Timed mode / XP / badges.
-- Mascot, illustrated mnemonics, real logo.
+- Mascot, real logo.
 - Dark mode.
 - Export or share the diploma as an image.
 - Custom domain.
@@ -260,7 +261,7 @@ French-only interface for the MVP, but **no hard-coded text in components**: all
 | D1 | Displayed transliteration | **Both** (French phonetic as reference + official) |
 | D2 | Bulgarian lowercase typography | **From the start** |
 | D3 | Audio in the MVP | **Recordings** |
-| D3b | Recording source | **TTS generated once**; provider chosen after trials (§10.1) |
+| D3b | Recording source | **TTS generated once**: Azure Speech, voice Borislav, input picked per letter (§10.1) |
 | D4 | Front-end stack | **SvelteKit (static) + Svelte 5 + TS** |
 | D5 | Interface language | **FR for the MVP**, centralized strings to add EN later |
 | D6 | Repo visibility / hosting / license | **Private repo, Cloudflare Pages**, no license for now |
@@ -276,3 +277,5 @@ French-only interface for the MVP, but **no hard-coded text in components**: all
 | D16 | Beta scope | **v0.9.0-beta**: full MVP except recorded voice; not deployed; UI redesign planned after the beta |
 | D17 | Answer confirmation | **MCQ checked on tap**, readings with « Vérifier »; feedback in a bottom panel (§5.3) |
 | D18 | Daily streaks | **Never**: not in the spirit of the app (§6) |
+| D19 | Lesson readings | **Drawn at random from the corpus** on each play, instead of a fixed list per lesson (§4.2, §4.3) |
+| D20 | Slow playback | **« Turtle » button** on words and syllables, from a second recording slowed down by 25 % (§5.3, §10.1) |

@@ -1,5 +1,4 @@
 import type { BulgarianLetter } from '../alphabet.js';
-import type { Reading } from './corpus.js';
 
 /** The four letter groups of the path, in course order (spec §3.2, §4.1). */
 export const SECTION_IDS = ['allies', 'falseFriends', 'greekCousins', 'newcomers'] as const;
@@ -33,8 +32,4 @@ export interface Lesson {
 	section: SectionId;
 	/** The 3 letters introduced by the lesson, in the order their discovery cards are shown (spec §4.1). */
 	letters: readonly [BulgarianLetter, BulgarianLetter, BulgarianLetter];
-	/** One reading per new letter, in the same order, each containing its letter (spec §4.3, step 2). */
-	letterReadings: readonly [Reading, Reading, Reading];
-	/** Readings mixing new and previously learned letters (spec §4.3, step 3). */
-	mixedReadings: readonly [Reading, Reading, Reading];
 }
