@@ -28,6 +28,7 @@ test('completes a lesson from start to finish', async ({ page }) => {
 
 	await expect(page.getByRole('heading', { level: 1 })).toHaveText(/^Leçon terminée/);
 	await expect(page.getByText('94 %')).toBeVisible();
+	await expect(page.getByRole('link', { name: 'Accueil' })).toHaveAttribute('href', '/');
 	await page.getByRole('link', { name: 'Continuer' }).click();
 	await expect(page).toHaveURL(/\/lesson\/l1$/);
 

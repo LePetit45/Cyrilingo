@@ -11,7 +11,7 @@
 	import HighlightedReading from './HighlightedReading.svelte';
 
 	// Letter discovery card (spec §5.1): glyphs, sound, both transliterations, examples and notes.
-	// Used in lessons and on the alphabet screen. The mnemonic shows up after a wrong answer.
+	// Used in lessons and on the alphabet screen.
 	// The eyebrow can be left out where the screen already says it (« Lettre 1 sur 3 » in lessons),
 	// or replaced by a header of the screen's own (the alphabet window's ✕ and learned state).
 	let {

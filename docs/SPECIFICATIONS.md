@@ -31,7 +31,7 @@ Concrete goal: by the end of the course, the user can sound out any Bulgarian wo
 |---|---|---|
 | **1. Allies**: same shape, same sound | А, Е, К, М, О, Т | Reassuring: you can already read 6 letters |
 | **2. False friends**: Latin shape, different sound | В (v), Н (n), Р (r), С (s), У (u, French "ou"), Х (h/kh) | The real trap: you have to "unlearn" |
-| **3. Greek cousins**: new but guessable | Б (b), Г (g), Д (d), Л (l), П (p), Ф (f), И (i), Й (y), З (z) | Visual mnemonics |
+| **3. Greek cousins**: new but guessable | Б (b), Г (g), Д (d), Л (l), П (p), Ф (f), И (i), Й (y), З (z) | Familiar from the Greek alphabet |
 | **4. Newcomers**: sounds missing from French or spelled differently | Ж (French "j"), Ц (ts), Ч (French "tch"), Ш (French "ch"), Щ (French "cht"), Ъ (short schwa, close to French "eu"), Ь, Ю (yu), Я (ya) | The core of the effort |
 
 ### 3.3 Bulgarian specifics to cover
@@ -88,7 +88,6 @@ Syllables (ма, ко, те…) bridge the gap between letters and words, and fi
 ### 4.6 Final exam: "L'Épreuve de Preslav"
 - Named after the Preslav Literary School in Bulgaria, where the Cyrillic alphabet was developed. Title awarded on success (French UI string): **« Titre de saint-maître absolue du cyrillique »**.
 - **30 questions** covering all 30 letters, mixing the three exercise types, with a majority of word reading.
-- No mnemonic hints during the exam.
 - **Real score**: unlike lessons, missed questions are not repeated; every mistake counts. Passing requires **≥ 90%** correct answers (consistent with §12).
 - Can be taken at any time and retaken any number of times.
 - On success: a **diploma screen with an animation**, issued by « L’École suprême Cyrilingo ». The user can type a first name to display on the diploma; it is not saved.
@@ -100,7 +99,7 @@ Syllables (ма, ко, те…) bridge the gap between letters and words, and fi
 ## 5. Exercises
 
 ### 5.1 Letter discovery card
-Uppercase + lowercase glyph (Bulgarian shape), **recorded sound** (autoplay), French + official transliterations, 2–3 example words with the letter underlined, note on the "standard" shape and pronunciation nuances where relevant. The mnemonic (text + optional emoji) is not on the card: it is shown as a reminder after a wrong answer (§5.3), where it helps most.
+Uppercase + lowercase glyph (Bulgarian shape), **recorded sound** (autoplay), French + official transliterations, 2–3 example words with the letter underlined, note on the "standard" shape and pronunciation nuances where relevant. No mnemonics: the owner found them unhelpful.
 
 ### 5.2 Exercise types
 1. **Letter → sound MCQ**: a Cyrillic letter is shown → pick its transliteration among 4.
@@ -141,7 +140,7 @@ Uppercase + lowercase glyph (Bulgarian shape), **recorded sound** (autoplay), Fr
 
 #### Feedback
 - Shown in a **colored panel at the bottom of the screen** (green after a right answer, red after a wrong one) that replaces the action buttons, with a button to go on (« Continuer » / « Compris », or Enter). The question stays visible above it, with the right choice in green and the wrong one in red.
-- **After a wrong answer**: correct answer, sound, and a reminder of the letter's mnemonic.
+- **After a wrong answer**: correct answer and sound.
 - **After any reading answer**: the word with the letter being learned underlined (the letter the question was chosen for; none in a lesson's mixed readings), its French translation, and audio. The stress is not marked: the audio carries it.
 - **Audio** plays automatically on discovery cards and after each answer; during a question it only plays through a button (otherwise it would give the answer away).
 
@@ -192,11 +191,10 @@ Uppercase + lowercase glyph (Bulgarian shape), **recorded sound** (autoplay), Fr
 
 ## 9. Content production
 
-- **Authoring**: Claude writes a first draft (letter cards, mnemonics, lesson composition, corpus), the project owner reviews and corrects.
+- **Authoring**: Claude writes a first draft (letter cards, lesson composition, corpus), the project owner reviews and corrects.
 - **Validation**: no native speaker available. Spelling, translations and stress are checked against reference sources: Wiktionary (shows stress for Bulgarian words) and online Bulgarian dictionaries, plus a listening check with the generated audio.
 - **Corpus size**: about **120 words + 60 syllables**, enough for the 10 lessons, the exam and free review.
 - **Word choice**: a mix of words guessable by a French speaker (loanwords, international words, city names) and common Bulgarian words, with no fixed ratio. Every word carries its French translation and the index of its stressed vowel (not shown, kept to check the recordings).
-- **Mnemonics**: text (+ optional emoji) in the MVP; illustrations later.
 - **Format**: **typed TypeScript data files** in the repo (letters, words, syllables, lesson definitions, transliteration table). The compiler catches broken references (e.g. a lesson pointing at a missing word), and **unit tests check content invariants**: every letter is introduced in exactly one lesson, a lesson only uses letters from itself and earlier lessons, every stress index points at a vowel, every word is transliterable with the accepted-variants table.
 
 ## 10. Technical constraints
@@ -227,14 +225,14 @@ Files are generated **once** by a Bulgarian text-to-speech voice, then served as
 
 ### 10.2 Internationalization
 
-French-only interface for the MVP, but **no hard-coded text in components**: all labels and learning content (mnemonics, sound explanations) are centralized per locale, so English can be added later.
+French-only interface for the MVP, but **no hard-coded text in components**: all labels and learning content (sound explanations, translations) are centralized per locale, so English can be added later.
 
 ## 11. Quality and workflow
 
 - **Unit tests** (Vitest) for all business logic: answer checking, lesson composition, persistence, content invariants (§9).
 - **End-to-end test** (Playwright) for the main flow: completing a lesson from start to finish.
 - **CI**: GitHub Actions on every pull request: lint, type check, tests. Deployment is handled by Cloudflare Pages.
-- **Git workflow**: one branch + one pull request per feature, even solo, squash-merged. No direct commits to `main`, except for documentation.
+- **Git workflow**: one branch + one pull request into `dev` per feature, even solo, squash-merged. No direct commits to `dev` or `main`. A release is a pull request from `dev` into `main` that bumps the version, followed by a GitHub release.
 - **License**: none while the repo is private; to be decided if it goes public.
 
 ## 12. Success criteria
@@ -246,7 +244,7 @@ French-only interface for the MVP, but **no hard-coded text in components**: all
 - "Real signs" mode: photos of signs, menus, shopfronts to decode.
 - Dictation: hear a word → type it in Cyrillic (Cyrillic layout of the in-app keyboard).
 - Timed mode / XP / badges.
-- Mascot, illustrated mnemonics, real logo.
+- Mascot, real logo.
 - Dark mode.
 - Export or share the diploma as an image.
 - Custom domain.

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { WORDS, type Word } from './content/corpus.js';
 import { LETTERS } from './content/letters.js';
 import {
+	answerRuns,
 	checkReading,
 	letterOf,
 	lettersIn,
@@ -160,5 +161,23 @@ describe('checkReading', () => {
 		expect(checkReading('мляко', 'xyz')).toEqual({ correct: false, letters: null });
 		expect(checkReading('чай', 'bonjour')).toEqual({ correct: false, letters: null });
 		expect(checkReading('там', '')).toEqual({ correct: false, letters: null });
+	});
+});
+
+describe('answerRuns', () => {
+	it('merges neighboring wrong letters into one stretch', () => {
+		expect(answerRuns(checkReading('мляко', 'marko').letters!)).toEqual([
+			{ text: 'm', correct: true },
+			{ text: 'ar', correct: false },
+			{ text: 'ko', correct: true }
+		]);
+	});
+
+	it('keeps an empty stretch for a letter left out', () => {
+		expect(answerRuns(checkReading('сестра', 'sesra').letters!)).toEqual([
+			{ text: 'ses', correct: true },
+			{ text: '', correct: false },
+			{ text: 'ra', correct: true }
+		]);
 	});
 });

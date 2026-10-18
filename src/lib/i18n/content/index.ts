@@ -18,8 +18,6 @@ export interface LetterText {
 	phonetic: string;
 	/** How to pronounce the reference sound, with familiar example words. */
 	sound: string;
-	mnemonic: string;
-	emoji?: string;
 	/** Pronunciation nuances and other remarks that are not taught in the MVP (spec §3.3). */
 	note?: string;
 }

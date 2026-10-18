@@ -28,18 +28,16 @@
 	import SessionHeader from './SessionHeader.svelte';
 
 	// Plays a list of questions (spec §4.5): lessons and free review repeat missed questions until
-	// each one is answered correctly; the exam counts every answer once and gives no hints.
+	// each one is answered correctly; the exam counts every answer once.
 	let {
 		questions,
 		repeatMisses,
-		showMnemonics = true,
 		quitTitle,
 		quitMessage,
 		onfinish
 	}: {
 		questions: readonly Question[];
 		repeatMisses: boolean;
-		showMnemonics?: boolean;
 		quitTitle?: string;
 		quitMessage?: string;
 		onfinish: (summary: Summary) => void;
@@ -211,8 +209,6 @@
 				correct={result.correct}
 				dontKnow={result.dontKnow}
 				check={result.check}
-				missedLetters={result.missedLetters}
-				{showMnemonics}
 				oncontinue={next}
 			/>
 		</BottomBar>

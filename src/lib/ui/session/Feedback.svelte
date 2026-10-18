@@ -1,8 +1,6 @@
 <script lang="ts">
-	import type { BulgarianLetter } from '#lib/core/alphabet.js';
 	import type { Question } from '#lib/core/engine/questions.js';
-	import type { ReadingCheck } from '#lib/core/reading.js';
-	import { content } from '#lib/i18n/content/index.js';
+	import { answerRuns, type ReadingCheck } from '#lib/core/reading.js';
 	import { m } from '#lib/i18n/index.js';
 	import AudioButton from '../AudioButton.svelte';
 	import Button from '../Button.svelte';
@@ -19,15 +17,13 @@
 	import HighlightedReading from '../HighlightedReading.svelte';
 
 	// Colored panel at the bottom of the screen after each answer (spec §5.3): the right answer, the
-	// wrong letters, a mnemonic reminder (not during the exam) and, after a reading, the word with the
-	// letter being learned underlined, and its translation.
+	// wrong letters and, after a reading, the word with the letter being learned underlined, and its
+	// translation.
 	let {
 		question,
 		correct,
 		dontKnow,
 		check,
-		missedLetters,
-		showMnemonics,
 		oncontinue
 	}: {
 		question: Question;
@@ -35,14 +31,11 @@
 		dontKnow: boolean;
 		/** Result of a typed reading answer. */
 		check?: ReadingCheck;
-		missedLetters: readonly BulgarianLetter[];
-		showMnemonics: boolean;
 		oncontinue: () => void;
 	} = $props();
 
 	const praise = m.feedback.correct[Math.floor(Math.random() * m.feedback.correct.length)];
 	const title = $derived(correct ? praise : dontKnow ? m.feedback.dontKnow : m.feedback.wrong);
-	const reminders = $derived(correct || !showMnemonics ? [] : missedLetters.slice(0, 2));
 
 	// Focus Continue, so Enter (or Space) moves on with the button's own behavior and keyboard
 	// users land on the next action. Without scrolling: the panel is still sliding in from below
@@ -77,9 +70,9 @@
 				{#if check?.letters}
 					<p class="typed">
 						{m.feedback.yourAnswer}
-						<span class="segments"
-							>{#each check.letters as letter, index (index)}<span
-									class={['segment', { wrong: !letter.correct }]}>{letter.typed || '_'}</span
+						<span class="runs"
+							>{#each answerRuns(check.letters) as run, index (index)}<span
+									class={['run', { wrong: !run.correct, missing: !run.text }]}>{run.text}</span
 								>{/each}</span
 						>
 					</p>
@@ -97,15 +90,6 @@
 				{/if}
 			</p>
 		{/if}
-
-		{#each reminders as letter (letter)}
-			<p class="reminder">
-				<span class="reminder-label">{m.feedback.reminder}</span>
-				<Cyrillic class="glyph">{letterGlyph(letter)}</Cyrillic>
-				{content.letters[letter].emoji ?? ''}
-				{content.letters[letter].mnemonic}
-			</p>
-		{/each}
 	</div>
 
 	<div class="continue" bind:this={continueArea}>
@@ -195,33 +179,26 @@
 		font-weight: 900;
 	}
 
-	.segments {
+	.runs {
 		font-weight: 800;
 		letter-spacing: 0.02em;
 	}
 
-	.segment.wrong {
-		padding: 0 0.1em;
+	.run.wrong {
+		padding: 0 0.15em;
+		margin: 0 0.05em;
 		color: #fff;
 		background: var(--color-error);
 		border-radius: 4px;
 	}
 
-	.reminder {
-		padding: 0.5rem 0.75rem;
-		font-size: 0.9375rem;
-		color: var(--color-text);
-		background: rgb(255 255 255 / 0.7);
-		border-radius: var(--radius-sm);
-	}
-
-	.reminder-label {
-		margin-right: 0.25rem;
-		font-size: 0.75rem;
-		font-weight: 900;
-		letter-spacing: 0.06em;
-		text-transform: uppercase;
-		color: var(--color-text-muted);
+	/* Letters left out: a narrow empty mark where they belong. */
+	.run.missing {
+		display: inline-block;
+		width: 0.5em;
+		height: 1em;
+		padding: 0;
+		vertical-align: -0.15em;
 	}
 
 	@media (min-width: 900px) {

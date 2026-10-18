@@ -20,5 +20,6 @@ Conversation with the project owner can happen in French; switch to English when
 
 ## Git workflow
 
-- One branch + one pull request per feature, squash-merged.
-- No direct commits to `main`, except for documentation (README, `docs/`, this file).
+- Day-to-day work goes to the `dev` branch: one branch + one pull request into `dev` per feature, squash-merged.
+- No direct commits to `dev` or `main`, documentation included.
+- Releasing: a pull request from `dev` into `main` that also bumps the version in the code (`package.json`, `package-lock.json`). Once it is merged, publish a GitHub release for that version, tagged on `main`.

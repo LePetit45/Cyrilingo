@@ -83,7 +83,6 @@ export const fr = {
 		dontKnow: 'Voici la réponse',
 		answer: 'Réponse :',
 		yourAnswer: 'Ta réponse :',
-		reminder: 'Rappel',
 		meaning: 'Sens :'
 	},
 	keyboard: {
@@ -108,7 +107,8 @@ export const fr = {
 		missed: 'Lettres à revoir',
 		noMiss: 'Aucune erreur, chapeau !',
 		next: 'Continuer',
-		replay: 'Recommencer'
+		replay: 'Recommencer',
+		home: 'Accueil'
 	},
 	review: {
 		title: 'Révision libre',

@@ -150,3 +150,25 @@ export function checkReading(reading: string, answer: string): ReadingCheck {
 		return result;
 	}
 }
+
+/** A stretch of a typed answer, right or wrong (spec §5.3). */
+export interface AnswerRun {
+	/** Empty for letters left out of the answer. */
+	text: string;
+	correct: boolean;
+}
+
+/**
+ * A wrong answer as typed, split into right and wrong stretches to show under the expected one:
+ * neighboring wrong letters merge into one stretch, so « marko » for мляко gives « m », « ar »
+ * and « ko ».
+ */
+export function answerRuns(letters: readonly LetterCheck[]): AnswerRun[] {
+	const runs: AnswerRun[] = [];
+	for (const { typed, correct } of letters) {
+		const last = runs.at(-1);
+		if (last?.correct === correct) last.text += typed;
+		else runs.push({ text: typed, correct });
+	}
+	return runs;
+}
