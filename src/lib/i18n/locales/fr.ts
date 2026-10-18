@@ -84,8 +84,7 @@ export const fr = {
 		answer: 'Réponse :',
 		yourAnswer: 'Ta réponse :',
 		reminder: 'Rappel',
-		meaning: 'Sens :',
-		stressHint: 'La voyelle soulignée porte l’accent.'
+		meaning: 'Sens :'
 	},
 	keyboard: {
 		label: 'Clavier',

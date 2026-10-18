@@ -1,6 +1,6 @@
 // How letters, sounds and readings are displayed, combining core data with the locale content.
 import { toLowercase, type BulgarianLetter } from '#lib/core/alphabet.js';
-import { isWord, WORDS, type Reading } from '#lib/core/content/corpus.js';
+import { isWord, type Reading } from '#lib/core/content/corpus.js';
 import { LETTERS } from '#lib/core/content/letters.js';
 import type { SoundChoice } from '#lib/core/engine/questions.js';
 import { officialTransliteration, transliterate } from '#lib/core/reading.js';
@@ -39,9 +39,4 @@ export { officialTransliteration };
 /** French translation of a corpus word; syllables have none. */
 export function translationOf(reading: Reading): string | undefined {
 	return isWord(reading) ? content.words[reading] : undefined;
-}
-
-/** Index of the stressed vowel of a corpus word; syllables have none. */
-export function stressOf(reading: Reading): number | undefined {
-	return isWord(reading) ? WORDS[reading].stress : undefined;
 }

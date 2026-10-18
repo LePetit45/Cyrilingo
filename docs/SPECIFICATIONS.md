@@ -100,7 +100,7 @@ Syllables (ма, ко, те…) bridge the gap between letters and words, and fi
 ## 5. Exercises
 
 ### 5.1 Letter discovery card
-Uppercase + lowercase glyph (Bulgarian shape), **recorded sound** (autoplay), French + official transliterations, 2–3 example words, note on the "standard" shape and pronunciation nuances where relevant. The mnemonic (text + optional emoji) is not on the card: it is shown as a reminder after a wrong answer (§5.3), where it helps most.
+Uppercase + lowercase glyph (Bulgarian shape), **recorded sound** (autoplay), French + official transliterations, 2–3 example words with the letter underlined, note on the "standard" shape and pronunciation nuances where relevant. The mnemonic (text + optional emoji) is not on the card: it is shown as a reminder after a wrong answer (§5.3), where it helps most.
 
 ### 5.2 Exercise types
 1. **Letter → sound MCQ**: a Cyrillic letter is shown → pick its transliteration among 4.
@@ -142,7 +142,7 @@ Uppercase + lowercase glyph (Bulgarian shape), **recorded sound** (autoplay), Fr
 #### Feedback
 - Shown in a **colored panel at the bottom of the screen** (green after a right answer, red after a wrong one) that replaces the action buttons, with a button to go on (« Continuer » / « Compris », or Enter). The question stays visible above it, with the right choice in green and the wrong one in red.
 - **After a wrong answer**: correct answer, sound, and a reminder of the letter's mnemonic.
-- **After any reading answer**: French translation of the word, stressed vowel underlined, and audio.
+- **After any reading answer**: the word with the letter being learned underlined (the letter the question was chosen for; none in a lesson's mixed readings), its French translation, and audio. The stress is not marked: the audio carries it.
 - **Audio** plays automatically on discovery cards and after each answer; during a question it only plays through a button (otherwise it would give the answer away).
 
 ### 5.4 Answer input
@@ -195,7 +195,7 @@ Uppercase + lowercase glyph (Bulgarian shape), **recorded sound** (autoplay), Fr
 - **Authoring**: Claude writes a first draft (letter cards, mnemonics, lesson composition, corpus), the project owner reviews and corrects.
 - **Validation**: no native speaker available. Spelling, translations and stress are checked against reference sources: Wiktionary (shows stress for Bulgarian words) and online Bulgarian dictionaries, plus a listening check with the generated audio.
 - **Corpus size**: about **120 words + 60 syllables**, enough for the 10 lessons, the exam and free review.
-- **Word choice**: a mix of words guessable by a French speaker (loanwords, international words, city names) and common Bulgarian words, with no fixed ratio. Every word carries its French translation and the index of its stressed vowel.
+- **Word choice**: a mix of words guessable by a French speaker (loanwords, international words, city names) and common Bulgarian words, with no fixed ratio. Every word carries its French translation and the index of its stressed vowel (not shown, kept to check the recordings).
 - **Mnemonics**: text (+ optional emoji) in the MVP; illustrations later.
 - **Format**: **typed TypeScript data files** in the repo (letters, words, syllables, lesson definitions, transliteration table). The compiler catches broken references (e.g. a lesson pointing at a missing word), and **unit tests check content invariants**: every letter is introduced in exactly one lesson, a lesson only uses letters from itself and earlier lessons, every stress index points at a vowel, every word is transliterable with the accepted-variants table.
 
