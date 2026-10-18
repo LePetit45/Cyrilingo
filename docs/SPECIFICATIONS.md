@@ -232,7 +232,7 @@ French-only interface for the MVP, but **no hard-coded text in components**: all
 - **Unit tests** (Vitest) for all business logic: answer checking, lesson composition, persistence, content invariants (§9).
 - **End-to-end test** (Playwright) for the main flow: completing a lesson from start to finish.
 - **CI**: GitHub Actions on every pull request: lint, type check, tests. Deployment is handled by Cloudflare Pages.
-- **Git workflow**: one branch + one pull request per feature, even solo, squash-merged. No direct commits to `main`, except for documentation.
+- **Git workflow**: one branch + one pull request into `dev` per feature, even solo, squash-merged. No direct commits to `dev` or `main`. A release is a pull request from `dev` into `main` that bumps the version, followed by a GitHub release.
 - **License**: none while the repo is private; to be decided if it goes public.
 
 ## 12. Success criteria
