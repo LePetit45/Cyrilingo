@@ -16,7 +16,8 @@ export const fr = {
 		close: 'Fermer',
 		cancel: 'Annuler',
 		continue: 'Continuer',
-		listen: 'Écouter'
+		listen: 'Écouter',
+		listenSlowly: 'Écouter lentement'
 	},
 	welcome: {
 		title: 'Bienvenue sur Cyrilingo !',
