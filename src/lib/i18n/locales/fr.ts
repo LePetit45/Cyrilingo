@@ -139,7 +139,7 @@ export const fr = {
 	},
 	diploma: {
 		heading: 'Diplôme',
-		school: 'École littéraire de Preslav',
+		school: 'L’École suprême Cyrilingo',
 		awardedTo: 'décerne à',
 		defaultName: 'toi',
 		theTitle: 'le titre de',
