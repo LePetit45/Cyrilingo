@@ -94,6 +94,6 @@ describe('LETTERS', () => {
 
 	it('flags the letters with a distinct Bulgarian lowercase shape', () => {
 		const flagged = entries.filter(([, data]) => data.distinctBulgarianLowercase);
-		expect(flagged.map(([letter]) => toLowercase(letter)).join('')).toBe('вгджзийклптцшщъью');
+		expect(flagged.map(([letter]) => toLowercase(letter)).join('')).toBe('вгджзийкптцшщъью');
 	});
 });

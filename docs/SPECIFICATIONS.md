@@ -38,7 +38,7 @@ Concrete goal: by the end of the course, the user can sound out any Bulgarian wo
 - **Щ = "sht"** (not "shch" as in Russian).
 - **Ъ** is a real vowel (≈ schwa) and very frequent (e.g. България).
 - **Ь** only appears in the combination **ьо** (e.g. шофьор). It is taught as the unit **ьо** ("yo"), together with **йо**, in the last lesson.
-- **Bulgarian lowercase typography**: in Bulgarian, several lowercase letters have their own shape (д looks like a *g*, т like an *m*, л without a hook, etc.). The app uses the Bulgarian shapes **from the start**, everywhere (D2). The letter discovery card mentions the "standard" (Russian) shape in a note, so learners are not surprised elsewhere.
+- **Bulgarian lowercase typography**: in Bulgarian, several lowercase letters have their own shape (д looks like a *g*, т like an *m*, etc.). The app uses the Bulgarian shapes **from the start**, everywhere (D2), except for Л/л, shown in its standard shape (not Λ/ʌ) as on most signs in Bulgaria. The letter discovery card mentions the "standard" (Russian) shape in a note, so learners are not surprised elsewhere.
 - **Pronunciation nuances** (Я/Ю after a consonant, reduction of unstressed vowels) are not taught in the MVP: one reference sound per letter, nuances mentioned in a note on the letter card.
 
 ### 3.4 Transliteration
