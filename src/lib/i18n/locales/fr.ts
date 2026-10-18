@@ -83,7 +83,6 @@ export const fr = {
 		dontKnow: 'Voici la réponse',
 		answer: 'Réponse :',
 		yourAnswer: 'Ta réponse :',
-		reminder: 'Rappel',
 		meaning: 'Sens :'
 	},
 	keyboard: {

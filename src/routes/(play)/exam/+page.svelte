@@ -76,7 +76,6 @@
 		<SessionPlayer
 			{questions}
 			repeatMisses={false}
-			showMnemonics={false}
 			quitTitle={m.exam.quitTitle}
 			quitMessage={m.exam.quitMessage}
 			onfinish={finish}
