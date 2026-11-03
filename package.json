@@ -9,10 +9,11 @@
 	},
 	"workspaces": [
 		"packages/core",
-		"apps/web"
+		"apps/web",
+		"apps/api"
 	],
 	"scripts": {
-		"dev": "npm run dev -w @cyrilingo/web --",
+		"dev": "node scripts/dev.js",
 		"build": "npm run build -w @cyrilingo/web --",
 		"preview": "npm run preview -w @cyrilingo/web --",
 		"check": "npm run check --workspaces && tsc -p tsconfig.json",
@@ -23,7 +24,8 @@
 		"test:e2e": "playwright test",
 		"icons": "node scripts/generate-icons.js",
 		"audio": "node --env-file=.env.local scripts/audio/generate.ts",
-		"audio:bench": "node --env-file=.env.local scripts/audio/bench.ts"
+		"audio:bench": "node --env-file=.env.local scripts/audio/bench.ts",
+		"db:migrate": "npm run db:migrate -w @cyrilingo/api"
 	},
 	"devDependencies": {
 		"@cyrilingo/core": "*",

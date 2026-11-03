@@ -12,7 +12,7 @@ Cyrilingo teaches French speakers to read the Bulgarian Cyrillic alphabet. npm w
 
 ## Commands
 
-Run from the repository root. Node.js version: [`.nvmrc`](.nvmrc).
+Run from the repository root. Node.js version: [`.nvmrc`](.nvmrc). Local settings: copy `.env.example` to `.env` (read by Docker Compose, `npm run dev`, `npm run db:migrate` and the API tests).
 
 | Command                     | What it does                                                                  |
 | --------------------------- | ----------------------------------------------------------------------------- |

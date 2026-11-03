@@ -332,11 +332,11 @@ The MCP tool `delete_word_list` (`apps/api/src/mcp/tools.ts`) enters at step 4 w
 
 ### Data model
 
-PostgreSQL. Reference data (letters, lessons, words) comes from the TypeScript content files and is **seeded** into the database on every deployment (idempotent upsert), so foreign keys can point at it. Seeding changes data, not the schema; every schema change is a numbered migration. In development only, the seed also creates two demo accounts with a few word lists.
+PostgreSQL. Reference data (letters, lessons, words) comes from the TypeScript content files and is **seeded** into the database on every deployment (idempotent upsert), so foreign keys can point at it. The seed never deletes a row: a word dropped from the content stays in the lists that hold it. Seeding changes data, not the schema; every schema change is a numbered migration. In development only, the seed also creates two demo accounts with a few word lists.
 
 | Table                | Content                                                                                                                          | Owned by a user        |
 | -------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
-| `letters`            | the 30 letters (`id` = the uppercase letter, group, position)                                                                    | no                     |
+| `letters`            | the 30 letters (`id` = the uppercase letter, `section` = its group, position)                                                    | no                     |
 | `lessons`            | the 10 lessons (`id` = `l1`…`l10`, section, position)                                                                            | no                     |
 | `lesson_letters`     | **many-to-many** lessons ↔ letters (3 letters per lesson)                                                                        | no                     |
 | `words`              | corpus words and syllables (`id` = the Cyrillic text, kind); no translation: translations are per language, in the content files | no                     |
@@ -417,7 +417,7 @@ Mutating requests must carry `Content-Type: application/json` (or `audio/wav` fo
 
 HTTPS is terminated by whatever reverse proxy sits in front of `web`; the app trusts its `X-Forwarded-*` headers only when `TRUST_PROXY=true`. Images are built from the repository (`build:`), so any host that can run Docker Compose from a Git repository can deploy it; a merge into `main` is a release.
 
-Configuration, all through environment variables (template in `.env.example`; real values never committed): `PUBLIC_URL`, `WEB_PORT`, `TRUST_PROXY`, `POSTGRES_PASSWORD`, `DATABASE_URL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION`. Missing Google or Azure settings turn the matching feature off; a missing `PUBLIC_URL` or database setting stops the API at start with a clear message. CI runs a secret scanner (gitleaks) on every pull request.
+Configuration, all through environment variables (template in `.env.example`; real values never committed): `PUBLIC_URL`, `PORT` (the API's, default 3000), `WEB_PORT`, `TRUST_PROXY`, `POSTGRES_PASSWORD`, `DATABASE_URL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION`. Missing Google or Azure settings turn the matching feature off; a missing `PUBLIC_URL` or database setting stops the API at start with a clear message. CI runs a secret scanner (gitleaks) on every pull request.
 
 Local development: `docker compose up db` then `npm run dev` (front end and API with hot reload, Vite proxies `/api`), or `docker compose up --build` for the full stack.
 

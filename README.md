@@ -39,25 +39,29 @@ Requirements: Node.js 22.17 or later (the version used in CI is pinned in [`.nvm
 
 ```bash
 npm install
+cp .env.example .env      # then fill in PUBLIC_URL, POSTGRES_PASSWORD and DATABASE_URL
+docker compose up -d db   # PostgreSQL 17, on 127.0.0.1 only
+npm run db:migrate        # migrations, then the seed
 npm run dev
 ```
 
-The app is served at http://localhost:5173.
+The app is served at http://localhost:5173 and the API at http://localhost:3000; Vite forwards `/api` to it, so the front end calls `/api/...` on its own origin. The front end alone still works without the database (guest mode).
 
 ## Scripts
 
-| Command             | What it does                                                   |
-| ------------------- | -------------------------------------------------------------- |
-| `npm run dev`       | Start the development server with hot reload                   |
-| `npm run build`     | Build the static site into `apps/web/build/`                   |
-| `npm run preview`   | Serve the production build locally (http://localhost:4173)     |
-| `npm run lint`      | Check formatting (Prettier) and lint (ESLint)                  |
-| `npm run format`    | Format all files with Prettier                                 |
-| `npm run check`     | Type check every workspace (`tsc`, `svelte-check`)             |
-| `npm run test:unit` | Run unit tests in watch mode (add `-- --run` for a single run) |
-| `npm run test:e2e`  | Build the app and run the Playwright end-to-end tests          |
-| `npm test`          | Run unit tests once, then end-to-end tests                     |
-| `npm run icons`     | Regenerate the PWA icons from the favicon (see below)          |
+| Command              | What it does                                                                                    |
+| -------------------- | ----------------------------------------------------------------------------------------------- |
+| `npm run dev`        | Start the front end and the API with hot reload                                                 |
+| `npm run db:migrate` | Apply pending migrations, then load the seed                                                    |
+| `npm run build`      | Build the static site into `apps/web/build/`                                                    |
+| `npm run preview`    | Serve the production build locally (http://localhost:4173)                                      |
+| `npm run lint`       | Check formatting (Prettier) and lint (ESLint)                                                   |
+| `npm run format`     | Format all files with Prettier                                                                  |
+| `npm run check`      | Type check every workspace (`tsc`, `svelte-check`)                                              |
+| `npm run test:unit`  | Run unit tests in watch mode (add `-- --run` for a single run); the API tests need the database |
+| `npm run test:e2e`   | Build the app and run the Playwright end-to-end tests                                           |
+| `npm test`           | Run unit tests once, then end-to-end tests                                                      |
+| `npm run icons`      | Regenerate the PWA icons from the favicon (see below)                                           |
 
 ### End-to-end tests
 
@@ -98,11 +102,19 @@ apps/web/                 # SvelteKit front end
 │   │   └── (play)/       # Full-screen pages: lesson/[id], review, exam
 │   └── service-worker/   # Offline support (own tsconfig, WebWorker types)
 └── static/               # Files served as-is
+apps/api/                 # Hono REST API on Node.js
+├── src/
+│   ├── http/             # Routes and middlewares: validate, call one service, map errors
+│   ├── services/         # The rules (ownership, limits); never see HTTP
+│   ├── db/               # Kysely queries, connection, migration runner, seed, test databases
+│   ├── config.ts         # Environment variables, checked at start
+│   └── main.ts           # Starts the server
+└── migrations/           # Numbered SQL files: 0001_reference_data.sql, …
 e2e/                      # Playwright end-to-end tests
 scripts/                  # Maintenance scripts (icons, recordings)
 ```
 
-The front end imports core through its package name, `@cyrilingo/core/<module>.js` (e.g. `@cyrilingo/core/reading.js`), and its own modules through the `#lib` alias with a `.js` extension, e.g. `import { m } from '#lib/i18n/index.js'`. `npm run test:unit` runs one Vitest project per workspace (`core`, `web`).
+The front end imports core through its package name, `@cyrilingo/core/<module>.js` (e.g. `@cyrilingo/core/reading.js`), and its own modules through the `#lib` alias with a `.js` extension, e.g. `import { m } from '#lib/i18n/index.js'`. `npm run test:unit` runs one Vitest project per workspace (`core`, `web`, `api`). The API tests create a throwaway database (`cyrilingo_test_…`) on the server of `TEST_DATABASE_URL`, else `DATABASE_URL`, migrate and seed it, and drop it at the end.
 
 ### Architecture rule
 
