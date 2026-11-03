@@ -1,8 +1,8 @@
 import { expect, type Page } from '@playwright/test';
-import { BULGARIAN_ALPHABET, type BulgarianLetter } from '../src/lib/core/alphabet.js';
-import { LETTERS } from '../src/lib/core/content/letters.js';
-import { lettersIn } from '../src/lib/core/reading.js';
-import { fr } from '../src/lib/i18n/content/fr.js';
+import { BULGARIAN_ALPHABET, type BulgarianLetter } from '@cyrilingo/core/alphabet.js';
+import { LETTERS } from '@cyrilingo/core/content/letters.js';
+import { lettersIn } from '@cyrilingo/core/reading.js';
+import { fr } from '@cyrilingo/core/content/i18n/fr.js';
 
 // Answers questions the way a learner who knows every letter would, reading the screen.
 

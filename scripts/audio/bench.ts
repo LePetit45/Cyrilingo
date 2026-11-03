@@ -10,7 +10,7 @@ import { existsSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { WORDS } from '../../src/lib/core/content/corpus.ts';
+import { WORDS } from '../../packages/core/src/content/corpus.ts';
 import { escapeXml, listVoices, slowed, ssmlDocument, synthesize, type Voice } from './azure.ts';
 import { LETTER_SPECS, letterSsml, type LetterStrategy } from './letters.ts';
 

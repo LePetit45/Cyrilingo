@@ -1,11 +1,11 @@
-// Renders the PWA icons in src/lib/assets/icons/ from src/lib/assets/favicon.svg, using the
-// Chromium installed for Playwright. Run `npm run icons` after changing the favicon and commit
-// the PNGs.
+// Renders the PWA icons in apps/web/src/lib/assets/icons/ from apps/web/src/lib/assets/favicon.svg,
+// using the Chromium installed for Playwright. Run `npm run icons` after changing the favicon and
+// commit the PNGs.
 import { readFile } from 'node:fs/promises';
 import { chromium } from '@playwright/test';
 
 const root = new URL('../', import.meta.url);
-const svg = await readFile(new URL('src/lib/assets/favicon.svg', root), 'utf8');
+const svg = await readFile(new URL('apps/web/src/lib/assets/favicon.svg', root), 'utf8');
 
 const tileColor = svg.match(/<rect[^>]*\bfill="([^"]+)"/)?.[1];
 if (!tileColor) throw new Error('Could not find the tile color (<rect fill>) in favicon.svg');
@@ -32,7 +32,7 @@ for (const { file, size, scale, background } of icons) {
 	);
 	await page.locator('img').evaluate((img) => img.decode());
 	await page.screenshot({
-		path: new URL(`src/lib/assets/icons/${file}`, root).pathname,
+		path: new URL(`apps/web/src/lib/assets/icons/${file}`, root).pathname,
 		omitBackground: true
 	});
 	console.log(`Wrote ${file} (${size}×${size})`);

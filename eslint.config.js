@@ -38,7 +38,7 @@ export default defineConfig(
 	{
 		// Business logic and string catalogs are plain TypeScript with no dependency on Svelte
 		// or SvelteKit, so the UI framework can be swapped later (spec §10, Architecture).
-		files: ['src/lib/core/**', 'src/lib/i18n/**'],
+		files: ['packages/core/**', 'apps/web/src/lib/i18n/**'],
 		rules: {
 			'no-restricted-imports': [
 				'error',
@@ -58,7 +58,7 @@ export default defineConfig(
 		}
 	},
 	{
-		files: ['src/lib/core/**/*.svelte.ts', 'src/lib/i18n/**/*.svelte.ts'],
+		files: ['packages/core/**/*.svelte.ts', 'apps/web/src/lib/i18n/**/*.svelte.ts'],
 		rules: {
 			'no-restricted-syntax': [
 				'error',

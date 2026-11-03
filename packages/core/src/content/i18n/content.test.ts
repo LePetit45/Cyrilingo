@@ -1,0 +1,56 @@
+import { describe, expect, it } from 'vitest';
+import { BULGARIAN_ALPHABET, toLowercase } from '../../alphabet.js';
+import { lessonIntroducing, lettersKnownIn } from '../course.js';
+import { WORDS, type Word } from '../corpus.js';
+import { LETTERS } from '../letters.js';
+import { cyrillicLettersIn, isSpelledBy, normalizeLatin } from '../testing.js';
+import { SECTION_IDS } from '../types.js';
+import type { Locale } from './index.js';
+import { getLearningContent } from './index.js';
+
+const LOCALES: Locale[] = ['fr'];
+
+describe.each(LOCALES)('learning content (%s)', (locale) => {
+	const content = getLearningContent(locale);
+
+	it('has a title and an intro for every section, without Cyrillic', () => {
+		for (const id of SECTION_IDS) {
+			const { title, intro } = content.sections[id];
+			expect(title.trim()).not.toBe('');
+			expect(intro.trim()).not.toBe('');
+			expect(cyrillicLettersIn(title + intro)).toEqual([]);
+		}
+	});
+
+	it('has a sound for every letter', () => {
+		for (const letter of BULGARIAN_ALPHABET) {
+			expect(content.letters[letter].sound.trim()).not.toBe('');
+		}
+	});
+
+	it('teaches a phonetic transliteration that typed answers accept', () => {
+		for (const letter of BULGARIAN_ALPHABET) {
+			const cyrillic = LETTERS[letter].taughtAs ?? toLowercase(letter);
+			const phonetic = normalizeLatin(content.letters[letter].phonetic);
+			expect(isSpelledBy(cyrillic, phonetic), `${letter} → ${phonetic}`).toBe(true);
+		}
+	});
+
+	it('only quotes letters known by the lesson introducing the letter', () => {
+		for (const letter of BULGARIAN_ALPHABET) {
+			const { sound, note = '' } = content.letters[letter];
+			const known = lettersKnownIn(lessonIntroducing(letter).id);
+			for (const quoted of cyrillicLettersIn(sound + note)) {
+				expect(known, `${letter} card quotes ${quoted}`).toContain(quoted);
+			}
+		}
+	});
+
+	it('translates every word, without Cyrillic', () => {
+		for (const word of Object.keys(WORDS) as Word[]) {
+			const translation = content.words[word];
+			expect(translation.trim(), word).not.toBe('');
+			expect(cyrillicLettersIn(translation), word).toEqual([]);
+		}
+	});
+});
