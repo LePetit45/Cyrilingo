@@ -5,11 +5,13 @@
 	import Button from '#lib/ui/Button.svelte';
 	import Icon from '#lib/ui/Icon.svelte';
 	import { account } from '#lib/ui/state/account.svelte.js';
+	import { app } from '#lib/ui/state/app.svelte.js';
 	import { AsyncState } from '#lib/ui/state/async.svelte.js';
 	import TextField from '#lib/ui/TextField.svelte';
 
 	// Sign-in and sign-up screens (SPEC.md › Screens): e-mail and password, one sentence per error,
-	// the path once signed in.
+	// the path once signed in. A learner who signs in knows the app: on a new device, the path opens
+	// on the account's progress, not on the welcome screen.
 	let { mode }: { mode: 'signIn' | 'signUp' } = $props();
 
 	const signUp = $derived(mode === 'signUp');
@@ -22,7 +24,9 @@
 		const result = await submit.run(() =>
 			signUp ? account.signUp(email, password) : account.signIn(email, password)
 		);
-		if (result?.ok) await goto(resolve('/(tabs)'));
+		if (!result?.ok) return;
+		app.updateSettings({ welcomed: true });
+		await goto(resolve('/(tabs)'));
 	}
 </script>
 

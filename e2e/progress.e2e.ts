@@ -49,6 +49,26 @@ test('[AC-22] merges the device progress into the account at sign-in', async ({
 	await other.context().close();
 });
 
+test('[AC-22] opens a new device on the account path, not on the welcome screen', async ({
+	page,
+	browser,
+	browserName
+}) => {
+	const email = newEmail(browserName);
+	const other = await otherDevice(browser, { completedLessons: ['l1'], examPassed: false });
+	await signUp(other, email);
+	await other.context().close();
+
+	// A first visit: nothing in storage, so the welcome screen shows.
+	await page.goto('/');
+	await expect(page.getByRole('button', { name: 'C’est parti !' })).toBeVisible();
+	await signIn(page, email);
+	await expect(page).toHaveURL(/\/$/);
+	await expect(lessonNode(page, 1, 'Terminée')).toBeVisible();
+	await page.reload();
+	await expect(lessonNode(page, 1, 'Terminée')).toBeVisible();
+});
+
 test('[AC-23] saves a lesson completed offline to the account at the next sync', async ({
 	page,
 	context,
