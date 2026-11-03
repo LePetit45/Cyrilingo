@@ -417,7 +417,7 @@ Mutating requests must carry `Content-Type: application/json` (or `audio/wav` fo
 
 HTTPS is terminated by whatever reverse proxy sits in front of `web`; the app trusts its `X-Forwarded-*` headers only when `TRUST_PROXY=true`. Images are built from the repository (`build:`), so any host that can run Docker Compose from a Git repository can deploy it; a merge into `main` is a release.
 
-Configuration, all through environment variables (template in `.env.example`; real values never committed): `PUBLIC_URL`, `PORT` (the API's, default 3000), `WEB_PORT`, `TRUST_PROXY`, `POSTGRES_PASSWORD`, `DATABASE_URL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION`. Missing Google or Azure settings turn the matching feature off; a missing `PUBLIC_URL` or database setting stops the API at start with a clear message. CI runs a secret scanner (gitleaks) on every pull request.
+Configuration, all through environment variables (template in `.env.example`; real values never committed): `PUBLIC_URL`, `API_PORT` (default 3000), `WEB_PORT`, `TRUST_PROXY`, `POSTGRES_PASSWORD`, `DATABASE_URL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION`. Missing Google or Azure settings turn the matching feature off; a missing `PUBLIC_URL` or database setting stops the API at start with a clear message. CI runs a secret scanner (gitleaks) on every pull request.
 
 Local development: `docker compose up db` then `npm run dev` (front end and API with hot reload, Vite proxies `/api`), or `docker compose up --build` for the full stack.
 

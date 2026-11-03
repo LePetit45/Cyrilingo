@@ -15,7 +15,7 @@ export default defineConfig({
 	],
 	// In development the API runs beside Vite (`npm run dev`); in production Nginx forwards /api.
 	server: {
-		proxy: { '/api': `http://localhost:${process.env.PORT || 3000}` }
+		proxy: { '/api': `http://localhost:${process.env.API_PORT || 3000}` }
 	},
 	build: {
 		// Keep icons and audio as separate files (never data URIs): they get content-hashed names
