@@ -16,7 +16,11 @@ const silent = () => {};
 
 describe('GET /api/health', () => {
 	it('[AC-72] returns 200 when the database answers', async () => {
-		const app = createApp({ config: { publicUrl }, services: createServices(db), log: silent });
+		const app = createApp({
+			config: { publicUrl, trustProxy: false },
+			services: createServices(db),
+			log: silent
+		});
 		const response = await app.request('/api/health');
 		expect(response.status).toBe(200);
 		expect(await response.json()).toEqual({ status: 'ok' });
@@ -24,7 +28,7 @@ describe('GET /api/health', () => {
 
 	it('[AC-72] returns 503 when the database does not answer', async () => {
 		const app = createApp({
-			config: { publicUrl },
+			config: { publicUrl, trustProxy: false },
 			services: createServices(unreachableDb),
 			log: silent
 		});
@@ -38,7 +42,11 @@ describe('GET /api/health', () => {
 
 describe('errors', () => {
 	it('answers an unknown route with a 404 error body', async () => {
-		const app = createApp({ config: { publicUrl }, services: createServices(db), log: silent });
+		const app = createApp({
+			config: { publicUrl, trustProxy: false },
+			services: createServices(db),
+			log: silent
+		});
 		const response = await app.request('/api/nothing-here');
 		expect(response.status).toBe(404);
 		expect(await response.json()).toEqual({
@@ -50,7 +58,11 @@ describe('errors', () => {
 		const lines: string[] = [];
 		const services = createServices(db);
 		services.health.isDatabaseUp = () => Promise.reject(new TypeError('secret detail'));
-		const app = createApp({ config: { publicUrl }, services, log: (line) => lines.push(line) });
+		const app = createApp({
+			config: { publicUrl, trustProxy: false },
+			services,
+			log: (line) => lines.push(line)
+		});
 
 		const response = await app.request('/api/health');
 		expect(response.status).toBe(500);

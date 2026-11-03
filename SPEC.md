@@ -172,8 +172,8 @@ Never sent anywhere: the expected word, the user's id or e-mail (not to Azure), 
 ### Local accounts
 
 - Sign-up with an e-mail and a password of **8 to 128 characters**. The password is stored as an **argon2id** hash (never in clear, never logged). The e-mail is lowercased and trimmed; it is **not verified** (no e-mail sending).
-- Sign-in failures give the same answer for an unknown e-mail and a wrong password (401). More than 10 failed attempts from one IP within 15 minutes are refused with 429.
-- Signing up with an e-mail that already has an account is refused with 409, with a sentence suggesting to sign in (with Google if that account has no password).
+- Sign-in failures give the same answer for an unknown e-mail and a wrong password (401), in about the same time (a password check is spent on unknown e-mails too). More than 10 failed attempts from one IP within 15 minutes are refused with 429, even with the right password. The count lives in the API's memory (one process; a restart forgets it). The IP is the socket's, or behind a trusted proxy (`TRUST_PROXY=true`) the first address of `X-Forwarded-For`, which that proxy must set.
+- Signing up with an e-mail that already has an account is refused with 409, with a sentence suggesting to sign in (code `email_taken`), with Google if that account has no password (`email_taken_google`).
 
 ### Google sign-in
 
@@ -332,7 +332,7 @@ The MCP tool `delete_word_list` (`apps/api/src/mcp/tools.ts`) enters at step 4 w
 
 ### Data model
 
-PostgreSQL. Reference data (letters, lessons, words) comes from the TypeScript content files and is **seeded** into the database on every deployment (idempotent upsert), so foreign keys can point at it. The seed never deletes a row: a word dropped from the content stays in the lists that hold it. Seeding changes data, not the schema; every schema change is a numbered migration. In development only, the seed also creates two demo accounts with a few word lists.
+PostgreSQL. Reference data (letters, lessons, words) comes from the TypeScript content files and is **seeded** into the database on every deployment (idempotent upsert), so foreign keys can point at it. The seed never deletes a row: a word dropped from the content stays in the lists that hold it. Seeding changes data, not the schema; every schema change is a numbered migration. The seed creates no account: accounts are made through sign-up, in development too.
 
 | Table                | Content                                                                                                                          | Owned by a user        |
 | -------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
@@ -362,7 +362,7 @@ JSON over HTTPS under `/api`, served on the same origin as the front end (the fr
 | `POST /api/auth/logout`                  | end the current session                                                                                | session |
 | `GET /api/auth/google`                   | start Google sign-in (redirect)                                                                        | —       |
 | `GET /api/auth/google/callback`          | finish Google sign-in, start a session, redirect to the app                                            | —       |
-| `GET /api/me`                            | the signed-in user (e-mail, whether a password is set, linked providers)                               | session |
+| `GET /api/me`                            | the signed-in user (e-mail, password set or not, linked providers, features on)                        | session |
 | `PUT /api/me/password`                   | set or change the password                                                                             | session |
 | `DELETE /api/me`                         | delete the account and all its data                                                                    | session |
 | `POST /api/me/agent-tokens`              | create an agent token for the MCP server, shown once                                                   | session |
@@ -379,7 +379,7 @@ JSON over HTTPS under `/api`, served on the same origin as the front end (the fr
 | `DELETE /api/word-lists/:id/words/:word` | remove a word from a list                                                                              | owner   |
 | `POST /api/speech/recognitions`          | check a read-aloud recording against an expected word                                                  | session |
 
-Mutating requests must carry `Content-Type: application/json` (or `audio/wav` for speech) and an `Origin` equal to `PUBLIC_URL`; anything else is refused with 403 (CSRF protection on top of `SameSite=Lax`).
+Mutating requests must carry `Content-Type: application/json` (or `audio/wav` for speech) and an `Origin` equal to `PUBLIC_URL`; anything else is refused with 403 (CSRF protection on top of `SameSite=Lax`). JSON bodies over 16 KB are refused with 413; a malformed body gives 400 `invalid_input`.
 
 ### Technologies
 
@@ -504,7 +504,7 @@ Local development: `docker compose up db` then `npm run dev` (front end and API 
 ### Slice 1: sign-in and the word lists screen
 
 - [AC-75] A visitor who is not signed in and opens Listes sees the sign-in invitation and no list, and `GET /api/word-lists` without a session returns 401 with no list in the body.
-- [AC-76] After signing in with a seeded demo account, Listes shows that account's lists from the `word_lists` table, each with its name and its number of words, and none of the other demo account's lists.
+- [AC-76] After signing in, Listes shows that account's lists from the `word_lists` table, each with its name and its number of words, and none of another account's lists.
 - [AC-77] Deleting one row of `word_lists` in the database and reloading Listes removes that list from the screen.
 
 ## Traceability
