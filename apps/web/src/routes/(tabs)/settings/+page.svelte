@@ -8,12 +8,14 @@
 	import { account } from '#lib/ui/state/account.svelte.js';
 	import { app } from '#lib/ui/state/app.svelte.js';
 	import { AsyncState } from '#lib/ui/state/async.svelte.js';
+	import { progressSync } from '#lib/ui/state/progress-sync.svelte.js';
 	import Toggle from '#lib/ui/Toggle.svelte';
 
 	// Settings (SPEC.md › Screens): the account (or an invitation to sign in), sound switches,
 	// progress reset (with a confirmation) and the about page, as grouped lists of rows.
 	let confirmingReset = $state(false);
-	let resetDone = $state(false);
+	// Signed in, the reset goes to the account first, so it can fail (AC-25).
+	const reset = new AsyncState();
 
 	let confirmingDelete = $state(false);
 	const accountAction = new AsyncState();
@@ -28,6 +30,10 @@
 	async function deleteAccount() {
 		const result = await accountAction.run(() => account.deleteAccount());
 		if (result?.ok) accountDone = m.account.deleted;
+	}
+
+	function resetProgress() {
+		void reset.run(() => progressSync.reset());
 	}
 </script>
 
@@ -96,14 +102,20 @@
 	</div>
 </section>
 
-<section aria-labelledby="progress-section">
+<section aria-labelledby="progress-section" aria-busy={reset.loading}>
 	<h2 id="progress-section">{m.settings.progressSection}</h2>
 	<div class="group">
-		<button type="button" class="row danger" onclick={() => (confirmingReset = true)}>
-			{m.settings.reset}
+		<button
+			type="button"
+			class="row danger"
+			disabled={reset.loading}
+			onclick={() => (confirmingReset = true)}
+		>
+			{reset.loading ? m.auth.busy : m.settings.reset}
 		</button>
 	</div>
-	<p class="status" role="status">{resetDone ? m.settings.resetDone : ''}</p>
+	<p class="error" role="alert">{reset.error ? m.errors[reset.error] : ''}</p>
+	<p class="status" role="status">{reset.status === 'success' ? m.settings.resetDone : ''}</p>
 </section>
 
 <section aria-labelledby="app-section">
@@ -128,13 +140,10 @@
 <ConfirmDialog
 	bind:open={confirmingReset}
 	title={m.settings.resetTitle}
-	message={m.settings.resetMessage}
+	message={account.signedIn ? m.settings.resetMessageSignedIn : m.settings.resetMessage}
 	confirmLabel={m.settings.resetConfirm}
 	danger
-	onconfirm={() => {
-		app.resetProgress();
-		resetDone = true;
-	}}
+	onconfirm={resetProgress}
 />
 
 <style>

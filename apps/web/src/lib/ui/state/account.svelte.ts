@@ -2,6 +2,7 @@
 // page cannot read, so the device remembers in localStorage that it signed in, and with which
 // e-mail: a guest's device never calls the API (AC-8), a signed-in one checks its session at start.
 import { api, type Account, type ApiClient, type ApiResult } from '#lib/api/client.js';
+import { progressSync, type ProgressSync } from './progress-sync.svelte.js';
 
 const ACCOUNT_KEY = 'cyrilingo.account.v1';
 
@@ -18,13 +19,16 @@ function readSignedInEmail(): string | null {
 
 export class AccountState {
 	#api: ApiClient;
+	#sync: ProgressSync;
 	/** E-mail of the signed-in account, known as soon as the app starts, offline included. */
 	email = $state<string | null>(readSignedInEmail());
 	/** The account as the API last described it; null until it answered. */
 	details = $state<Account | null>(null);
 
-	constructor(client: ApiClient = api) {
+	constructor(client: ApiClient = api, sync: ProgressSync = progressSync) {
 		this.#api = client;
+		this.#sync = sync;
+		sync.connect({ isSignedIn: () => this.signedIn, expired: () => this.#forget() });
 	}
 
 	get signedIn() {
@@ -79,6 +83,8 @@ export class AccountState {
 		this.email = email.trim().toLowerCase();
 		this.#save();
 		await this.refresh();
+		// A failed merge is not a failed sign-in: the device's progress waits for the next sync.
+		await this.#sync.adoptDevice();
 		return result;
 	}
 
@@ -91,6 +97,7 @@ export class AccountState {
 	#forget() {
 		this.email = null;
 		this.details = null;
+		this.#sync.forget();
 		try {
 			localStorage.removeItem(ACCOUNT_KEY);
 		} catch {

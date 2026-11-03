@@ -10,11 +10,14 @@
 	import Button from '#lib/ui/Button.svelte';
 	import Cyrillic from '#lib/ui/Cyrillic.svelte';
 	import Icon from '#lib/ui/Icon.svelte';
+	import { account } from '#lib/ui/state/account.svelte.js';
 	import { app } from '#lib/ui/state/app.svelte.js';
+	import { progressSync } from '#lib/ui/state/progress-sync.svelte.js';
 	import Welcome from '#lib/ui/Welcome.svelte';
 
 	// Home (spec §7.1): letters read so far, then the path, one banner per section. On very wide
-	// screens, a second column shows the progress per section and the free review.
+	// screens, a second column shows the progress per section and the free review. Signed in, the
+	// local path shows while the account's progress loads, and stays when it cannot be loaded.
 	const lessonHref = (id: string) => resolve('/(play)/lesson/[id]', { id });
 
 	const suggested = $derived(suggestedLesson(app.progress));
@@ -49,6 +52,14 @@
 		<div class="path">
 			<header class="top-bar">
 				<h1>{m.app.name}</h1>
+				{#if account.signedIn}
+					<p class="sync" role="status">
+						{#if progressSync.status.loading}
+							<Icon name="refresh" size={22} />
+							<span class="visually-hidden">{m.home.syncing}</span>
+						{/if}
+					</p>
+				{/if}
 				<p class="count">
 					<span class="visually-hidden"
 						>{m.home.lettersRead(learnedCount, BULGARIAN_ALPHABET.length)}</span
@@ -59,6 +70,15 @@
 					>
 				</p>
 			</header>
+
+			{#if account.signedIn && progressSync.status.status === 'error'}
+				<div class="sync-error" role="alert">
+					<p>{m.home.syncError}</p>
+					<Button variant="secondary" onclick={() => void progressSync.sync()}>
+						{m.home.syncRetry}
+					</Button>
+				</div>
+			{/if}
 
 			{#if !suggested}
 				<p class="all-done">
@@ -214,6 +234,40 @@
 	.count :global(.count-icon) {
 		margin-right: 0.375rem;
 		font-size: 1.25rem;
+	}
+
+	/* Turns next to the count while the account's progress loads. */
+	.sync {
+		display: flex;
+		margin: 0 0.75rem 0 auto;
+		color: var(--color-text-muted);
+	}
+
+	.sync :global(svg) {
+		animation: spin 1s linear infinite;
+	}
+
+	@keyframes spin {
+		to {
+			rotate: 360deg;
+		}
+	}
+
+	.sync-error {
+		display: grid;
+		gap: 0.75rem;
+		justify-items: center;
+		margin: 0 0 1.5rem;
+		padding: 1rem 1.25rem;
+		text-align: center;
+		color: var(--color-error-dark);
+		background: var(--color-error-light);
+		border-radius: var(--radius-md);
+	}
+
+	.sync-error p {
+		margin: 0;
+		font-weight: 800;
 	}
 
 	.all-done {

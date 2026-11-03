@@ -1,28 +1,6 @@
-import type { Page } from '@playwright/test';
+import { accountSection, newEmail, PASSWORD, signIn, signUp } from './accounts.js';
 import { expect, test } from './test.js';
 import { skipWelcome } from './storage.js';
-
-// A fresh account per test and per browser: the end-to-end API keeps its database for the run.
-const newEmail = (browserName: string) =>
-	`e2e-${browserName}-${Date.now()}-${Math.floor(Math.random() * 1e6)}@example.com`;
-const PASSWORD = 'e2e password';
-
-async function signUp(page: Page, email: string, password = PASSWORD) {
-	await page.goto('/signup');
-	await page.getByLabel('Adresse e-mail').fill(email);
-	await page.getByLabel('Mot de passe').fill(password);
-	await page.getByRole('button', { name: 'Créer mon compte' }).click();
-	await expect(page).toHaveURL(/\/$/);
-}
-
-async function signIn(page: Page, email: string, password: string) {
-	await page.goto('/signin');
-	await page.getByLabel('Adresse e-mail').fill(email);
-	await page.getByLabel('Mot de passe').fill(password);
-	await page.getByRole('button', { name: 'Se connecter' }).click();
-}
-
-const accountSection = (page: Page) => page.getByRole('region', { name: 'Compte' });
 
 test.beforeEach(async ({ page }) => {
 	await skipWelcome(page);

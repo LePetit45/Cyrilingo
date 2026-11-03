@@ -8,15 +8,20 @@
 	import { m } from '#lib/i18n/index.js';
 	import { appleTouchIcon, THEME_COLOR } from '#lib/pwa/manifest.js';
 	import { account } from '#lib/ui/state/account.svelte.js';
+	import { progressSync } from '#lib/ui/state/progress-sync.svelte.js';
 	import type { LayoutProps } from './$types';
 
 	let { children }: LayoutProps = $props();
 
-	// A device that signed in checks its session once at start; a guest's sends nothing (AC-8).
+	// A device that signed in checks its session and syncs its progress at start, and syncs again
+	// whenever it gets back online; a guest's sends nothing (AC-8).
 	onMount(() => {
 		void account.refresh();
+		void progressSync.sync();
 	});
 </script>
+
+<svelte:window ononline={() => void progressSync.sync()} />
 
 <svelte:head>
 	<link rel="icon" href={favicon} />

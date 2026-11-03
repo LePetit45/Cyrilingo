@@ -47,6 +47,12 @@ export interface SessionsTable {
 	created_at: Generated<Date>;
 }
 
+export interface LessonCompletionsTable {
+	user_id: string;
+	lesson_id: string;
+	completed_at: Generated<Date>;
+}
+
 export interface Database {
 	letters: LettersTable;
 	lessons: LessonsTable;
@@ -54,4 +60,5 @@ export interface Database {
 	words: WordsTable;
 	users: UsersTable;
 	sessions: SessionsTable;
+	lesson_completions: LessonCompletionsTable;
 }

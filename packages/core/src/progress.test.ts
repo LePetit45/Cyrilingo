@@ -3,12 +3,17 @@ import {
 	completeLesson,
 	DEFAULT_SETTINGS,
 	EMPTY_PROGRESS,
+	isEmptyProgress,
 	isLetterLearned,
 	lessonState,
+	loadPendingProgress,
 	loadProgress,
+	mergeProgress,
+	progressNotIn,
 	loadSettings,
 	passExam,
 	resetProgress,
+	savePendingProgress,
 	saveProgress,
 	saveSettings,
 	suggestedLesson,
@@ -129,5 +134,43 @@ describe('lesson states', () => {
 		const progress = passExam(completeLesson(EMPTY_PROGRESS, 'l1'));
 		expect(completeLesson(progress, 'l1')).toBe(progress);
 		expect(passExam(progress)).toBe(progress);
+	});
+});
+
+describe('pending progress', () => {
+	it('round-trips, and leaves nothing in the store once empty', () => {
+		const store = memoryStore();
+		expect(loadPendingProgress(store)).toEqual(EMPTY_PROGRESS);
+		savePendingProgress(store, { completedLessons: ['l2'], examPassed: true });
+		expect(loadPendingProgress(store)).toEqual({ completedLessons: ['l2'], examPassed: true });
+		savePendingProgress(store, EMPTY_PROGRESS);
+		expect(store.data).toEqual({});
+	});
+
+	it('is kept apart from the progress itself', () => {
+		const store = memoryStore();
+		savePendingProgress(store, { completedLessons: ['l2'], examPassed: false });
+		expect(loadProgress(store)).toEqual(EMPTY_PROGRESS);
+	});
+});
+
+describe('merging progress', () => {
+	it('[AC-22] keeps every lesson of both sides in course order, and the exam passed on either', () => {
+		expect(
+			mergeProgress(
+				{ completedLessons: ['l3', 'l1'], examPassed: false },
+				{ completedLessons: ['l2', 'l1'], examPassed: true }
+			)
+		).toEqual({ completedLessons: ['l1', 'l2', 'l3'], examPassed: true });
+	});
+
+	it('takes away what was already sent', () => {
+		const sent = { completedLessons: ['l1'], examPassed: true };
+		expect(progressNotIn({ completedLessons: ['l1', 'l2'], examPassed: true }, sent)).toEqual({
+			completedLessons: ['l2'],
+			examPassed: false
+		});
+		expect(isEmptyProgress(progressNotIn(sent, sent))).toBe(true);
+		expect(isEmptyProgress({ completedLessons: [], examPassed: true })).toBe(false);
 	});
 });

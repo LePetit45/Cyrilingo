@@ -9,6 +9,7 @@ import { healthRoutes } from './health.js';
 import { InvalidInput } from './input.js';
 import { requestLogger } from './logger.js';
 import { meRoutes } from './me.js';
+import { lessonRoutes, progressRoutes } from './progress.js';
 import { requireSameOrigin } from './security.js';
 import { sessionCookies } from './session.js';
 
@@ -38,6 +39,8 @@ export function createApp({ config, services, log }: AppOptions) {
 	const cookies = sessionCookies({ secure: config.publicUrl.startsWith('https:') });
 	app.route('/auth', authRoutes(services, { trustProxy: config.trustProxy, cookies }));
 	app.route('/me', meRoutes(services, cookies));
+	app.route('/lessons', lessonRoutes(services, cookies));
+	app.route('/progress', progressRoutes(services, cookies));
 
 	app.notFound((c) => errorResponse(c, 404, 'not_found', 'No such route'));
 	app.onError((error, c) => {

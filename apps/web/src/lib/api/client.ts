@@ -26,6 +26,12 @@ export interface Account {
 	features: { readAloud: boolean; google: boolean };
 }
 
+/** `GET /api/progress`, and the answer to `PATCH /api/progress`. */
+export interface Progress {
+	completedLessons: readonly string[];
+	examPassed: boolean;
+}
+
 const KNOWN_CODES = new Set<string>([
 	'invalid_credentials',
 	'email_taken',
@@ -37,19 +43,33 @@ const KNOWN_CODES = new Set<string>([
 	'invalid_input'
 ]);
 
+/**
+ * A request still unanswered after this long counts as `network`: on a connection that hangs,
+ * the screens say so instead of waiting, and the next progress sync is not held up.
+ */
+export const REQUEST_TIMEOUT_MS = 15_000;
+
 export function createApiClient(fetchFn: typeof fetch = (...args) => fetch(...args)) {
 	async function call<T>(method: string, path: string, body?: unknown): Promise<ApiResult<T>> {
+		const timeout = new AbortController();
+		const timer = setTimeout(() => timeout.abort(), REQUEST_TIMEOUT_MS);
 		let response: Response;
+		let data: unknown;
 		try {
 			response = await fetchFn(`/api${path}`, {
 				method,
 				headers: body === undefined ? {} : { 'Content-Type': 'application/json' },
-				body: body === undefined ? undefined : JSON.stringify(body)
+				body: body === undefined ? undefined : JSON.stringify(body),
+				signal: timeout.signal
 			});
+			data = await response.json().catch(() => undefined);
+			// The body stopped coming in: as unanswered as no response at all.
+			if (timeout.signal.aborted) return { ok: false, error: 'network' };
 		} catch {
 			return { ok: false, error: 'network' };
+		} finally {
+			clearTimeout(timer);
 		}
-		const data: unknown = await response.json().catch(() => undefined);
 		if (response.ok) return { ok: true, value: data as T };
 		const code = (data as { error?: { code?: unknown } } | undefined)?.error?.code;
 		return {
@@ -67,7 +87,10 @@ export function createApiClient(fetchFn: typeof fetch = (...args) => fetch(...ar
 		getAccount: () => call<Account>('GET', '/me'),
 		setPassword: (passwords: { currentPassword?: string; newPassword: string }) =>
 			call<void>('PUT', '/me/password', passwords),
-		deleteAccount: () => call<void>('DELETE', '/me')
+		deleteAccount: () => call<void>('DELETE', '/me'),
+		getProgress: () => call<Progress>('GET', '/progress'),
+		mergeProgress: (progress: Progress) => call<Progress>('PATCH', '/progress', progress),
+		resetProgress: () => call<void>('DELETE', '/progress')
 	};
 }
 
