@@ -25,7 +25,9 @@ export async function migrate(databaseUrl: string, directory = MIGRATIONS_DIR): 
 				version text PRIMARY KEY,
 				applied_at timestamptz NOT NULL DEFAULT now()
 			)`);
-		const { rows } = await client.query<{ version: string }>('SELECT version FROM schema_migrations');
+		const { rows } = await client.query<{ version: string }>(
+			'SELECT version FROM schema_migrations'
+		);
 		const applied = new Set(rows.map((row) => row.version));
 
 		const done: string[] = [];

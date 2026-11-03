@@ -57,6 +57,61 @@ export default defineConfig(
 			]
 		}
 	},
+	// API layers (AGENTS.md › Layers): http and mcp → services → db, auth, speech.
+	{
+		files: ['apps/api/src/http/**', 'apps/api/src/mcp/**'],
+		ignores: ['**/*.test.ts'],
+		rules: {
+			'no-restricted-imports': [
+				'error',
+				{
+					patterns: [
+						{
+							group: ['**/db/*', '**/auth/*', '**/speech/*', 'pg', 'kysely'],
+							message: 'Routes and MCP tools call a service, never the database or a provider.'
+						}
+					]
+				}
+			]
+		}
+	},
+	{
+		files: ['apps/api/src/services/**'],
+		ignores: ['**/*.test.ts'],
+		rules: {
+			'no-restricted-imports': [
+				'error',
+				{
+					patterns: [
+						{
+							group: ['**/http/*', '**/mcp/*', 'hono', 'hono/*', '@hono/*'],
+							message: 'Services never see HTTP or MCP.'
+						},
+						{
+							group: ['pg', 'kysely'],
+							message: 'Queries live in apps/api/src/db/.'
+						}
+					]
+				}
+			]
+		}
+	},
+	{
+		files: ['apps/api/src/db/**', 'apps/api/src/auth/**', 'apps/api/src/speech/**'],
+		rules: {
+			'no-restricted-imports': [
+				'error',
+				{
+					patterns: [
+						{
+							group: ['**/http/*', '**/mcp/*', '**/services/*', 'hono', 'hono/*', '@hono/*'],
+							message: 'The lowest layer imports no layer above it.'
+						}
+					]
+				}
+			]
+		}
+	},
 	{
 		files: ['packages/core/**/*.svelte.ts', 'apps/web/src/lib/i18n/**/*.svelte.ts'],
 		rules: {
