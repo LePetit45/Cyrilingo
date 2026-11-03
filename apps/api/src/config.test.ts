@@ -53,6 +53,12 @@ describe('loadConfig', () => {
 		expect(() => loadConfig({ ...required, PUBLIC_URL: 'cyrilingo.example' })).toThrow(
 			'PUBLIC_URL must be an http(s) URL'
 		);
+		expect(() => loadConfig({ ...required, PUBLIC_URL: 'http://cyrilingo.example' })).toThrow(
+			'PUBLIC_URL must use https, except on localhost'
+		);
+		expect(loadConfig({ ...required, PUBLIC_URL: 'http://localhost:5173' }).publicUrl).toBe(
+			'http://localhost:5173'
+		);
 		expect(() => loadConfig({ ...required, DATABASE_URL: 'mysql://localhost' })).toThrow(
 			'DATABASE_URL must be a postgres:// URL'
 		);

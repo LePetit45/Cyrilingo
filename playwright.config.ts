@@ -1,6 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const isCI = !!process.env.CI;
+// Not 3000, so a running `npm run dev` does not get in the way.
+const API_PORT = '3100';
 
 export default defineConfig({
 	testDir: 'e2e',
@@ -12,12 +14,23 @@ export default defineConfig({
 		baseURL: 'http://localhost:4173',
 		trace: 'on-first-retry'
 	},
-	// Tests run against the production build, as deployed on Cloudflare Pages.
-	webServer: {
-		command: 'npm run build && npm run preview',
-		port: 4173,
-		reuseExistingServer: !isCI
-	},
+	// Tests run against the production build, with the API on its own fresh database
+	// (apps/api/src/e2e-server.ts); Vite's preview server forwards /api to it.
+	webServer: [
+		{
+			command: 'npm run build && npm run preview',
+			port: 4173,
+			env: { API_PORT },
+			reuseExistingServer: !isCI
+		},
+		{
+			command: 'npm run e2e -w @cyrilingo/api',
+			url: `http://localhost:${API_PORT}/api/health`,
+			env: { API_PORT, PUBLIC_URL: 'http://localhost:4173' },
+			// Never a development API: it would answer for another origin and database.
+			reuseExistingServer: false
+		}
+	],
 	// Supported browsers (spec §10): Chrome/Edge, Firefox, Safari, plus mobile-first viewports.
 	projects: [
 		{ name: 'chromium', use: { ...devices['Desktop Chrome'] } },

@@ -1,4 +1,5 @@
-// Throwaway databases for the tests (SPEC.md › Tests and coverage). Test code only.
+// Throwaway databases for the tests (SPEC.md › Tests and coverage) and the end-to-end API.
+// Test code only.
 import { randomBytes } from 'node:crypto';
 import pg from 'pg';
 
@@ -20,8 +21,16 @@ export function testServerUrl(env: Record<string, string | undefined> = process.
 
 /** Creates an empty database with a random name on the same server, and a way to drop it. */
 export async function createScratchDatabase(serverUrl: string): Promise<ScratchDatabase> {
-	const name = `cyrilingo_test_${randomBytes(6).toString('hex')}`;
-	await onServer(serverUrl, (client) => client.query(`CREATE DATABASE ${name}`));
+	return recreateDatabase(serverUrl, `cyrilingo_test_${randomBytes(6).toString('hex')}`);
+}
+
+/** Drops the database of that name if it exists, creates it empty, and gives a way to drop it. */
+export async function recreateDatabase(serverUrl: string, name: string): Promise<ScratchDatabase> {
+	if (!/^[a-z0-9_]+$/.test(name)) throw new Error(`Unsafe database name: ${name}`);
+	await onServer(serverUrl, async (client) => {
+		await client.query(`DROP DATABASE IF EXISTS ${name} WITH (FORCE)`);
+		await client.query(`CREATE DATABASE ${name}`);
+	});
 	const url = new URL(serverUrl);
 	url.pathname = `/${name}`;
 	return {

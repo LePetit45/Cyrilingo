@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { z } from 'zod';
 import type { Services } from '../services/index.js';
 import { readJson } from './input.js';
-import { clearSessionCookie, requireSession, type SessionVariables } from './session.js';
+import type { SessionCookies, SessionVariables } from './session.js';
 
 const passwordChange = z.object({
 	/** Required by the service when the account already has a password. */
@@ -11,9 +11,9 @@ const passwordChange = z.object({
 });
 
 /** `/api/me`: the signed-in learner's account. */
-export function meRoutes(services: Services) {
+export function meRoutes(services: Services, cookies: SessionCookies) {
 	return new Hono<{ Variables: SessionVariables }>()
-		.use(requireSession(services.auth))
+		.use(cookies.require(services.auth))
 		.get('/', async (c) => {
 			const account = await services.account.get(c.var.session.userId);
 			return c.json({ ...account, features: services.features });
@@ -29,7 +29,7 @@ export function meRoutes(services: Services) {
 		})
 		.delete('/', async (c) => {
 			await services.account.remove(c.var.session.userId);
-			clearSessionCookie(c);
+			cookies.clear(c);
 			return c.body(null, 204);
 		});
 }

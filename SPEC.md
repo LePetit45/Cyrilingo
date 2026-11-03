@@ -193,7 +193,7 @@ Somebody who signs up with a password on Monday and with Google on Tuesday is on
 
 ### Sessions
 
-Both ways end in **the same kind of session**: a random 256-bit token in an `HttpOnly`, `Secure`, `SameSite=Lax` cookie named `session`. Only its SHA-256 hash is stored, so a database leak gives no usable token. A session lasts 30 days, renewed when used during its last 15 days. Signing out deletes it. Changing the password revokes the other sessions.
+Both ways end in **the same kind of session**: a random 256-bit token in an `HttpOnly`, `Secure`, `SameSite=Lax` cookie named `session`. `Secure` applies whenever `PUBLIC_URL` is HTTPS, which it must be except on `localhost`: in local development over plain HTTP, Safari would drop a `Secure` cookie. Only its SHA-256 hash is stored, so a database leak gives no usable token. A session lasts 30 days, renewed when used during its last 15 days. Signing out deletes it. Changing the password revokes the other sessions.
 
 ### Authorization
 
@@ -206,6 +206,7 @@ The settings show the e-mail and the linked providers, let the learner set or ch
 ### Guests and progress sync
 
 - Guests play the whole course; their progress lives in `localStorage`, and nothing is sent to the server. The path and the summary invite them to sign in (« Connecte-toi pour garder ta progression sur tous tes appareils »).
+- The device remembers in `localStorage` that it signed in, and with which e-mail (the session cookie is `HttpOnly`, so the page cannot read it): only such a device asks `GET /api/me` at start, so a guest's device never calls the API, and a signed-in one knows its account offline. A 401 from the API signs the device out.
 - **At sign-in**, the device's progress is merged into the account (`PATCH /api/progress`), then the device shows the account's progress.
 - **While signed in**, the account is the reference and the device keeps a copy for offline play. Each completed lesson and passed exam is sent to the account; if the request fails (offline), it waits in a queue on the device. At each sync (app start, back online), the device sends its queue, then **replaces** its copy with the account's progress. Only the queue is sent, never the whole copy, so a reset made on another device is not undone.
 - **Signing out** removes the account's progress from the device and keeps the settings.

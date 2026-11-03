@@ -10,6 +10,7 @@ import { InvalidInput } from './input.js';
 import { requestLogger } from './logger.js';
 import { meRoutes } from './me.js';
 import { requireSameOrigin } from './security.js';
+import { sessionCookies } from './session.js';
 
 export interface AppOptions {
 	config: Pick<Config, 'publicUrl' | 'trustProxy'>;
@@ -34,8 +35,9 @@ export function createApp({ config, services, log }: AppOptions) {
 	);
 
 	app.route('/health', healthRoutes(services));
-	app.route('/auth', authRoutes(services, { trustProxy: config.trustProxy }));
-	app.route('/me', meRoutes(services));
+	const cookies = sessionCookies({ secure: config.publicUrl.startsWith('https:') });
+	app.route('/auth', authRoutes(services, { trustProxy: config.trustProxy, cookies }));
+	app.route('/me', meRoutes(services, cookies));
 
 	app.notFound((c) => errorResponse(c, 404, 'not_found', 'No such route'));
 	app.onError((error, c) => {
