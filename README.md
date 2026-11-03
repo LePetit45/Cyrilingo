@@ -2,9 +2,11 @@
 
 A web app to learn to read the Bulgarian Cyrillic alphabet, designed for native Latin-alphabet readers (French speakers first).
 
-See [docs/SPECIFICATIONS.md](docs/SPECIFICATIONS.md) for the product specification.
+See [SPEC.md](SPEC.md) for the product specification and [AGENTS.md](AGENTS.md) for the working rules.
 
-## Status: v0.10.0-beta
+## Status: v0.10.0-beta, v2 in progress
+
+v2 (spec in [SPEC.md](SPEC.md)) adds a back end, accounts, personal word lists, a read-aloud exercise and an MCP server. Until it ships, this README describes the static v0.10.0-beta.
 
 Live at **https://cyrilingo.pages.dev**.
 
