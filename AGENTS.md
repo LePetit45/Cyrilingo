@@ -75,7 +75,7 @@ Before saying a change is done: `npm run lint && npm run check && npm run covera
 - Put an authorization check in a route handler or an MCP tool instead of the service.
 - Write a database query outside `apps/api/src/db/`, or call a model provider outside `apps/api/src/speech/`.
 - Call a real provider (Azure, Google) in a test.
-- Log request bodies, passwords, tokens, e-mails, audio or recognized text.
+- Log request bodies, passwords, tokens, e-mails, audio or recognized text. Only exception: `npm run db:migrate` prints the generated passwords of the development demo accounts, once, at their creation.
 - Send the expected word to the speech provider.
 - Show a model's output to a user before it is validated.
 - Add daily streaks, mnemonics or anything that shows the stressed syllable on screen.
