@@ -51,7 +51,11 @@ export const fr = {
 		freeReview: 'Révision libre',
 		freeReviewText: 'Repasse sur les lettres déjà vues, sans pression.',
 		freeReviewHint: 'Termine une leçon pour débloquer la révision libre.',
-		review: 'Réviser'
+		review: 'Réviser',
+		syncing: 'Synchronisation…',
+		syncError:
+			'Impossible de synchroniser ta progression. Elle reste enregistrée sur cet appareil.',
+		syncRetry: 'Réessayer'
 	},
 	card: {
 		letter: 'Lettre',
@@ -173,6 +177,8 @@ export const fr = {
 		reset: 'Réinitialiser ma progression',
 		resetTitle: 'Tout recommencer ?',
 		resetMessage: 'Tes leçons terminées et ton épreuve réussie seront effacées.',
+		resetMessageSignedIn:
+			'Tes leçons terminées et ton épreuve réussie seront effacées de ton compte, sur tous tes appareils.',
 		resetConfirm: 'Tout effacer',
 		resetDone: 'Ta progression a été réinitialisée.',
 		about: 'À propos de Cyrilingo'

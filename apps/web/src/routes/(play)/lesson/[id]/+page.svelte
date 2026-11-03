@@ -12,6 +12,7 @@
 	import SessionPlayer from '#lib/ui/session/SessionPlayer.svelte';
 	import SessionSummary from '#lib/ui/session/SessionSummary.svelte';
 	import { app } from '#lib/ui/state/app.svelte.js';
+	import { progressSync } from '#lib/ui/state/progress-sync.svelte.js';
 	import type { PageProps } from './$types';
 
 	// A lesson (spec §4.3): discovery cards for the 3 new letters, the questions, then the summary.
@@ -36,7 +37,7 @@
 	});
 
 	function finish(summary: Summary) {
-		app.completeLesson(data.lesson.id);
+		progressSync.completeLesson(data.lesson.id);
 		if (app.settings.soundEffects) playEffect('complete');
 		phase = { name: 'done', summary };
 	}

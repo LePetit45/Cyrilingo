@@ -1,5 +1,6 @@
 // What is saved in the browser (spec §6): completed lessons, whether the final exam was passed,
-// and the settings. Nothing about an unfinished lesson is ever saved (spec §4.5).
+// the part of it a signed-in account has not received yet, and the settings. Nothing about an
+// unfinished lesson is ever saved (spec §4.5).
 import type { BulgarianLetter } from './alphabet.js';
 import { LESSONS } from './content/course.js';
 import type { Lesson } from './content/types.js';
@@ -27,6 +28,7 @@ export const DEFAULT_SETTINGS: Settings = { sound: true, soundEffects: true, wel
 export type KeyValueStore = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 
 const PROGRESS_KEY = 'cyrilingo.progress.v1';
+const PENDING_KEY = 'cyrilingo.pending-progress.v1';
 const SETTINGS_KEY = 'cyrilingo.settings.v1';
 
 /** Reads a JSON value, or undefined if it is missing, unreadable or storage is unavailable. */
@@ -52,19 +54,49 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === 'object' && value !== null;
 }
 
-export function loadProgress(store: KeyValueStore): Progress {
-	const saved = read(store, PROGRESS_KEY);
+function readProgress(store: KeyValueStore, key: string): Progress {
+	const saved = read(store, key);
 	if (!isRecord(saved)) return EMPTY_PROGRESS;
 	const ids = Array.isArray(saved.completedLessons) ? saved.completedLessons : [];
 	return {
 		// Unknown ids (from a lesson removed in a later version) are dropped.
-		completedLessons: LESSONS.filter((lesson) => ids.includes(lesson.id)).map(({ id }) => id),
+		completedLessons: inCourseOrder(ids),
 		examPassed: saved.examPassed === true
 	};
 }
 
+function remove(store: KeyValueStore, key: string): void {
+	try {
+		store.removeItem(key);
+	} catch {
+		// See write().
+	}
+}
+
+/** The known lesson ids among `ids`, once each, in course order. */
+function inCourseOrder(ids: readonly unknown[]): string[] {
+	return LESSONS.filter((lesson) => ids.includes(lesson.id)).map(({ id }) => id);
+}
+
+export function loadProgress(store: KeyValueStore): Progress {
+	return readProgress(store, PROGRESS_KEY);
+}
+
 export function saveProgress(store: KeyValueStore, progress: Progress): void {
 	write(store, PROGRESS_KEY, progress);
+}
+
+/**
+ * Progress made while signed in that the account has not received yet (SPEC.md › Guests and
+ * progress sync): lessons completed and the exam passed offline, sent at the next sync.
+ */
+export function loadPendingProgress(store: KeyValueStore): Progress {
+	return readProgress(store, PENDING_KEY);
+}
+
+export function savePendingProgress(store: KeyValueStore, pending: Progress): void {
+	if (isEmptyProgress(pending)) remove(store, PENDING_KEY);
+	else write(store, PENDING_KEY, pending);
 }
 
 export function loadSettings(store: KeyValueStore): Settings {
@@ -81,21 +113,36 @@ export function saveSettings(store: KeyValueStore, settings: Settings): void {
 
 /** "Reset my progress" (spec §7.1): forgets completed lessons and the exam, keeps the settings. */
 export function resetProgress(store: KeyValueStore): Progress {
-	try {
-		store.removeItem(PROGRESS_KEY);
-	} catch {
-		// See write().
-	}
+	remove(store, PROGRESS_KEY);
 	return EMPTY_PROGRESS;
 }
 
 export function completeLesson(progress: Progress, lessonId: string): Progress {
 	if (progress.completedLessons.includes(lessonId)) return progress;
-	const completed = [...progress.completedLessons, lessonId];
 	return {
 		...progress,
-		completedLessons: LESSONS.filter((lesson) => completed.includes(lesson.id)).map(({ id }) => id)
+		completedLessons: inCourseOrder([...progress.completedLessons, lessonId])
 	};
+}
+
+/** Both progresses together (AC-22): every lesson completed in either, the exam if either passed it. */
+export function mergeProgress(a: Progress, b: Progress): Progress {
+	return {
+		completedLessons: inCourseOrder([...a.completedLessons, ...b.completedLessons]),
+		examPassed: a.examPassed || b.examPassed
+	};
+}
+
+/** What `progress` has that `sent` has not. */
+export function progressNotIn(progress: Progress, sent: Progress): Progress {
+	return {
+		completedLessons: progress.completedLessons.filter((id) => !sent.completedLessons.includes(id)),
+		examPassed: progress.examPassed && !sent.examPassed
+	};
+}
+
+export function isEmptyProgress(progress: Progress): boolean {
+	return progress.completedLessons.length === 0 && !progress.examPassed;
 }
 
 export function passExam(progress: Progress): Progress {

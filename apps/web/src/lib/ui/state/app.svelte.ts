@@ -14,7 +14,7 @@ import {
 } from '@cyrilingo/core/progress.js';
 
 /** localStorage, or a throwaway in-memory store where it does not exist (prerendering). */
-function browserStore(): KeyValueStore {
+export function browserStore(): KeyValueStore {
 	if (typeof localStorage !== 'undefined') return localStorage;
 	// Not reactive on purpose: AppState holds the reactive copies.
 	// eslint-disable-next-line svelte/prefer-svelte-reactivity
@@ -43,6 +43,12 @@ class AppState {
 
 	resetProgress() {
 		this.progress = resetProgress(this.#store);
+	}
+
+	/** Takes the account's progress as the device's copy (SPEC.md › Guests and progress sync). */
+	replaceProgress(progress: Progress) {
+		this.progress = progress;
+		saveProgress(this.#store, progress);
 	}
 
 	updateSettings(changes: Partial<Settings>) {

@@ -13,6 +13,7 @@
 	import SessionPlayer from '#lib/ui/session/SessionPlayer.svelte';
 	import StatBlock from '#lib/ui/StatBlock.svelte';
 	import { app } from '#lib/ui/state/app.svelte.js';
+	import { progressSync } from '#lib/ui/state/progress-sync.svelte.js';
 
 	// The final exam, « L'Épreuve de Preslav » (spec §4.6): 30 questions, no hints, no repeats,
 	// a real score. Passing (≥ 90 %) is saved and opens the diploma.
@@ -39,7 +40,7 @@
 
 	function finish(summary: Summary) {
 		const passed = isExamPassed(summary);
-		if (passed) app.passExam();
+		if (passed) progressSync.passExam();
 		if (app.settings.soundEffects) playEffect(passed ? 'complete' : 'wrong');
 		phase = { name: 'result', summary };
 	}
