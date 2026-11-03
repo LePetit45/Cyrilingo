@@ -15,7 +15,7 @@ try {
 }
 
 const db = createDb(config.databaseUrl);
-const app = createApp({ config, services: createServices(db) });
+const app = createApp({ config, services: createServices(db, config) });
 
 const server = serve({ fetch: app.fetch, port: config.port }, ({ port }) => {
 	console.log(`API listening on port ${port}`);
