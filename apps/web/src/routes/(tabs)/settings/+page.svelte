@@ -1,16 +1,34 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { m } from '#lib/i18n/index.js';
+	import Button from '#lib/ui/Button.svelte';
 	import { hasVoice } from '#lib/ui/audio/voice.js';
 	import ConfirmDialog from '#lib/ui/ConfirmDialog.svelte';
 	import Icon from '#lib/ui/Icon.svelte';
+	import { account } from '#lib/ui/state/account.svelte.js';
 	import { app } from '#lib/ui/state/app.svelte.js';
+	import { AsyncState } from '#lib/ui/state/async.svelte.js';
 	import Toggle from '#lib/ui/Toggle.svelte';
 
-	// Settings (spec §7.1): sound switches, progress reset (with a confirmation) and the about page,
-	// as grouped lists of rows.
+	// Settings (SPEC.md › Screens): the account (or an invitation to sign in), sound switches,
+	// progress reset (with a confirmation) and the about page, as grouped lists of rows.
 	let confirmingReset = $state(false);
 	let resetDone = $state(false);
+
+	let confirmingDelete = $state(false);
+	const accountAction = new AsyncState();
+	/** The sentence shown once an account action succeeded. */
+	let accountDone = $state('');
+
+	async function signOut() {
+		const result = await accountAction.run(() => account.signOut());
+		if (result?.ok) accountDone = m.account.signedOut;
+	}
+
+	async function deleteAccount() {
+		const result = await accountAction.run(() => account.deleteAccount());
+		if (result?.ok) accountDone = m.account.deleted;
+	}
 </script>
 
 <svelte:head>
@@ -18,6 +36,45 @@
 </svelte:head>
 
 <h1>{m.settings.title}</h1>
+
+<section aria-labelledby="account-section" aria-busy={accountAction.loading}>
+	<h2 id="account-section">{m.account.section}</h2>
+	{#if account.signedIn}
+		<div class="group">
+			<div class="row static">
+				<span class="label">{m.account.email}</span>
+				<span class="value">{account.email}</span>
+			</div>
+			<a class="row" href={resolve('/(tabs)/settings/password')}>
+				{account.details?.hasPassword === false ? m.account.setPassword : m.account.changePassword}
+				<Icon name="forward" size={22} />
+			</a>
+			<button type="button" class="row" disabled={accountAction.loading} onclick={signOut}>
+				{accountAction.loading ? m.auth.busy : m.account.signOut}
+			</button>
+			<button
+				type="button"
+				class="row danger"
+				disabled={accountAction.loading}
+				onclick={() => (confirmingDelete = true)}
+			>
+				{m.account.deleteAccount}
+			</button>
+		</div>
+	{:else}
+		<div class="group invite">
+			<p>{m.account.guestInvite}</p>
+			<div class="actions">
+				<Button href={resolve('/(tabs)/signin')} wide>{m.account.signIn}</Button>
+				<Button href={resolve('/(tabs)/signup')} variant="secondary" wide>
+					{m.account.signUp}
+				</Button>
+			</div>
+		</div>
+	{/if}
+	<p class="error" role="alert">{accountAction.error ? m.errors[accountAction.error] : ''}</p>
+	<p class="status" role="status">{accountAction.status === 'success' ? accountDone : ''}</p>
+</section>
 
 <section aria-labelledby="sound-section">
 	<h2 id="sound-section">{m.settings.soundSection}</h2>
@@ -58,6 +115,15 @@
 		</a>
 	</div>
 </section>
+
+<ConfirmDialog
+	bind:open={confirmingDelete}
+	title={m.account.deleteTitle}
+	message={m.account.deleteMessage}
+	confirmLabel={m.account.deleteConfirm}
+	danger
+	onconfirm={deleteAccount}
+/>
 
 <ConfirmDialog
 	bind:open={confirmingReset}
@@ -127,8 +193,70 @@
 		color: var(--color-text-faint);
 	}
 
-	.row:hover {
+	.row:hover:not(.static, :disabled) {
 		background: var(--color-surface-muted);
+	}
+
+	.row:disabled {
+		color: var(--color-text-faint);
+		cursor: wait;
+	}
+
+	/* Rows following each other in a group are separated, like the switches. */
+	.group > .row + .row {
+		border-top: 2px solid var(--color-border);
+	}
+
+	.static {
+		flex-direction: column;
+		align-items: flex-start;
+		justify-content: center;
+		gap: 0.125rem;
+		cursor: default;
+	}
+
+	.label {
+		font-size: 0.875rem;
+		font-weight: 700;
+		color: var(--color-text-muted);
+	}
+
+	/* A long e-mail wraps instead of widening the page. */
+	.value {
+		max-width: 100%;
+		overflow-wrap: anywhere;
+	}
+
+	.invite {
+		gap: 1rem;
+		padding: 1.25rem;
+	}
+
+	.invite > :global(* + *) {
+		border-top: none;
+	}
+
+	.invite p {
+		margin: 0;
+		font-weight: 700;
+	}
+
+	.actions {
+		display: grid;
+		gap: 0.75rem;
+	}
+
+	.error {
+		margin: 0;
+		padding: 0.75rem 1rem;
+		font-weight: 700;
+		color: var(--color-error-dark);
+		background: var(--color-error-light);
+		border-radius: var(--radius-sm);
+	}
+
+	.error:empty {
+		display: none;
 	}
 
 	.danger {

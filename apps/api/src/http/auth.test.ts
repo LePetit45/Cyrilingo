@@ -206,3 +206,21 @@ describe('/api/me', () => {
 		expect(login.status).toBe(401);
 	});
 });
+
+describe('the session cookie in development', () => {
+	it('drops Secure when the app is served over plain HTTP on localhost', async () => {
+		const app = createApp({
+			config: { publicUrl: 'http://localhost:5173', trustProxy: false },
+			services: createServices(db),
+			log: () => {}
+		});
+		const response = await app.request('/api/auth/signup', {
+			method: 'POST',
+			headers: { Origin: 'http://localhost:5173', 'Content-Type': 'application/json' },
+			body: JSON.stringify({ email: newEmail(), password: PASSWORD })
+		});
+		expect(response.status).toBe(201);
+		expect(response.headers.get('Set-Cookie')).not.toContain('Secure');
+		expect(response.headers.get('Set-Cookie')).toContain('HttpOnly');
+	});
+});

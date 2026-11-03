@@ -73,7 +73,7 @@ npx playwright install chromium firefox webkit
 
 Tests import `test` and `expect` from [`e2e/test.ts`](e2e/test.ts), which disables Web Audio so sound effects don't play while tests run. [`e2e/answers.ts`](e2e/answers.ts) answers questions by reading the screen, and [`e2e/storage.ts`](e2e/storage.ts) starts the app with a given progress.
 
-Tests live in [`e2e/`](e2e) and run against the production build on desktop Chrome, Firefox and Safari plus mobile Chrome and Safari viewports. To run a single browser: `npm run test:e2e -- --project=chromium`.
+The API runs beside the build during these tests, on a database it recreates each run (`cyrilingo_e2e`, on the server of `TEST_DATABASE_URL`, else `DATABASE_URL`): start PostgreSQL first (`docker compose up -d db`). Tests live in [`e2e/`](e2e) and run against the production build on desktop Chrome, Firefox and Safari plus mobile Chrome and Safari viewports. To run a single browser: `npm run test:e2e -- --project=chromium`.
 
 ## Project structure
 

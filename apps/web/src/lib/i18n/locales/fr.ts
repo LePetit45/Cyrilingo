@@ -1,5 +1,7 @@
 // French UI strings (MVP locale). Learner-facing text is allowed in French here only (see CLAUDE.md).
 // French typography: no-break spaces before : ! ? and inside « ».
+import type { ApiErrorCode } from '#lib/api/client.js';
+
 export const fr = {
 	app: {
 		name: 'Cyrilingo',
@@ -175,11 +177,69 @@ export const fr = {
 		resetDone: 'Ta progression a été réinitialisée.',
 		about: 'À propos de Cyrilingo'
 	},
+	auth: {
+		signInTitle: 'Connexion',
+		signUpTitle: 'Créer un compte',
+		signInIntro: 'Connecte-toi pour garder ta progression sur tous tes appareils.',
+		signUpIntro:
+			'Un compte garde ta progression sur tous tes appareils. Il reste facultatif : tout le cours fonctionne sans.',
+		email: 'Adresse e-mail',
+		password: 'Mot de passe',
+		passwordHint: 'De 8 à 128 caractères.',
+		signIn: 'Se connecter',
+		signUp: 'Créer mon compte',
+		busy: 'Un instant…',
+		noAccount: 'Pas encore de compte ?',
+		toSignUp: 'Crée-le ici',
+		haveAccount: 'Déjà un compte ?',
+		toSignIn: 'Connecte-toi',
+		back: 'Retour aux réglages'
+	},
+	account: {
+		section: 'Compte',
+		guestInvite: 'Connecte-toi pour garder ta progression sur tous tes appareils.',
+		signIn: 'Se connecter',
+		signUp: 'Créer un compte',
+		email: 'Adresse e-mail',
+		checking: 'Vérification de ton compte…',
+		changePassword: 'Changer mon mot de passe',
+		setPassword: 'Choisir un mot de passe',
+		signOut: 'Se déconnecter',
+		signedOut: 'Déconnexion réussie sur cet appareil.',
+		deleteAccount: 'Supprimer mon compte',
+		deleteTitle: 'Supprimer ton compte ?',
+		deleteMessage:
+			'Ton compte et tout ce qu’il contient seront effacés définitivement, sur tous tes appareils.',
+		deleteConfirm: 'Supprimer définitivement',
+		deleted: 'Ton compte a été supprimé.'
+	},
+	password: {
+		title: 'Mot de passe',
+		current: 'Mot de passe actuel',
+		next: 'Nouveau mot de passe',
+		save: 'Enregistrer',
+		saved: 'Ton mot de passe est changé. Tes autres appareils ont été déconnectés.',
+		back: 'Retour aux réglages'
+	},
+	/** One sentence per error code of the API client: never the response body (SPEC.md › UI). */
+	errors: {
+		invalid_credentials: 'E-mail ou mot de passe incorrect.',
+		email_taken: 'Un compte existe déjà avec cette adresse. Connecte-toi plutôt.',
+		email_taken_google:
+			'Un compte existe déjà avec cette adresse, et il se connecte avec Google. Utilise Google pour te connecter.',
+		invalid_password: 'Le mot de passe doit faire de 8 à 128 caractères.',
+		wrong_password: 'Ton mot de passe actuel est incorrect.',
+		too_many_attempts: 'Trop de tentatives de connexion. Réessaie dans un quart d’heure.',
+		unauthenticated: 'Ta session a expiré. Reconnecte-toi.',
+		invalid_input: 'Vérifie l’adresse e-mail et le mot de passe.',
+		network: 'Impossible de joindre Cyrilingo. Vérifie ta connexion et réessaie.',
+		unknown: 'Une erreur est survenue. Réessaie dans un moment.'
+	} satisfies Record<ApiErrorCode, string>,
 	about: {
 		title: 'À propos',
 		paragraphs: [
 			'Cyrilingo t’apprend à lire l’alphabet cyrillique bulgare : panneaux, menus, noms de villes… même sans comprendre la langue.',
-			'Tout fonctionne hors connexion une fois l’application ouverte. Ta progression reste dans ton navigateur : aucun compte, aucun cookie, aucun suivi.'
+			'Tout fonctionne hors connexion une fois l’application ouverte. Sans compte, ta progression reste dans ton navigateur. Le seul cookie est celui de ta session si tu te connectes, et il n’y a aucun suivi.'
 		],
 		version: (version: string) => `Version ${version}`,
 		back: 'Retour aux réglages'

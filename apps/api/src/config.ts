@@ -20,9 +20,18 @@ export class ConfigError extends Error {
 }
 
 const schema = z.object({
-	PUBLIC_URL: z.url({ protocol: /^https?$/, error: 'PUBLIC_URL must be an http(s) URL' }),
+	// Plain HTTP only for development on this machine: deployed, the app is served over HTTPS.
+	PUBLIC_URL: z
+		.url({ protocol: /^https?$/, error: 'PUBLIC_URL must be an http(s) URL' })
+		.refine(
+			(url) =>
+				!URL.canParse(url) ||
+				url.startsWith('https:') ||
+				['localhost', '127.0.0.1'].includes(new URL(url).hostname),
+			'PUBLIC_URL must use https, except on localhost'
+		),
 	DATABASE_URL: z.string().regex(/^postgres(ql)?:\/\//, 'DATABASE_URL must be a postgres:// URL'),
-	PORT: z.coerce.number().int().min(1).max(65535).default(3000),
+	API_PORT: z.coerce.number().int().min(1).max(65535).default(3000),
 	TRUST_PROXY: z.enum(['true', 'false']).default('false'),
 	GOOGLE_CLIENT_ID: z.string().optional(),
 	GOOGLE_CLIENT_SECRET: z.string().optional(),
@@ -38,7 +47,7 @@ export function loadConfig(env: Env): Config {
 	return {
 		publicUrl: new URL(settings.PUBLIC_URL).origin,
 		databaseUrl: settings.DATABASE_URL,
-		port: settings.PORT,
+		port: settings.API_PORT,
 		trustProxy: settings.TRUST_PROXY === 'true',
 		google:
 			settings.GOOGLE_CLIENT_ID && settings.GOOGLE_CLIENT_SECRET

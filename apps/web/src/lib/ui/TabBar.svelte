@@ -20,7 +20,13 @@
 			id: 'more',
 			href: resolve('/(tabs)/settings'),
 			label: m.nav.more,
-			matches: [resolve('/(tabs)/settings'), resolve('/(tabs)/about')]
+			matches: [
+				resolve('/(tabs)/settings'),
+				resolve('/(tabs)/settings/password'),
+				resolve('/(tabs)/about'),
+				resolve('/(tabs)/signin'),
+				resolve('/(tabs)/signup')
+			]
 		}
 	];
 

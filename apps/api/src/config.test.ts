@@ -34,7 +34,7 @@ describe('loadConfig', () => {
 	it('reads every setting', () => {
 		const config = loadConfig({
 			...required,
-			PORT: '8000',
+			API_PORT: '8000',
 			TRUST_PROXY: 'true',
 			GOOGLE_CLIENT_ID: 'id',
 			GOOGLE_CLIENT_SECRET: 'secret',
@@ -53,10 +53,16 @@ describe('loadConfig', () => {
 		expect(() => loadConfig({ ...required, PUBLIC_URL: 'cyrilingo.example' })).toThrow(
 			'PUBLIC_URL must be an http(s) URL'
 		);
+		expect(() => loadConfig({ ...required, PUBLIC_URL: 'http://cyrilingo.example' })).toThrow(
+			'PUBLIC_URL must use https, except on localhost'
+		);
+		expect(loadConfig({ ...required, PUBLIC_URL: 'http://localhost:5173' }).publicUrl).toBe(
+			'http://localhost:5173'
+		);
 		expect(() => loadConfig({ ...required, DATABASE_URL: 'mysql://localhost' })).toThrow(
 			'DATABASE_URL must be a postgres:// URL'
 		);
-		expect(() => loadConfig({ ...required, PORT: 'eighty' })).toThrow(ConfigError);
+		expect(() => loadConfig({ ...required, API_PORT: 'eighty' })).toThrow(ConfigError);
 		expect(() => loadConfig({ ...required, TRUST_PROXY: 'yes' })).toThrow(ConfigError);
 	});
 });
@@ -80,7 +86,7 @@ describe('the API process', () => {
 			{
 				PUBLIC_URL: required.PUBLIC_URL,
 				DATABASE_URL: inject('databaseUrl'),
-				PORT: String(await freePort())
+				API_PORT: String(await freePort())
 			},
 			(output) => output.includes('Read aloud is off')
 		);
