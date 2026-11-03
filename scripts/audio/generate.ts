@@ -1,4 +1,4 @@
-// Generates the app's recordings (spec §10.1) into src/lib/assets/audio/:
+// Generates the app's recordings (spec §10.1) into apps/web/src/lib/assets/audio/:
 // - <LETTER>.mp3 for each of the 30 letters, said with the input picked on the bench;
 // - <reading>.mp3 and <reading>.slow.mp3 for each corpus word and syllable.
 //
@@ -11,13 +11,13 @@ import { existsSync } from 'node:fs';
 import { mkdir, readdir, readFile, unlink, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { SYLLABLES, WORDS } from '../../src/lib/core/content/corpus.ts';
+import { SYLLABLES, WORDS } from '../../packages/core/src/content/corpus.ts';
 import { escapeXml, slowed, ssmlDocument, synthesize } from './azure.ts';
 import { LETTER_SPECS, letterSsml } from './letters.ts';
 
 const VOICE = { ShortName: 'bg-BG-BorislavNeural', Locale: 'bg-BG' };
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '../..');
-const OUT = join(ROOT, 'src/lib/assets/audio');
+const OUT = join(ROOT, 'apps/web/src/lib/assets/audio');
 const MANIFEST = join(dirname(fileURLToPath(import.meta.url)), 'manifest.json');
 /** Requests sent at once: the free tier throttles bursts, retried in synthesize(). */
 const CONCURRENCY = 4;

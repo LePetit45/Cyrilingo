@@ -1,0 +1,28 @@
+import { defineConfig } from 'vitest/config';
+import adapter from '@sveltejs/adapter-static';
+import { sveltekit } from '@sveltejs/kit/vite';
+
+export default defineConfig({
+	plugins: [
+		sveltekit({
+			compilerOptions: {
+				// Force runes mode for the project, except for libraries. Can be removed in svelte 6.
+				runes: ({ filename }) =>
+					filename.split(/[/\\]/).includes('node_modules') ? undefined : true
+			},
+			adapter: adapter()
+		})
+	],
+	build: {
+		// Keep icons and audio as separate files (never data URIs): they get content-hashed names
+		// under _app/immutable/, which the service worker precaches and keeps across deploys.
+		assetsInlineLimit: (file) => (/\.(png|opus|mp3)$/.test(file) ? false : undefined)
+	},
+	test: {
+		name: 'web',
+		environment: 'node',
+		include: ['src/**/*.{test,spec}.{js,ts}'],
+		exclude: ['src/**/*.svelte.{test,spec}.{js,ts}'],
+		expect: { requireAssertions: true }
+	}
+});

@@ -1,0 +1,16 @@
+{
+	"name": "@cyrilingo/core",
+	"private": true,
+	"description": "Course logic shared by the front end and the API: alphabet, content, lesson engine, answer checking.",
+	"type": "module",
+	"exports": {
+		"./*.js": "./src/*.ts"
+	},
+	"scripts": {
+		"check": "tsc -p tsconfig.json"
+	},
+	"devDependencies": {
+		"typescript": "^6.0.3",
+		"vitest": "^4.1.8"
+	}
+}

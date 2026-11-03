@@ -6,7 +6,7 @@ bun.lock
 bun.lockb
 
 # Miscellaneous
-/static/
+/apps/web/static/
 
 # Hand-written docs (formatting kept as authored)
 /docs/

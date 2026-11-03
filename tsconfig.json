@@ -1,10 +1,15 @@
+// Type checks the root files: end-to-end tests and tool configs. Each workspace has its own.
 {
-	"extends": "$app/tsconfig",
 	"compilerOptions": {
+		"target": "es2023",
+		"module": "esnext",
+		"moduleResolution": "bundler",
+		"lib": ["es2023", "dom"],
+		"types": ["node"],
 		"strict": true,
-		"types": ["$app/types", "node"]
+		"noEmit": true,
+		"skipLibCheck": true,
+		"isolatedModules": true
 	},
-	"include": ["src", "e2e", "vite.config.ts", "playwright.config.ts"],
-	// The service worker has its own tsconfig (WebWorker types instead of DOM).
-	"exclude": ["src/service-worker"]
+	"include": ["e2e", "playwright.config.ts", "vitest.config.ts"]
 }
