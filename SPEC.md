@@ -332,7 +332,7 @@ The MCP tool `delete_word_list` (`apps/api/src/mcp/tools.ts`) enters at step 4 w
 
 ### Data model
 
-PostgreSQL. Reference data (letters, lessons, words) comes from the TypeScript content files and is **seeded** into the database on every deployment (idempotent upsert), so foreign keys can point at it. The seed never deletes a row: a word dropped from the content stays in the lists that hold it. Seeding changes data, not the schema; every schema change is a numbered migration. In development only (`NODE_ENV` other than `production`), the seed also creates two demo accounts, `ana@demo.test` and `boris@demo.test`, with a few word lists. Each gets a random password when it is created, printed once in the console of `npm run db:migrate` (the one password ever shown, at the owner's request); only its hash is stored, so new passwords mean deleting the accounts and seeding again.
+PostgreSQL. Reference data (letters, lessons, words) comes from the TypeScript content files and is **seeded** into the database on every deployment (idempotent upsert), so foreign keys can point at it. The seed never deletes a row: a word dropped from the content stays in the lists that hold it. Seeding changes data, not the schema; every schema change is a numbered migration. The seed creates no account: accounts are made through sign-up, in development too.
 
 | Table                | Content                                                                                                                          | Owned by a user        |
 | -------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
@@ -504,7 +504,7 @@ Local development: `docker compose up db` then `npm run dev` (front end and API 
 ### Slice 1: sign-in and the word lists screen
 
 - [AC-75] A visitor who is not signed in and opens Listes sees the sign-in invitation and no list, and `GET /api/word-lists` without a session returns 401 with no list in the body.
-- [AC-76] After signing in with a seeded demo account, Listes shows that account's lists from the `word_lists` table, each with its name and its number of words, and none of the other demo account's lists.
+- [AC-76] After signing in, Listes shows that account's lists from the `word_lists` table, each with its name and its number of words, and none of another account's lists.
 - [AC-77] Deleting one row of `word_lists` in the database and reloading Listes removes that list from the screen.
 
 ## Traceability
