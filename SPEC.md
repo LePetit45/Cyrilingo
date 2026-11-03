@@ -210,7 +210,8 @@ The settings show the e-mail and the linked providers, let the learner set or ch
 - **At sign-in**, the device's progress is merged into the account (`PATCH /api/progress`), then the device shows the account's progress.
 - **While signed in**, the account is the reference and the device keeps a copy for offline play. Each completed lesson and passed exam is sent to the account; if the request fails (offline), it waits in a queue on the device. At each sync (app start, back online), the device sends its queue, then **replaces** its copy with the account's progress. Only the queue is sent, never the whole copy, so a reset made on another device is not undone.
 - **Signing out** removes the account's progress from the device and keeps the settings.
-- **« Réinitialiser ma progression »** while signed in resets the account's progress (`DELETE /api/progress`) as well as the device's, after a confirmation saying it applies to every device.
+- **« Réinitialiser ma progression »** while signed in resets the account's progress (`DELETE /api/progress`) as well as the device's, after a confirmation saying it applies to every device. If the account cannot be reached, nothing is reset and the learner is told.
+- **Known limitation**: a lesson completed offline on one device, before a reset made on another device, is still in the first device's queue; it is sent at that device's next sync, so it reappears in the account after the reset. Accepted: avoiding it would need a reset date on the account, compared with the date of every queued completion.
 
 ## MCP tools
 

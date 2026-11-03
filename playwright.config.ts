@@ -26,7 +26,8 @@ export default defineConfig({
 		{
 			command: 'npm run e2e -w @cyrilingo/api',
 			url: `http://localhost:${API_PORT}/api/health`,
-			env: { API_PORT, PUBLIC_URL: 'http://localhost:4173' },
+			// Behind Vite's proxy, as behind Nginx once deployed; see ownClientHeaders() in e2e/test.ts.
+			env: { API_PORT, PUBLIC_URL: 'http://localhost:4173', TRUST_PROXY: 'true' },
 			// Never a development API: it would answer for another origin and database.
 			reuseExistingServer: false
 		}
