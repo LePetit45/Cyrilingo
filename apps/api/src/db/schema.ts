@@ -47,6 +47,16 @@ export interface SessionsTable {
 	created_at: Generated<Date>;
 }
 
+export type OAuthProvider = 'google';
+
+export interface OAuthAccountsTable {
+	provider: OAuthProvider;
+	/** The provider's stable id for the person (Google's `sub`). */
+	provider_user_id: string;
+	user_id: string;
+	created_at: Generated<Date>;
+}
+
 export interface LessonCompletionsTable {
 	user_id: string;
 	lesson_id: string;
@@ -59,6 +69,7 @@ export interface Database {
 	lesson_letters: LessonLettersTable;
 	words: WordsTable;
 	users: UsersTable;
+	oauth_accounts: OAuthAccountsTable;
 	sessions: SessionsTable;
 	lesson_completions: LessonCompletionsTable;
 }

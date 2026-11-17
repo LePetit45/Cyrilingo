@@ -42,3 +42,8 @@ export async function deleteSession(db: Db, id: string): Promise<void> {
 export async function deleteOtherSessions(db: Db, userId: string, keepId: string): Promise<void> {
 	await db.deleteFrom('sessions').where('user_id', '=', userId).where('id', '!=', keepId).execute();
 }
+
+/** Deletes every session of a user, agent tokens included. */
+export async function deleteAllSessions(db: Db, userId: string): Promise<void> {
+	await db.deleteFrom('sessions').where('user_id', '=', userId).execute();
+}

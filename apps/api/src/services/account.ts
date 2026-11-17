@@ -1,5 +1,7 @@
 import { hashPassword, verifyPassword } from '../auth/passwords.js';
 import type { Db } from '../db/database.js';
+import { listLinkedProviders } from '../db/oauth-accounts.js';
+import type { OAuthProvider } from '../db/schema.js';
 import { deleteOtherSessions } from '../db/sessions.js';
 import { deleteUser, findUserById, setPasswordHash } from '../db/users.js';
 import { checkPasswordLength } from './auth.js';
@@ -9,8 +11,8 @@ import { ServiceError } from './errors.js';
 export interface Account {
 	email: string;
 	hasPassword: boolean;
-	/** Sign-in providers linked to the account; Google comes with its own pull request. */
-	providers: 'google'[];
+	/** Sign-in providers linked to the account. */
+	providers: OAuthProvider[];
 }
 
 export interface AccountService {
@@ -38,7 +40,11 @@ export function createAccountService(db: Db): AccountService {
 	return {
 		async get(userId) {
 			const user = await findUser(userId);
-			return { email: user.email, hasPassword: user.passwordHash !== null, providers: [] };
+			return {
+				email: user.email,
+				hasPassword: user.passwordHash !== null,
+				providers: await listLinkedProviders(db, userId)
+			};
 		},
 
 		async setPassword(userId, sessionId, { current, next }) {

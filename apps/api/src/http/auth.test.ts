@@ -11,7 +11,11 @@ afterAll(() => db.destroy());
 const newApp = (trustProxy = false) =>
 	createApp({
 		config: { publicUrl, trustProxy },
-		services: createServices(db, { google: null, azureSpeech: { key: 'k', region: 'r' } }),
+		services: createServices(db, {
+			publicUrl,
+			google: null,
+			azureSpeech: { key: 'k', region: 'r' }
+		}),
 		log: () => {}
 	});
 

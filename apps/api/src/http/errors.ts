@@ -38,6 +38,8 @@ export const SERVICE_ERRORS: Record<
 	},
 	invalid_password: { status: 400, message: 'The password must have 8 to 128 characters' },
 	wrong_password: { status: 400, message: 'The current password is wrong' },
+	google_failed: { status: 400, message: 'Google sign-in failed' },
+	google_unverified: { status: 403, message: 'Google has not verified this e-mail' },
 	too_many_attempts: { status: 429, message: 'Too many failed sign-ins, try again later' },
 	unknown_lesson: { status: 400, message: 'No lesson has this id' },
 	not_found: { status: 404, message: 'Not found' }

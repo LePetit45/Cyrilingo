@@ -43,6 +43,15 @@ export async function setPasswordHash(db: Db, id: string, passwordHash: string):
 	await db.updateTable('users').set({ password_hash: passwordHash }).where('id', '=', id).execute();
 }
 
+/** A provider vouched for the user's e-mail: mark it verified and remove the password. */
+export async function markVerifiedWithoutPassword(db: Db, id: string): Promise<void> {
+	await db
+		.updateTable('users')
+		.set({ email_verified: true, password_hash: null })
+		.where('id', '=', id)
+		.execute();
+}
+
 /** Deletes a user; their sessions and everything else they own go with them (cascade). */
 export async function deleteUser(db: Db, id: string): Promise<boolean> {
 	const result = await db.deleteFrom('users').where('id', '=', id).executeTakeFirst();

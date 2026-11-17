@@ -36,8 +36,9 @@ export function createApp({ config, services, log }: AppOptions) {
 	);
 
 	app.route('/health', healthRoutes(services));
-	const cookies = sessionCookies({ secure: config.publicUrl.startsWith('https:') });
-	app.route('/auth', authRoutes(services, { trustProxy: config.trustProxy, cookies }));
+	const secure = config.publicUrl.startsWith('https:');
+	const cookies = sessionCookies({ secure });
+	app.route('/auth', authRoutes(services, { trustProxy: config.trustProxy, secure, cookies }));
 	app.route('/me', meRoutes(services, cookies));
 	app.route('/lessons', lessonRoutes(services, cookies));
 	app.route('/progress', progressRoutes(services, cookies));
