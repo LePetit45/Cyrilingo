@@ -177,8 +177,9 @@ Never sent anywhere: the expected word, the user's id or e-mail (not to Azure), 
 
 ### Google sign-in
 
-- OAuth 2.0 authorization code flow with **PKCE** and a `state` value, both kept in short-lived HttpOnly cookies and checked on the callback. Scopes: `openid email`. The ID token is verified (signature, issuer, audience, expiry).
-- The redirect URI is `${PUBLIC_URL}/api/auth/google/callback`.
+- OAuth 2.0 authorization code flow with **PKCE** and a `state` value, both kept for 10 minutes in HttpOnly cookies limited to `/api/auth/google`, checked on the callback, then deleted. Scopes: `openid email`. The code is exchanged on the server, with a 10-second timeout.
+- The ID token comes straight from Google's token endpoint over TLS, so its signature is not checked (OpenID Connect Core § 3.1.3.7 allows it): its issuer, audience and expiry are, and so are the fields we use (`sub`, `email`, `email_verified`).
+- The redirect URI is `${PUBLIC_URL}/api/auth/google/callback`. The callback sends the browser back to the app's page `/signin/google`, with `?signed_in=1`, `?notice=password_removed` (see below), or `?error=` one of `google_failed` (state or verifier mismatch, code refused, Google unreachable), `google_unverified`, `google_cancelled` (refused on Google's page) or `google_unavailable` (Google settings missing). That page loads the account and merges the device's progress, as a sign-in with a password does.
 - A Google identity whose e-mail is **not verified by Google** (`email_verified` false) is refused: it never creates nor links an account.
 
 ### One person, one account

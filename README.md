@@ -47,6 +47,8 @@ npm run dev
 
 The app is served at http://localhost:5173 and the API at http://localhost:3000; Vite forwards `/api` to it, so the front end calls `/api/...` on its own origin. The front end alone still works without the database (guest mode).
 
+Google sign-in is optional: without `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`, the button tells the learner it is unavailable. To turn it on, create an OAuth client of type "Web application" in the Google Cloud console, add `<PUBLIC_URL>/api/auth/google/callback` (in development `http://localhost:5173/api/auth/google/callback`) as an authorized redirect URI, and put its id and secret in `.env`.
+
 ## Scripts
 
 | Command              | What it does                                                                                    |
