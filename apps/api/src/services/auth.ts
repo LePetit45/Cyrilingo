@@ -57,19 +57,22 @@ export function checkPasswordLength(password: string): void {
 	}
 }
 
+/**
+ * Creates a browser session for a user and returns its token. Every way of signing in ends here,
+ * so a password and Google give the same kind of session.
+ */
+export async function startSession(db: Db, userId: string, now: Date): Promise<StartedSession> {
+	const token = generateToken();
+	const expiresAt = new Date(now.getTime() + SESSION_LIFETIME_MS);
+	await insertSession(db, { id: hashToken(token), userId, kind: 'browser', expiresAt });
+	return { token, expiresAt };
+}
+
 export function createAuthService({
 	db,
 	loginAttempts,
 	now = () => new Date()
 }: AuthDeps): AuthService {
-	/** Creates a session for a user and returns its token; Google sign-in will end here too. */
-	async function startSession(userId: string): Promise<StartedSession> {
-		const token = generateToken();
-		const expiresAt = new Date(now().getTime() + SESSION_LIFETIME_MS);
-		await insertSession(db, { id: hashToken(token), userId, kind: 'browser', expiresAt });
-		return { token, expiresAt };
-	}
-
 	return {
 		async signUp(email, password) {
 			checkPasswordLength(password);
@@ -83,7 +86,7 @@ export function createAuthService({
 				const existing = await findUserByEmail(db, normalized);
 				throw new ServiceError(existing?.passwordHash ? 'email_taken' : 'email_taken_google');
 			}
-			return startSession(user.id);
+			return startSession(db, user.id, now());
 		},
 
 		async signIn(email, password, ip) {
@@ -96,7 +99,7 @@ export function createAuthService({
 				loginAttempts.recordFailure(ip, now());
 				throw new ServiceError('invalid_credentials');
 			}
-			return startSession(user.id);
+			return startSession(db, user.id, now());
 		},
 
 		async signOut(token) {

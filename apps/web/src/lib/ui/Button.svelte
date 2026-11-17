@@ -8,6 +8,7 @@
 	let {
 		variant = 'primary',
 		href,
+		reload = false,
 		wide = false,
 		children,
 		class: className,
@@ -15,14 +16,21 @@
 	}: HTMLButtonAttributes & {
 		variant?: Variant;
 		href?: string;
+		/** The link leaves the app (an `/api` route): a full page load, not client routing. */
+		reload?: boolean;
 		wide?: boolean;
 		children: Snippet;
 	} = $props();
 </script>
 
 {#if href}
-	<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- callers pass a resolved href -->
-	<a {href} class={['button', variant, { wide }, className]}>{@render children()}</a>
+	<!-- eslint-disable svelte/no-navigation-without-resolve -- callers pass a resolved href -->
+	<a
+		{href}
+		class={['button', variant, { wide }, className]}
+		data-sveltekit-reload={reload || undefined}>{@render children()}</a
+	>
+	<!-- eslint-enable svelte/no-navigation-without-resolve -->
 {:else}
 	<button type="button" class={['button', variant, { wide }, className]} {...rest}>
 		{@render children()}

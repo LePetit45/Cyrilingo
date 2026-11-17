@@ -13,6 +13,10 @@ export type ServiceErrorCode =
 	| 'invalid_password'
 	/** The current password given to change it is wrong. */
 	| 'wrong_password'
+	/** Google sign-in failed: state or verifier mismatch, code refused, Google unreachable. */
+	| 'google_failed'
+	/** The Google identity's e-mail is not verified by Google. */
+	| 'google_unverified'
 	/** Too many failed sign-ins from one IP. */
 	| 'too_many_attempts'
 	/** Progress naming a lesson the course does not have. */

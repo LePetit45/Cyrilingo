@@ -1,6 +1,6 @@
 // French UI strings (MVP locale). Learner-facing text is allowed in French here only (see CLAUDE.md).
 // French typography: no-break spaces before : ! ? and inside « ».
-import type { ApiErrorCode } from '#lib/api/client.js';
+import type { ApiErrorCode, GoogleErrorCode } from '#lib/api/client.js';
 
 export const fr = {
 	app: {
@@ -194,6 +194,8 @@ export const fr = {
 		passwordHint: 'De 8 à 128 caractères.',
 		signIn: 'Se connecter',
 		signUp: 'Créer mon compte',
+		google: 'Continuer avec Google',
+		or: 'ou',
 		busy: 'Un instant…',
 		noAccount: 'Pas encore de compte ?',
 		toSignUp: 'Crée-le ici',
@@ -201,12 +203,33 @@ export const fr = {
 		toSignIn: 'Connecte-toi',
 		back: 'Retour aux réglages'
 	},
+	google: {
+		title: 'Connexion avec Google',
+		finishing: 'Connexion avec Google…',
+		passwordRemovedTitle: 'Ton compte est lié à Google',
+		passwordRemoved:
+			'Ce compte avait été créé avec un mot de passe, sans que l’adresse soit vérifiée. Par sécurité, ce mot de passe a été supprimé et tes autres appareils ont été déconnectés. Connecte-toi désormais avec Google, ou choisis un nouveau mot de passe.',
+		choosePassword: 'Choisir un mot de passe',
+		retry: 'Réessayer',
+		backToSignIn: 'Retour à la connexion',
+		errors: {
+			google_failed: 'La connexion avec Google n’a pas abouti. Réessaie.',
+			google_unverified:
+				'Google n’a pas vérifié cette adresse e-mail. Vérifie-la dans ton compte Google, ou crée un compte avec un mot de passe.',
+			google_unavailable:
+				'La connexion avec Google n’est pas disponible pour le moment. Utilise ton adresse e-mail et un mot de passe.',
+			google_cancelled: 'Connexion avec Google annulée.'
+		} satisfies Record<GoogleErrorCode, string>
+	},
 	account: {
 		section: 'Compte',
 		guestInvite: 'Connecte-toi pour garder ta progression sur tous tes appareils.',
 		signIn: 'Se connecter',
 		signUp: 'Créer un compte',
 		email: 'Adresse e-mail',
+		signInWith: 'Connexion avec',
+		withPassword: 'Mot de passe',
+		withGoogle: 'Google',
 		checking: 'Vérification de ton compte…',
 		changePassword: 'Changer mon mot de passe',
 		setPassword: 'Choisir un mot de passe',

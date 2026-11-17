@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ApiClient } from '#lib/api/client.js';
-import { ACCOUNT, fakeApi } from '#lib/api/testing.js';
+import { ACCOUNT, fakeApi, ok } from '#lib/api/testing.js';
 import { AccountState } from './account.svelte.js';
 import { memoryCopy, memoryStore } from './testing.js';
 import { ProgressSync } from './progress-sync.svelte.js';
@@ -137,5 +137,27 @@ describe('AccountState', () => {
 		);
 		await account.refresh();
 		expect(copy.progress.completedLessons).toEqual([]);
+	});
+
+	it('[AC-22] ends a Google sign-in: remembers the account and merges the device’s progress into it', async () => {
+		const server = { progress: { completedLessons: ['l2'], examPassed: false } };
+		const google = { ...ACCOUNT, hasPassword: false, providers: ['google' as const] };
+		const api = fakeApi({ getAccount: vi.fn(async () => ok(google)) }, server);
+		const account = newAccount(api, memoryCopy({ completedLessons: ['l1'], examPassed: true }));
+
+		expect(await account.finishGoogleSignIn()).toEqual(ok(google));
+		expect(account.email).toBe(ACCOUNT.email);
+		expect(account.details).toEqual(google);
+		expect(server.progress).toEqual({ completedLessons: ['l2', 'l1'], examPassed: true });
+	});
+
+	it('stays a guest when the account cannot be loaded after Google', async () => {
+		const api = fakeApi({
+			getAccount: vi.fn(async () => ({ ok: false, error: 'unauthenticated' }) as const)
+		});
+		const account = newAccount(api);
+		expect(await account.finishGoogleSignIn()).toEqual({ ok: false, error: 'unauthenticated' });
+		expect(account.signedIn).toBe(false);
+		expect(api.mergeProgress).not.toHaveBeenCalled();
 	});
 });

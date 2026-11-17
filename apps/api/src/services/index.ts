@@ -1,7 +1,9 @@
+import { createGoogleClient, type GoogleClient } from '../auth/google.js';
 import type { Config } from '../config.js';
 import type { Db } from '../db/database.js';
 import { createAccountService, type AccountService } from './account.js';
 import { createAuthService, type AuthService } from './auth.js';
+import { createGoogleAuthService, type GoogleAuthService } from './google-auth.js';
 import { createHealthService, type HealthService } from './health.js';
 import { createLessonService, type LessonService } from './lessons.js';
 import { createLoginAttempts } from './login-attempts.js';
@@ -11,6 +13,8 @@ import { createProgressService, type ProgressService } from './progress.js';
 export interface Services {
 	health: HealthService;
 	auth: AuthService;
+	/** Null when Google sign-in is off (no client id or secret). */
+	google: GoogleAuthService | null;
 	account: AccountService;
 	lessons: LessonService;
 	progress: ProgressService;
@@ -18,17 +22,35 @@ export interface Services {
 	features: { readAloud: boolean; google: boolean };
 }
 
+export interface ServiceOptions {
+	now?: () => Date;
+	/** Stands in for Google in the tests; otherwise built from the configuration. */
+	googleClient?: GoogleClient;
+}
+
 export function createServices(
 	db: Db,
-	config: Pick<Config, 'google' | 'azureSpeech'> = { google: null, azureSpeech: null },
-	now?: () => Date
+	config: Pick<Config, 'publicUrl' | 'google' | 'azureSpeech'> = {
+		publicUrl: 'http://localhost',
+		google: null,
+		azureSpeech: null
+	},
+	{ now, googleClient }: ServiceOptions = {}
 ): Services {
+	const google =
+		googleClient ??
+		(config.google &&
+			createGoogleClient({
+				...config.google,
+				redirectUri: `${config.publicUrl}/api/auth/google/callback`
+			}));
 	return {
 		health: createHealthService(db),
 		auth: createAuthService({ db, loginAttempts: createLoginAttempts(), now }),
+		google: google ? createGoogleAuthService(db, google, now) : null,
 		account: createAccountService(db),
 		lessons: createLessonService(db),
 		progress: createProgressService(db, now),
-		features: { readAloud: config.azureSpeech !== null, google: config.google !== null }
+		features: { readAloud: config.azureSpeech !== null, google: google !== null }
 	};
 }
