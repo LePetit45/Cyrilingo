@@ -52,6 +52,18 @@ export class AccountState {
 		return this.#thenLoad(email, await this.#api.signUp(email, password));
 	}
 
+	/**
+	 * Ends a Google sign-in, once the API's callback set the session cookie and sent the learner
+	 * back: loads the account, then merges the device's progress into it, as a sign-in does.
+	 */
+	async finishGoogleSignIn(): Promise<ApiResult<Account>> {
+		const result = await this.#api.getAccount();
+		if (!result.ok) return result;
+		this.#remember(result.value);
+		await this.#sync.adoptDevice();
+		return result;
+	}
+
 	async signOut(): Promise<ApiResult<void>> {
 		const result = await this.#api.signOut();
 		// An already ended session is signed out too.

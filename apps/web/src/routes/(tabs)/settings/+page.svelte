@@ -32,6 +32,18 @@
 		if (result?.ok) accountDone = m.account.deleted;
 	}
 
+	/** « Mot de passe · Google »: how the account can sign in, once the API described it. */
+	const signInMethods = $derived.by(() => {
+		const details = account.details;
+		if (!details) return '';
+		return [
+			details.hasPassword && m.account.withPassword,
+			details.providers.includes('google') && m.account.withGoogle
+		]
+			.filter(Boolean)
+			.join(' · ');
+	});
+
 	function resetProgress() {
 		void reset.run(() => progressSync.reset());
 	}
@@ -51,6 +63,12 @@
 				<span class="label">{m.account.email}</span>
 				<span class="value">{account.email}</span>
 			</div>
+			{#if signInMethods}
+				<div class="row static">
+					<span class="label">{m.account.signInWith}</span>
+					<span class="value">{signInMethods}</span>
+				</div>
+			{/if}
 			<a class="row" href={resolve('/(tabs)/settings/password')}>
 				{account.details?.hasPassword === false ? m.account.setPassword : m.account.changePassword}
 				<Icon name="forward" size={22} />

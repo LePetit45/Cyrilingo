@@ -1,16 +1,18 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
+	import { GOOGLE_SIGN_IN_URL } from '#lib/api/client.js';
 	import { m } from '#lib/i18n/index.js';
 	import Button from '#lib/ui/Button.svelte';
+	import GoogleMark from '#lib/ui/GoogleMark.svelte';
 	import Icon from '#lib/ui/Icon.svelte';
 	import { account } from '#lib/ui/state/account.svelte.js';
 	import { app } from '#lib/ui/state/app.svelte.js';
 	import { AsyncState } from '#lib/ui/state/async.svelte.js';
 	import TextField from '#lib/ui/TextField.svelte';
 
-	// Sign-in and sign-up screens (SPEC.md › Screens): e-mail and password, one sentence per error,
-	// the path once signed in. A learner who signs in knows the app: on a new device, the path opens
+	// Sign-in and sign-up screens (SPEC.md › Screens): « Continuer avec Google », or e-mail and
+	// password with one sentence per error, then the path once signed in. A learner who signs in knows the app: on a new device, the path opens
 	// on the account's progress, not on the welcome screen.
 	let { mode }: { mode: 'signIn' | 'signUp' } = $props();
 
@@ -42,6 +44,13 @@
 </header>
 
 <p class="intro">{signUp ? m.auth.signUpIntro : m.auth.signInIntro}</p>
+
+<Button href={GOOGLE_SIGN_IN_URL} reload variant="secondary" wide class="google">
+	<GoogleMark />
+	{m.auth.google}
+</Button>
+
+<p class="or"><span>{m.auth.or}</span></p>
 
 <form {onsubmit} aria-busy={submit.loading}>
 	<TextField
@@ -114,6 +123,29 @@
 	.intro {
 		margin: 0 0 1.5rem;
 		color: var(--color-text-muted);
+	}
+
+	/* Its label holds on one line down to 320px wide; on white, it needs no large-text size. */
+	:global(.button.google) {
+		padding-inline: 1rem;
+		font-size: 1rem;
+	}
+
+	/* « ou » between two rules. */
+	.or {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		margin: 1.25rem 0;
+		font-weight: 800;
+		color: var(--color-text-muted);
+	}
+
+	.or::before,
+	.or::after {
+		content: '';
+		flex: 1;
+		border-top: 2px solid var(--color-border);
 	}
 
 	form {

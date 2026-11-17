@@ -16,6 +16,13 @@ export type ApiErrorCode =
 	| 'network'
 	| 'unknown';
 
+/** Why a Google sign-in did not end in a session, as the API's callback tells the app. */
+export type GoogleErrorCode =
+	'google_failed' | 'google_unverified' | 'google_unavailable' | 'google_cancelled';
+
+/** Starts Google sign-in: a full page load, since the API redirects to Google. */
+export const GOOGLE_SIGN_IN_URL = '/api/auth/google';
+
 export type ApiResult<T> = { ok: true; value: T } | { ok: false; error: ApiErrorCode };
 
 /** `GET /api/me`. */
