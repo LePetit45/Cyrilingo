@@ -13,6 +13,8 @@ import {
 	EXAM_READING_COUNT,
 	FREE_REVIEW_COUNT,
 	LIST_REVIEW_COUNT,
+	READ_ALOUD_COUNT,
+	readAloudWords,
 	reviewLetters
 } from './compose.js';
 import type { Question } from './questions.js';
@@ -22,6 +24,7 @@ const SEEDS = Array.from({ length: 50 }, (_, seed) => seed);
 /** Every letter a question shows: asked letter, choices, reading. */
 function lettersShown(question: Question): BulgarianLetter[] {
 	if (question.kind === 'reading') return lettersIn(question.reading);
+	if (question.kind === 'readAloud') return lettersIn(question.word);
 	if (question.kind === 'soundToLetter') return [...question.choices];
 	return [question.letter];
 }
@@ -252,5 +255,65 @@ describe('composeExam', () => {
 		const kinds = composeExam(seededRandom(1)).map((question) => question.kind);
 		expect(kinds.filter((kind) => kind === 'letterToSound')).toHaveLength(7);
 		expect(kinds.filter((kind) => kind === 'soundToLetter')).toHaveLength(7);
+	});
+});
+
+describe('read-aloud questions in a lesson', () => {
+	const readAloudOf = (questions: Question[]) =>
+		questions.flatMap((question) => (question.kind === 'readAloud' ? [question.word] : []));
+
+	it('[AC-40] adds 2 read-aloud questions on words of the lesson, on top of its questions', () => {
+		for (const lesson of LESSONS.slice(1)) {
+			for (const seed of SEEDS.slice(0, 10)) {
+				const plain = composeLesson(lesson.id, seededRandom(seed));
+				const questions = composeLesson(lesson.id, seededRandom(seed), { readAloud: true });
+				const words = readAloudOf(questions);
+				expect(words).toHaveLength(READ_ALOUD_COUNT);
+				expect(questions).toHaveLength(plain.length + READ_ALOUD_COUNT);
+				// The same lesson, with the read-aloud questions taken out.
+				expect(questions.filter((question) => question.kind !== 'readAloud')).toEqual(plain);
+				// On words the lesson asks to read.
+				const readings = plain.flatMap((q) => (q.kind === 'reading' ? [q.reading] : []));
+				for (const word of words) expect(readings).toContain(word);
+				expect(new Set(words).size).toBe(words.length);
+			}
+		}
+	});
+
+	it('[AC-40] asks them after the questions on the new letters', () => {
+		for (const seed of SEEDS) {
+			const questions = composeLesson('l4', seededRandom(seed), { readAloud: true });
+			const first = questions.findIndex((question) => question.kind === 'readAloud');
+			expect(first).toBeGreaterThanOrEqual(9);
+		}
+	});
+
+	it('[AC-40] has none without the option', () => {
+		for (const lesson of LESSONS) {
+			expect(readAloudOf(composeLesson(lesson.id, seededRandom(1)))).toEqual([]);
+		}
+	});
+
+	it('[AC-40] asks only the words among the readings of lesson 1, which reads mostly syllables', () => {
+		for (const seed of SEEDS) {
+			const questions = composeLesson('l1', seededRandom(seed), { readAloud: true });
+			const readings = questions.flatMap((q) => (q.kind === 'reading' ? [q.reading] : []));
+			const words = readAloudOf(questions);
+			expect(words.length).toBeLessThanOrEqual(READ_ALOUD_COUNT);
+			for (const word of words) expect(readings).toContain(word);
+		}
+	});
+
+	it('[AC-40] prefers words of 2 syllables or more, and falls back on shorter ones', () => {
+		for (const seed of SEEDS.slice(0, 10)) {
+			expect(
+				readAloudWords(['да', 'мама', 'не', 'котка', 'ма'], seededRandom(seed)).sort()
+			).toEqual(['котка', 'мама']);
+			const fallback = readAloudWords(['да', 'мама', 'ма'], seededRandom(seed));
+			expect(fallback[0]).toBe('мама');
+			expect(fallback).toHaveLength(2);
+		}
+		expect(readAloudWords(['мама', 'мама', 'ма'], seededRandom(1))).toEqual(['мама']);
+		expect(readAloudWords(['ма', 'та'], seededRandom(1))).toEqual([]);
 	});
 });
