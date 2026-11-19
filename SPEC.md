@@ -77,6 +77,7 @@ Questions of steps 2–5 are shuffled. A lesson takes 6–8 minutes.
 
 - A **wrong answer** (or « Je ne sais pas ») does not move the progress bar; the question comes back later in the lesson, with its choices reshuffled.
 - The lesson ends when **every question has been answered right once**. Leaving midway discards it.
+- Read-aloud questions are the exception: they never come back, whatever their outcome (see The model feature).
 - The **summary** shows the first-try success rate and the letters missed.
 
 ### Review
@@ -103,17 +104,20 @@ Typed TypeScript data files (letters, lessons, ~270 words and ~60 syllables, tra
 ## The model feature
 
 - Model: Azure AI Speech, speech to text (short-audio REST API, language `bg-BG`), called from `apps/api/src/speech/` and nowhere else.
-- Input: a recording of the learner reading one word aloud (at most 5 seconds, 16 kHz mono WAV) and the language code; never the expected word, never anything about the user.
-- Output: the text heard, validated (non-empty, at most 40 characters, only Bulgarian letters) then compared with the expected word, giving `match`, `mismatch` (with the validated text), `not_understood` or `unavailable`.
-- When it fails: no key, a timeout after 8 seconds, a provider error or a 429 all give `unavailable`: the learner sees a sentence saying so, the question is passed without penalty and the lesson goes on. An output that fails validation is never shown (`not_understood`). Every other feature works with no key at all.
+- Input: a recording of the learner reading one word aloud (at most 5 seconds, 16 kHz mono 16-bit PCM WAV, so at most 160 044 bytes) and the language code; never the expected word, never anything about the user.
+- Output: the lexical form of the text heard, validated (non-empty, at most 40 characters, only Bulgarian letters) then compared with the expected word, giving `match`, `mismatch` (with the validated text), `not_understood` or `unavailable`.
+- When it fails: no key, a timeout after 8 seconds, a provider error, a provider 429, a refused key or an exhausted free tier, or the daily cap of all users reached all give `unavailable`: the learner sees a sentence saying so, the question is passed without penalty, the remaining read-aloud questions of the lesson are removed and the lesson goes on. An output that fails validation is never shown (`not_understood`). Every other feature works with no key at all.
 
 ### What it does
 
-During a lesson, a signed-in learner sees **2 read-aloud questions**: a word of the lesson is shown, the learner taps the microphone, reads it aloud, and the app says whether the word heard is the word expected. They come **in addition to** the regular questions (none of them is replaced). Lessons with no word (only syllables, lesson 1) have none.
+During a lesson, a signed-in learner sees **2 read-aloud questions**: a word of the lesson is shown, the learner taps the microphone, reads the word aloud and taps it again to stop (recording stops by itself after **5 seconds**), and the app says whether the word heard is the word expected. They come **in addition to** the regular questions (none of them is replaced).
 
+- **Which words**: words of the lesson's reading questions with **at least 2 vowel letters** (а, е, и, о, у, ъ, ю, я: in Bulgarian spelling, one vowel letter is one syllable), since one-syllable words such as да or не are poorly recognized on their own. When fewer than 2 such words exist, shorter words of the lesson fill in; a lesson with a single word has 1 read-aloud question, a lesson with no word (only syllables, lesson 1) has none.
+- **When**: only if, when the lesson is composed, the device is online and the feature is on (`features.speech` from `GET /api/me`, kept on the device). Otherwise the lesson has none; a network lost mid-lesson is handled as unavailable (below).
 - **« Je ne peux pas parler »** skips the question and removes the read-aloud questions for the rest of the lesson; it counts neither as right nor as wrong.
-- A **match** counts as a right answer. A **mismatch** shows « J'ai entendu : … » with the validated text, plays the reference recording and allows a second try; after 2 failed tries the question is passed **without penalty**, since recognizing a single isolated word is never 100 % reliable.
-- When the feature is **unavailable** (no key, provider down, timeout, quota reached, microphone refused), the learner sees a sentence saying so, the question is passed without penalty and the lesson goes on.
+- A **match** counts as a right answer. A **mismatch** shows « J'ai entendu : … » with the validated text, plays the reference recording and allows a second try; **not understood** shows « Je n'ai rien entendu. Rapproche-toi du micro et réessaie. » and is a failed try too. After 2 failed tries the question is passed **without penalty**, since recognizing a single isolated word is never 100 % reliable.
+- **Progress**: unlike every other question (D9), a read-aloud question never comes back later in the lesson; the progress bar moves on as soon as it ends, right or wrong. In the summary's first-try success rate it counts as right when its first try is a match and as missed when its first try is a mismatch or not understood; a question skipped or unavailable is not counted. It never adds letters to the letters missed.
+- When the feature is **unavailable** (provider down, timeout, refused key, quota or daily cap reached, microphone refused or missing, network lost), the learner sees a sentence saying so, the question is passed without penalty, the remaining read-aloud questions of the lesson are removed, as with « Je ne peux pas parler », and the lesson goes on.
 - Guests never get these questions; the summary tells them signing in unlocks them.
 
 ### Why this model
@@ -127,10 +131,10 @@ Rejected: **Gemini** (multimodal LLM: can hallucinate a transcription; on the fr
 
 ### How it works
 
-1. The browser records up to **5 seconds** with `MediaRecorder`, converts it to 16 kHz mono 16-bit WAV (`AudioContext`), and sends it to `POST /api/speech/recognitions?word=<id>` (≤ 256 KB).
-2. The route checks the session and the body, then calls `speechService.check(userId, wordId, audio)`.
-3. The service checks the word is in the corpus and the daily quota, then calls the **speech client** (an interface; `AzureSpeechClient` in production, `FakeSpeechClient` in tests). Only the audio and the language go to the provider: **never the expected word**, so the model cannot be biased toward the right answer.
-4. The client call has a **timeout of 8 seconds** (`AbortSignal.timeout`).
+1. The browser records with `MediaRecorder` until the learner taps again, **5 seconds** at most, converts the recording **in the browser** to 16 kHz mono 16-bit PCM WAV (`AudioContext`, then `OfflineAudioContext` to resample), and sends it to `POST /api/speech/recognitions?word=<id>`. The server does no audio processing.
+2. The route checks the session, then the body: at most **160 044 bytes** (a 44-byte header and 5 s of audio at 32 000 bytes per second; larger is refused with 413, a limit set on this route only, every other route keeps the 16 KB JSON limit) and a WAV header saying RIFF/WAVE, PCM, 1 channel, 16 000 Hz, 16 bits, with a non-empty data chunk (anything else is refused with 400 `invalid_input`). Neither refusal reaches the provider. Then it calls `speechService.check(userId, wordId, audio)`.
+3. The service checks the word is in the corpus, then the quotas (see Timeout, fallback and limits): the count and the recording of the try in `speech_attempts` happen **in one transaction, before the provider call**, so two simultaneous requests can never both be the 60th; the try's outcome is filled in afterwards. Then it calls the **speech client** (an interface; `AzureSpeechClient` in production, `FakeSpeechClient` in tests). Only the audio and the language go to the provider: **never the expected word**, so the model cannot be biased toward the right answer.
+4. The client calls the short-audio REST endpoint with `language=bg-BG`, `format=detailed` and `profanity=raw`, with a **timeout of 8 seconds** (`AbortSignal.timeout`). Its answer is parsed with Zod, and only `RecognitionStatus` and `NBest[0].Lexical` are read. The lexical form is used rather than `DisplayText`, which adds punctuation, writes numbers as digits (две → 2) and masks words it finds rude.
 5. The service **validates** the output, then compares it with the expected word, and returns `match`, `mismatch`, `not_understood` or `unavailable`.
 
 ### Output validation
@@ -138,19 +142,24 @@ Rejected: **Gemini** (multimodal LLM: can hallucinate a transcription; on the fr
 The provider's text is shown to nobody until it passes these checks:
 
 - recognition status is `Success` (anything else → `not_understood`);
-- after lowercasing, Unicode NFC and removing punctuation, it is **non-empty**, at most **40 characters**, and made **only of the 30 Bulgarian letters, spaces and hyphens** (anything else — Latin letters, digits, other Cyrillic letters such as ы or ё — → `not_understood`).
+- after lowercasing, Unicode NFC and removing punctuation, the lexical text is **non-empty**, at most **40 characters**, and made **only of the 30 Bulgarian letters, spaces and hyphens** (anything else — Latin letters, digits, other Cyrillic letters such as ы or ё — → `not_understood`).
 
 A match is equality of the normalized text with the normalized expected word.
 
 ### Timeout, fallback and limits
 
-| Situation                               | Behavior                                                                                            |
-| --------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| `AZURE_SPEECH_KEY` missing              | the API starts normally, `GET /api/me` reports the feature off, lessons have no read-aloud question |
-| timeout (8 s), network error, 5xx       | `unavailable`, question passed, readable sentence                                                   |
-| provider 429 (rate limit)               | `unavailable`, same                                                                                 |
-| more than **60 tries per user per day** | 429 from our API, readable sentence, question passed                                                |
-| microphone refused or missing           | handled in the browser, question passed, readable sentence                                          |
+| Situation                                                                            | Behavior                                                                                            |
+| ------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| `AZURE_SPEECH_KEY` missing                                                           | the API starts normally, `GET /api/me` reports the feature off, lessons have no read-aloud question |
+| timeout (8 s), network error, 5xx                                                    | `unavailable`, question passed, readable sentence                                                   |
+| provider 429 (rate limit)                                                            | `unavailable`, same                                                                                 |
+| provider 401 or 403 (key refused, free tier used up)                                 | `unavailable`, same; an error line in the server log, without the key                               |
+| `AZURE_SPEECH_REGION` not matching `^[a-z0-9]+$`                                     | treated as a missing setting: the feature is off, with a warning at start                           |
+| more than **60 tries by one user** within the last 24 hours                          | 429 `speech_quota_reached` from our API, readable sentence, question passed                         |
+| more than **500 tries by all users** within the last 24 hours (`SPEECH_DAILY_LIMIT`) | `unavailable` without calling the provider; no try recorded                                         |
+| microphone refused or missing                                                        | handled in the browser, question passed, readable sentence                                          |
+
+Both limits count the tries recorded in `speech_attempts` over a **rolling 24 hours** (no time zone involved). A request refused before that point (bad body, unknown word, a limit reached) is not a try. The global cap exists because accounts cost nothing to create: without it, many accounts could drain the free tier (5 audio hours a month, about 6 000 tries of 3 s) and turn the feature off for everyone until the month ends. At 500 tries a day, that is at most about 25 minutes of audio a day.
 
 The fallback is written first: every other feature works with no key at all.
 
@@ -173,6 +182,7 @@ Never sent anywhere: the expected word, the user's id or e-mail (not to Azure), 
 
 - Sign-up with an e-mail and a password of **8 to 128 characters**. The password is stored as an **argon2id** hash (never in clear, never logged). The e-mail is lowercased and trimmed; it is **not verified** (no e-mail sending).
 - Sign-in failures give the same answer for an unknown e-mail and a wrong password (401), in about the same time (a password check is spent on unknown e-mails too). More than 10 failed attempts from one IP within 15 minutes are refused with 429, even with the right password. The count lives in the API's memory (one process; a restart forgets it). The IP is the socket's, or behind a trusted proxy (`TRUST_PROXY=true`) the first address of `X-Forwarded-For`, which that proxy must set.
+- More than **5 sign-ups from one IP within an hour** are refused with 429 (`too_many_sign_ups`), counted in the API's memory like failed sign-ins: creating accounts in bulk would otherwise get around per-user limits such as the speech quota.
 - Signing up with an e-mail that already has an account is refused with 409, with a sentence suggesting to sign in (code `email_taken`), with Google if that account has no password (`email_taken_google`).
 
 ### Google sign-in
@@ -238,14 +248,14 @@ Stack: SvelteKit + Svelte 5 + TypeScript, built as a static PWA (`adapter-static
 
 ### Screens
 
-| Screen                                | Content                                                                                                                                                                                      |
-| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Path** (home)                       | letters-read count, current section banner, the path, free review and exam entries; sign-in invitation for guests                                                                            |
-| **Lesson**, **Free review**, **Exam** | discovery cards, questions, bottom feedback panel, summary; diploma after a passed exam                                                                                                      |
-| **Alphabet**                          | the 30 letters, learned or not; a letter opens its discovery card                                                                                                                            |
-| **Word lists**                        | the learner's lists; a list shows its words, lets the learner rename it, delete it, remove words, and start « Réviser ma liste » (reading questions on up to 12 of its words, nothing saved) |
-| **Sign in** / **Sign up**             | e-mail and password forms, « Continuer avec Google »                                                                                                                                         |
-| **Settings**                          | sound, sound effects, account (e-mail, password, agent tokens, sign out, delete account), reset progress, about                                                                              |
+| Screen                                | Content                                                                                                                                                                                                                                                 |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Path** (home)                       | letters-read count, current section banner, the path, free review and exam entries; sign-in invitation for guests                                                                                                                                       |
+| **Lesson**, **Free review**, **Exam** | discovery cards, questions, bottom feedback panel, summary; diploma after a passed exam                                                                                                                                                                 |
+| **Alphabet**                          | the 30 letters, learned or not; a letter opens its discovery card                                                                                                                                                                                       |
+| **Word lists**                        | the learner's lists; a list shows its words, lets the learner rename it, delete it, remove words, and start « Réviser ma liste » (reading questions on up to 12 of its words, nothing saved)                                                            |
+| **Sign in** / **Sign up**             | e-mail and password forms, « Continuer avec Google »                                                                                                                                                                                                    |
+| **Settings**                          | sound, sound effects, account (e-mail, password, agent tokens, sign out, delete account), reset progress, about, with a privacy note: the read-aloud recording is sent to Microsoft Azure to be transcribed, and kept neither by Cyrilingo nor by Azure |
 
 Words are added to a list from the feedback panel of a reading or read-aloud question (« Ajouter à une liste »), for signed-in learners: to one of their lists, or to a new list made there with a + button (named « Nouvelle liste », its name selected to be typed over; unticked right away, it is deleted). The lists holding the word are ticked there, and choosing one again removes the word, so a word added by mistake is taken back on the spot. Only words go into lists, not syllables; a word already in a list, a 21st list and a 201st word are refused with a sentence saying so. Navigation: bottom tab bar on mobile with **5 entries** (Parcours, Alphabet, Révision libre, Listes, Plus), left sidebar with the same entries on desktop; hidden during a lesson, review or exam. Guests opening Listes see a sign-in invitation.
 
@@ -265,15 +275,15 @@ Mobile first. Every screen works at **380, 768 and 1280 pixels** wide with no ho
 
 Every screen has a **loading**, an **empty**, an **error** and a **success** state. Errors are sentences from the locale file, saying what happened and what to do; never a raw body, status code or stack trace.
 
-| Screen                 | Loading                                                                         | Empty                                                                                                                              | Error                                                                                           | Success                   |
-| ---------------------- | ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- | ------------------------- |
-| Path                   | syncing badge while the account progress loads (the local path shows meanwhile) | no lesson done: welcome banner, lesson 1 suggested                                                                                 | « Impossible de synchroniser ta progression. Elle reste enregistrée sur cet appareil. » + retry | path with states          |
-| Lesson / review / exam | spinner while the session is composed and fonts load                            | free review with no completed lesson: « Termine une leçon pour débloquer la révision libre. »                                      | unknown lesson id: « Cette leçon n'existe pas. » + back to the path                             | questions, summary        |
-| Read-aloud question    | « J'écoute… » while recording, « J'analyse ta lecture… » while waiting          | no word heard: « Je n'ai rien entendu. Rapproche-toi du micro et réessaie. »                                                       | the sentences of The model feature › Timeout, fallback and limits                               | match / mismatch feedback |
-| Alphabet               | spinner until fonts load                                                        | no letter learned: « Aucune lettre apprise pour l'instant. »                                                                       | (static data) generic error page                                                                | letter grid               |
-| Word lists             | skeleton list                                                                   | no list: « Tu n'as pas encore de liste. » + create button; empty list: « Cette liste est vide. Ajoute des mots depuis une leçon. » | load or save failure sentence + retry                                                           | lists and words           |
-| Sign in / up           | button busy while submitting                                                    | empty form                                                                                                                         | wrong credentials, e-mail taken, too many attempts, network down: one sentence each             | redirect to the path      |
-| Settings               | spinner on account actions                                                      | guest: sign-in invitation in place of the account block                                                                            | action failure sentence                                                                         | saved state               |
+| Screen                 | Loading                                                                                    | Empty                                                                                                                              | Error                                                                                                  | Success                   |
+| ---------------------- | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | ------------------------- |
+| Path                   | syncing badge while the account progress loads (the local path shows meanwhile)            | no lesson done: welcome banner, lesson 1 suggested                                                                                 | « Impossible de synchroniser ta progression. Elle reste enregistrée sur cet appareil. » + retry        | path with states          |
+| Lesson / review / exam | spinner while the session is composed and fonts load                                       | free review with no completed lesson: « Termine une leçon pour débloquer la révision libre. »                                      | unknown lesson id: « Cette leçon n'existe pas. » + back to the path                                    | questions, summary        |
+| Read-aloud question    | « J'écoute… » while recording (tap again to stop), « J'analyse ta lecture… » while waiting | no word heard: « Je n'ai rien entendu. Rapproche-toi du micro et réessaie. »                                                       | the sentences of The model feature › Timeout, fallback and limits                                      | match / mismatch feedback |
+| Alphabet               | spinner until fonts load                                                                   | no letter learned: « Aucune lettre apprise pour l'instant. »                                                                       | (static data) generic error page                                                                       | letter grid               |
+| Word lists             | skeleton list                                                                              | no list: « Tu n'as pas encore de liste. » + create button; empty list: « Cette liste est vide. Ajoute des mots depuis une leçon. » | load or save failure sentence + retry                                                                  | lists and words           |
+| Sign in / up           | button busy while submitting                                                               | empty form                                                                                                                         | wrong credentials, e-mail taken, too many attempts, too many sign-ups, network down: one sentence each | redirect to the path      |
+| Settings               | spinner on account actions                                                                 | guest: sign-in invitation in place of the account block                                                                            | action failure sentence                                                                                | saved state               |
 
 A shared `+error.svelte` page catches anything unexpected with a sentence and a link home. Every async action uses one `AsyncState` helper (`idle | loading | error | success`) so no screen can skip a state.
 
@@ -287,7 +297,7 @@ Text contrast is **at least 4.5:1** everywhere, white text on colored buttons in
 
 ### The model feature in the UI
 
-The read-aloud question shows that it is **working** (microphone pulsing and « J'écoute… » while recording, a spinner and « J'analyse ta lecture… » while waiting, announced through an `aria-live` region) and shows **when it failed** (a readable sentence in the feedback panel).
+The read-aloud question shows that it is **working** (microphone pulsing and « J'écoute… » while recording, a spinner and « J'analyse ta lecture… » while waiting, announced through an `aria-live` region) and shows **when it failed** (a readable sentence in the feedback panel). The microphone button starts and stops the recording with Enter or Space too.
 
 ### Languages
 
@@ -349,7 +359,7 @@ PostgreSQL. Reference data (letters, lessons, words) comes from the TypeScript c
 | `lesson_completions` | **many-to-many** users ↔ lessons, with `completed_at`                                                                            | yes                    |
 | `word_lists`         | `id`, `user_id`, `name`, `created_at`, `updated_at`                                                                              | yes                    |
 | `word_list_words`    | **many-to-many** word lists ↔ words, with `added_at`                                                                             | yes (through the list) |
-| `speech_attempts`    | `user_id`, `created_at`, `outcome` — counts the daily speech quota; no audio, no text                                            | yes                    |
+| `speech_attempts`    | `user_id`, `created_at`, `outcome` (empty until the provider answers) — counts the speech quotas; no audio, no text              | yes                    |
 
 Deleting a user cascades to everything they own.
 
@@ -382,7 +392,7 @@ JSON over HTTPS under `/api`, served on the same origin as the front end (the fr
 | `DELETE /api/word-lists/:id/words/:word` | remove a word from a list                                                                              | owner   |
 | `POST /api/speech/recognitions`          | check a read-aloud recording against an expected word                                                  | session |
 
-Mutating requests must carry `Content-Type: application/json` (or `audio/wav` for speech) and an `Origin` equal to `PUBLIC_URL`; anything else is refused with 403 (CSRF protection on top of `SameSite=Lax`). JSON bodies over 16 KB are refused with 413; a malformed body gives 400 `invalid_input`.
+Mutating requests must carry `Content-Type: application/json` (or `audio/wav` for speech) and an `Origin` equal to `PUBLIC_URL`; anything else is refused with 403 (CSRF protection on top of `SameSite=Lax`). JSON bodies over 16 KB are refused with 413 (speech recordings have their own limit, see The model feature › How it works); a malformed body gives 400 `invalid_input`.
 
 ### Technologies
 
@@ -420,7 +430,7 @@ Mutating requests must carry `Content-Type: application/json` (or `audio/wav` fo
 
 HTTPS is terminated by whatever reverse proxy sits in front of `web`; the app trusts its `X-Forwarded-*` headers only when `TRUST_PROXY=true`. Images are built from the repository (`build:`), so any host that can run Docker Compose from a Git repository can deploy it; a merge into `main` is a release.
 
-Configuration, all through environment variables (template in `.env.example`; real values never committed): `PUBLIC_URL`, `API_PORT` (default 3000), `WEB_PORT`, `TRUST_PROXY`, `POSTGRES_PASSWORD`, `DATABASE_URL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION`. Missing Google or Azure settings turn the matching feature off; a missing `PUBLIC_URL` or database setting stops the API at start with a clear message. CI runs a secret scanner (gitleaks) on every pull request.
+Configuration, all through environment variables (template in `.env.example`; real values never committed): `PUBLIC_URL`, `API_PORT` (default 3000), `WEB_PORT`, `TRUST_PROXY`, `POSTGRES_PASSWORD`, `DATABASE_URL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION`, `SPEECH_DAILY_LIMIT` (default 500). Missing Google or Azure settings turn the matching feature off; a missing `PUBLIC_URL` or database setting stops the API at start with a clear message. CI runs a secret scanner (gitleaks) on every pull request.
 
 Local development: `docker compose up db` then `npm run dev` (front end and API with hot reload, Vite proxies `/api`), or `docker compose up --build` for the full stack.
 
@@ -451,6 +461,7 @@ Local development: `docker compose up db` then `npm run dev` (front end and API 
 - [AC-19] Deleting the account removes the user, their sessions, progress, lists and speech attempts.
 - [AC-20] More than 10 failed sign-ins from one IP within 15 minutes are refused with 429.
 - [AC-21] A mutating request with a foreign `Origin` or an unexpected content type is refused with 403.
+- [AC-26] More than 5 sign-ups from one IP within an hour are refused with 429.
 
 ### Progress sync
 
@@ -474,15 +485,16 @@ Local development: `docker compose up db` then `npm run dev` (front end and API 
 
 ### Read aloud (model feature)
 
-- [AC-40] A lesson played signed in contains 2 read-aloud questions on words of the lesson in addition to the regular questions; a guest's lesson contains none.
-- [AC-41] « Je ne peux pas parler » passes the question, removes the remaining read-aloud questions of the lesson, and counts neither right nor wrong.
-- [AC-42] A recognized text is shown only if it is non-empty, at most 40 characters, and made only of Bulgarian letters, spaces and hyphens after normalization; otherwise the outcome is `not_understood`.
-- [AC-43] A recognized text equal to the expected word is a right answer; a different one is shown as « J'ai entendu », and after 2 failed tries the question is passed without penalty.
-- [AC-44] A provider that does not answer within 8 seconds, fails, or rate-limits gives the outcome `unavailable`, and the lesson goes on.
+- [AC-40] A lesson composed signed in, online and with the feature on contains 2 read-aloud questions on words of the lesson with at least 2 vowel letters (shorter words filling in when needed), in addition to the regular questions; a guest's lesson, or one composed offline, contains none.
+- [AC-41] « Je ne peux pas parler », an `unavailable` outcome, a 429 or a refused microphone pass the question, remove the remaining read-aloud questions of the lesson, and count neither right nor wrong.
+- [AC-42] The text checked is the provider's lexical form (`NBest[0].Lexical`), never `DisplayText`. A recognized text is shown only if it is non-empty, at most 40 characters, and made only of Bulgarian letters, spaces and hyphens after normalization; otherwise the outcome is `not_understood`.
+- [AC-43] A recognized text equal to the expected word is a right answer; a different one is shown as « J'ai entendu », and after 2 failed tries (mismatch or not understood) the question is passed without penalty. A read-aloud question never comes back later in the lesson, and its first try counts in the summary's first-try success rate.
+- [AC-44] A provider that does not answer within 8 seconds, fails, rate-limits or refuses the key gives the outcome `unavailable`, and the lesson goes on.
 - [AC-45] Without `AZURE_SPEECH_KEY`, the API starts, every other feature works, and lessons have no read-aloud question.
-- [AC-46] A user's 61st recognition of the day is refused with 429.
+- [AC-46] A user's 61st recognition within 24 hours is refused with 429; once all users made `SPEECH_DAILY_LIMIT` recognitions within 24 hours, the next gives `unavailable` without calling the provider; simultaneous requests never exceed either limit.
 - [AC-47] The provider receives only the audio and the language, never the expected word nor user data; the audio and recognized text are neither stored nor logged.
 - [AC-48] While recording and while waiting, the read-aloud question shows that it is working; on failure, it shows a readable sentence.
+- [AC-49] A speech body over 160 044 bytes is refused with 413, and one that is not 16 kHz mono 16-bit PCM WAV with audio data is refused with 400; neither reaches the provider.
 
 ### MCP server
 
@@ -527,32 +539,36 @@ Nothing has been built from this spec yet. Once slice 1 is built and checked: wh
 
 ## Decisions
 
-| #   | Question                   | Decision                                                                                                                         |
-| --- | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| D1  | Displayed transliteration  | **Both**, French phonetic as reference                                                                                           |
-| D2  | Bulgarian lowercase shapes | **From the start**, everywhere                                                                                                   |
-| D3  | Audio                      | **Recordings** generated once with Azure TTS (voice Borislav), committed                                                         |
-| D4  | Front end                  | **SvelteKit (static) + Svelte 5 + TS**, rendered in the browser only                                                             |
-| D5  | Interface language         | **French first, English planned**: every learner-facing text in per-language files, nothing language-specific in API or database |
-| D7  | Spaced repetition          | **None time-based**, review driven by the path                                                                                   |
-| D8  | Unlocking                  | **Free navigation**, suggested order only                                                                                        |
-| D9  | Lesson progress            | **Bar frozen on error, missed question repeated, 100 % to finish**                                                               |
-| D11 | Answer input               | **In-app keyboard** on touch devices, layout per language (AZERTY in French)                                                     |
-| D12 | Content format             | **Typed TypeScript files + invariant tests**, seeded into the database                                                           |
-| D13 | Theme                      | **Single light gamified theme**                                                                                                  |
-| D17 | Answer confirmation        | **MCQ on tap**, readings with « Vérifier »                                                                                       |
-| D18 | Daily streaks              | **Never**                                                                                                                        |
-| D21 | Architecture               | **Separate Hono API + static SvelteKit front end** in an npm workspaces monorepo: the REST boundary and the layers stay visible  |
-| D22 | Database and migrations    | **PostgreSQL + Kysely + numbered SQL files**                                                                                     |
-| D23 | Social provider            | **Google**                                                                                                                       |
-| D24 | Sessions                   | **Own opaque tokens in the database** (hashed), not JWTs: revocable, and the MCP server uses the same ones                       |
-| D25 | Account linking            | **On verified e-mail only**; linking to an unverified local account removes its password                                         |
-| D26 | Guests                     | **Kept**, progress merged into the account at sign-in                                                                            |
-| D27 | User-owned data            | **Personal word lists**, used for review only                                                                                    |
-| D28 | Model feature              | **Read aloud, checked by Azure speech to text**, signed-in users only, in addition to the existing questions                     |
-| D29 | MCP server                 | **Official SDK, stdio, 6 tools**, one user through an agent session token                                                        |
-| D30 | Deployment                 | **Docker Compose built from the repository**, behind any HTTPS reverse proxy; nothing host-specific committed                    |
-| D31 | Contrast                   | **4.5:1 for all text**, white-on-color included                                                                                  |
+| #   | Question                                    | Decision                                                                                                                         |
+| --- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| D1  | Displayed transliteration                   | **Both**, French phonetic as reference                                                                                           |
+| D2  | Bulgarian lowercase shapes                  | **From the start**, everywhere                                                                                                   |
+| D3  | Audio                                       | **Recordings** generated once with Azure TTS (voice Borislav), committed                                                         |
+| D4  | Front end                                   | **SvelteKit (static) + Svelte 5 + TS**, rendered in the browser only                                                             |
+| D5  | Interface language                          | **French first, English planned**: every learner-facing text in per-language files, nothing language-specific in API or database |
+| D7  | Spaced repetition                           | **None time-based**, review driven by the path                                                                                   |
+| D8  | Unlocking                                   | **Free navigation**, suggested order only                                                                                        |
+| D9  | Lesson progress                             | **Bar frozen on error, missed question repeated, 100 % to finish**                                                               |
+| D11 | Answer input                                | **In-app keyboard** on touch devices, layout per language (AZERTY in French)                                                     |
+| D12 | Content format                              | **Typed TypeScript files + invariant tests**, seeded into the database                                                           |
+| D13 | Theme                                       | **Single light gamified theme**                                                                                                  |
+| D17 | Answer confirmation                         | **MCQ on tap**, readings with « Vérifier »                                                                                       |
+| D18 | Daily streaks                               | **Never**                                                                                                                        |
+| D21 | Architecture                                | **Separate Hono API + static SvelteKit front end** in an npm workspaces monorepo: the REST boundary and the layers stay visible  |
+| D22 | Database and migrations                     | **PostgreSQL + Kysely + numbered SQL files**                                                                                     |
+| D23 | Social provider                             | **Google**                                                                                                                       |
+| D24 | Sessions                                    | **Own opaque tokens in the database** (hashed), not JWTs: revocable, and the MCP server uses the same ones                       |
+| D25 | Account linking                             | **On verified e-mail only**; linking to an unverified local account removes its password                                         |
+| D26 | Guests                                      | **Kept**, progress merged into the account at sign-in                                                                            |
+| D27 | User-owned data                             | **Personal word lists**, used for review only                                                                                    |
+| D28 | Model feature                               | **Read aloud, checked by Azure speech to text**, signed-in users only, in addition to the existing questions                     |
+| D29 | MCP server                                  | **Official SDK, stdio, 6 tools**, one user through an agent session token                                                        |
+| D30 | Deployment                                  | **Docker Compose built from the repository**, behind any HTTPS reverse proxy; nothing host-specific committed                    |
+| D31 | Contrast                                    | **4.5:1 for all text**, white-on-color included                                                                                  |
+| D32 | Read-aloud recording                        | **Tap to start, tap to stop, 5 s at most**; converted to WAV in the browser, no audio processing on the server                   |
+| D33 | Speech limits                               | **60 per user and 500 for everyone over a rolling 24 h**, plus 5 sign-ups per IP per hour, so the free tier cannot be drained    |
+| D34 | Read aloud in a lesson                      | **Never repeated, counted in the first-try rate**; any failure removes the remaining read-aloud questions                        |
+| D35 | Telling learners their voice leaves the app | **In Settings › about only**                                                                                                     |
 
 Missing numbers are earlier decisions, folded into the text above or superseded.
 
