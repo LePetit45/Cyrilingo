@@ -170,7 +170,6 @@ export const fr = {
 		emptyList: 'Cette liste est vide. Ajoute des mots depuis une leçon.',
 		wordCount: (count: number) => `${count} mot${count > 1 ? 's' : ''}`,
 		create: 'Créer une liste',
-		newName: 'Nom de la nouvelle liste',
 		nameHint: 'De 1 à 40 caractères.',
 		createSubmit: 'Créer',
 		created: (name: string) => `Liste « ${name} » créée.`,
@@ -197,10 +196,12 @@ export const fr = {
 		reviewQuitMessage: 'Cette révision ne sera pas enregistrée.',
 		addToList: 'Ajouter à une liste',
 		addTitle: (word: string) => `Ajouter « ${word} » à une liste`,
-		addTo: 'Choisis une liste :',
-		added: (name: string) => `Ajouté à « ${name} ».`,
-		alreadyIn: 'Déjà dans la liste',
-		createAndAdd: 'Créer et ajouter'
+		addTo: 'Touche une liste pour y ajouter le mot, ou pour l’en retirer :',
+		inList: 'Dans la liste',
+		add: 'Ajouter',
+		remove: 'Retirer',
+		/** The name of a list made by the + button, numbered when the first is taken. */
+		newListName: (number: number) => (number === 1 ? 'Nouvelle liste' : `Nouvelle liste ${number}`)
 	},
 	alphabet: {
 		title: 'L’alphabet',

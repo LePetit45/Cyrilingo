@@ -176,27 +176,29 @@ test('[AC-34] « Réviser ma liste » asks a reading question per word and saves
 	);
 });
 
-test('[AC-35] adds the word of a reading question to a new list from the feedback panel', async ({
+test('[AC-35] adds the word of a reading question to one of the lists', async ({
 	page,
 	browserName
 }) => {
 	await signedUp(page, browserName);
 	const source = await createList(page, 'Source', ['котка']);
+	await createList(page, 'Animaux');
 	await page.goto(`/list/review?id=${source}`);
 	await typeAnswer(page, 'kotka');
 
 	await page.locator('.feedback').getByRole('button', { name: 'Ajouter à une liste' }).click();
 	const dialog = page.getByRole('dialog', { name: 'Ajouter à une liste' });
-	await expect(dialog.getByRole('button', { name: /Source/ })).toBeDisabled();
-	await expect(dialog.getByRole('button', { name: /Source/ })).toContainText('Déjà dans la liste');
-	await dialog.getByLabel('Nom de la nouvelle liste').fill('À revoir');
-	await dialog.getByRole('button', { name: 'Créer et ajouter' }).click();
-	await expect(dialog.getByRole('status')).toHaveText('Ajouté à « À revoir ».');
+	const sourceList = dialog.getByRole('button', { name: /Source/ });
+	await expect(sourceList).toHaveAttribute('aria-pressed', 'true');
+	await expect(sourceList).toContainText('Dans la liste');
+	const animaux = dialog.getByRole('button', { name: /Animaux/ });
+	await animaux.click();
+	await expect(animaux).toHaveAttribute('aria-pressed', 'true');
 	await dialog.getByRole('button', { name: 'Fermer' }).click();
 	await expect(dialog).toBeHidden();
 
 	const lists = await apiLists(page);
-	expect(lists.find(({ name }) => name === 'À revoir')?.words).toEqual([
+	expect(lists.find(({ name }) => name === 'Animaux')?.words).toEqual([
 		{ cyrillic: 'котка', latin: 'kotka' }
 	]);
 });
@@ -211,4 +213,98 @@ test('[AC-35] a guest gets no « Ajouter à une liste » button', async ({ page 
 	await typeAnswer(page, 'x');
 	await expect(page.locator('.feedback')).toBeVisible();
 	await expect(page.getByRole('button', { name: 'Ajouter à une liste' })).toHaveCount(0);
+});
+
+test('[AC-37] removes a word added by mistake from the same dialog', async ({
+	page,
+	browserName
+}) => {
+	await signedUp(page, browserName);
+	const source = await createList(page, 'Source', ['котка']);
+	await createList(page, 'Animaux', ['мама']);
+	await page.goto(`/list/review?id=${source}`);
+	await typeAnswer(page, 'kotka');
+
+	await page.locator('.feedback').getByRole('button', { name: 'Ajouter à une liste' }).click();
+	const dialog = page.getByRole('dialog', { name: 'Ajouter à une liste' });
+	const animaux = dialog.getByRole('button', { name: /Animaux/ });
+	await animaux.click();
+	await expect(animaux).toHaveAttribute('aria-pressed', 'true');
+
+	await animaux.click();
+	await expect(animaux).toHaveAttribute('aria-pressed', 'false');
+	await expect(animaux).toContainText('1 mot');
+
+	const lists = await apiLists(page);
+	expect(
+		lists.find(({ name }) => name === 'Animaux')?.words.map(({ cyrillic }) => cyrillic)
+	).toEqual(['мама']);
+});
+
+test('[AC-38] the + button makes « Nouvelle liste » with the word, its name ready to type over', async ({
+	page,
+	browserName
+}) => {
+	await signedUp(page, browserName);
+	const source = await createList(page, 'Source', ['котка']);
+	await page.goto(`/list/review?id=${source}`);
+	await typeAnswer(page, 'kotka');
+	await page.locator('.feedback').getByRole('button', { name: 'Ajouter à une liste' }).click();
+	const dialog = page.getByRole('dialog', { name: 'Ajouter à une liste' });
+
+	await dialog.getByRole('button', { name: 'Créer une liste' }).click();
+	const name = dialog.getByRole('textbox', { name: 'Nom de la liste' });
+	await expect(name).toBeFocused();
+	await expect(name).toHaveValue('Nouvelle liste');
+	// The whole name is selected: typing replaces it.
+	await page.keyboard.type('Mes mots');
+	await page.keyboard.press('Enter');
+	const created = dialog.getByRole('button', { name: /Mes mots/ });
+	await expect(created).toHaveAttribute('aria-pressed', 'true');
+	await expect(created).toBeFocused();
+
+	// A second one gets a name of its own; Escape keeps it and leaves the dialog open.
+	await dialog.getByRole('button', { name: 'Créer une liste' }).click();
+	await expect(name).toHaveValue('Nouvelle liste');
+	await page.keyboard.press('Escape');
+	await expect(dialog).toBeVisible();
+	await dialog.getByRole('button', { name: 'Créer une liste' }).click();
+	await expect(name).toHaveValue('Nouvelle liste 2');
+	await page.keyboard.press('Enter');
+
+	const lists = await apiLists(page);
+	expect(lists.map(({ name, words }) => [name, words.map(({ cyrillic }) => cyrillic)])).toEqual([
+		['Source', ['котка']],
+		['Mes mots', ['котка']],
+		['Nouvelle liste', ['котка']],
+		['Nouvelle liste 2', ['котка']]
+	]);
+});
+
+test('[AC-39] unticking a list just made with + deletes it', async ({ page, browserName }) => {
+	await signedUp(page, browserName);
+	const source = await createList(page, 'Source', ['котка']);
+	await page.goto(`/list/review?id=${source}`);
+	await typeAnswer(page, 'kotka');
+	await page.locator('.feedback').getByRole('button', { name: 'Ajouter à une liste' }).click();
+	const dialog = page.getByRole('dialog', { name: 'Ajouter à une liste' });
+
+	await dialog.getByRole('button', { name: 'Créer une liste' }).click();
+	await expect(dialog.getByRole('textbox', { name: 'Nom de la liste' })).toBeFocused();
+	await page.keyboard.press('Enter');
+	const created = dialog.getByRole('button', { name: /^Nouvelle liste/ });
+	await expect(created).toHaveAttribute('aria-pressed', 'true');
+	await created.click();
+	await expect(created).toHaveCount(0);
+	await expect(dialog.getByRole('button', { name: 'Créer une liste' })).toBeFocused();
+
+	// An older list keeps existing once emptied.
+	await dialog.getByRole('button', { name: /Source/ }).click();
+	await expect(dialog.getByRole('button', { name: /Source/ })).toHaveAttribute(
+		'aria-pressed',
+		'false'
+	);
+	expect((await apiLists(page)).map(({ name, words }) => [name, words.length])).toEqual([
+		['Source', 0]
+	]);
 });
