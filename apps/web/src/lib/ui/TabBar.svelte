@@ -5,7 +5,7 @@
 
 	// Main navigation (spec §7.2): a bottom tab bar on phones, a left sidebar on wide screens.
 	// Hidden during lessons, free review and the exam.
-	type Tab = 'path' | 'alphabet' | 'review' | 'more';
+	type Tab = 'path' | 'alphabet' | 'review' | 'lists' | 'more';
 
 	const tabs: { id: Tab; href: string; label: string; matches: string[] }[] = [
 		{ id: 'path', href: resolve('/(tabs)'), label: m.nav.path, matches: [resolve('/(tabs)')] },
@@ -16,6 +16,12 @@
 			matches: [resolve('/(tabs)/alphabet')]
 		},
 		{ id: 'review', href: resolve('/(play)/review'), label: m.nav.review, matches: [] },
+		{
+			id: 'lists',
+			href: resolve('/(tabs)/lists'),
+			label: m.nav.lists,
+			matches: [resolve('/(tabs)/lists'), resolve('/(tabs)/list')]
+		},
 		{
 			id: 'more',
 			href: resolve('/(tabs)/settings'),
@@ -77,6 +83,15 @@
 								stroke-width="2.6"
 								stroke-linecap="round"
 								stroke-linejoin="round"
+							/>
+						{:else if tab.id === 'lists'}
+							<rect x="5" y="3" width="22" height="26" rx="5" fill="#ff9d3d" />
+							<path
+								d="M10 10h.01M10 16h.01M10 22h.01M14 10h8M14 16h8M14 22h6"
+								fill="none"
+								stroke="#fff"
+								stroke-width="2.6"
+								stroke-linecap="round"
 							/>
 						{:else}
 							<circle cx="16" cy="16" r="13" fill="#b874f2" />

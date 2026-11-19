@@ -1,6 +1,6 @@
 // Fake API clients for the unit tests. Test code only.
 import { vi } from 'vitest';
-import type { Account, ApiClient, ApiResult, Progress } from './client.js';
+import type { Account, ApiClient, ApiResult, Progress, WordList } from './client.js';
 
 export const ACCOUNT: Account = {
 	email: 'ana@example.com',
@@ -8,6 +8,16 @@ export const ACCOUNT: Account = {
 	providers: [],
 	features: { readAloud: true, google: false }
 };
+
+/** A word list as the API answers it, with whatever a test sets. */
+export const wordList = (list: Partial<WordList> = {}): WordList => ({
+	id: '00000000-0000-4000-8000-000000000001',
+	name: 'Mots',
+	createdAt: '2026-11-17T12:00:00.000Z',
+	updatedAt: '2026-11-17T12:00:00.000Z',
+	words: [],
+	...list
+});
 
 export const ok = <T>(value: T): ApiResult<T> => ({ ok: true, value });
 
@@ -38,6 +48,14 @@ export function fakeApi(
 			server.progress = { completedLessons: [], examPassed: false };
 			return ok(undefined);
 		}),
+		getWordLists: vi.fn(async () => ok([])),
+		createWordList: vi.fn(async (name: string) => ok(wordList({ name }))),
+		renameWordList: vi.fn(async (id: string, name: string) => ok(wordList({ id, name }))),
+		deleteWordList: vi.fn(async () => ok(undefined)),
+		addWordToList: vi.fn(async (id: string, word: string) =>
+			ok(wordList({ id, words: [{ cyrillic: word, latin: word }] }))
+		),
+		removeWordFromList: vi.fn(async (id: string) => ok(wordList({ id }))),
 		...overrides
 	};
 }

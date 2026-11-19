@@ -15,6 +15,9 @@
 		translationOf
 	} from '../letters.js';
 	import HighlightedReading from '../HighlightedReading.svelte';
+	import AddToListDialog from '../lists/AddToListDialog.svelte';
+	import { account } from '../state/account.svelte.js';
+	import { isWord } from '@cyrilingo/core/content/corpus.js';
 
 	// Colored panel at the bottom of the screen after each answer (spec §5.3): the right answer, the
 	// wrong letters and, after a reading, the word with the letter being learned underlined, and its
@@ -41,6 +44,13 @@
 	// users land on the next action. Without scrolling: the panel is still sliding in from below
 	// the screen, and the browser would scroll the page down to the button, then snap it back.
 	let continueArea: HTMLElement | undefined = $state();
+	let addingToList = $state(false);
+	/** Words of a reading can go to a personal list, for signed-in learners (AC-35). */
+	const listWord = $derived(
+		account.signedIn && question.kind === 'reading' && isWord(question.reading)
+			? question.reading
+			: undefined
+	);
 	$effect(() => {
 		continueArea?.querySelector('button')?.focus({ preventScroll: true });
 	});
@@ -80,6 +90,12 @@
 			{/if}
 			{#if translationOf(question.reading)}
 				<p class="meaning">{m.feedback.meaning} {translationOf(question.reading)}</p>
+			{/if}
+			{#if listWord}
+				<button type="button" class="add" onclick={() => (addingToList = true)}>
+					<Icon name="plus" size={18} />{m.lists.addToList}
+				</button>
+				<AddToListDialog bind:open={addingToList} word={listWord} />
 			{/if}
 		{:else}
 			<!-- The letter's sound, right or wrong: the question could not play it without giving the
@@ -210,6 +226,21 @@
 		height: 1em;
 		padding: 0;
 		vertical-align: -0.15em;
+	}
+
+	.add {
+		display: inline-flex;
+		align-items: center;
+		justify-self: start;
+		gap: 0.375rem;
+		padding: 0.375rem 0.75rem;
+		font-size: 0.9375rem;
+		font-weight: 800;
+		color: var(--tone);
+		background: var(--color-surface);
+		border: 2px solid currentColor;
+		border-radius: var(--radius-sm);
+		cursor: pointer;
 	}
 
 	@media (min-width: 900px) {

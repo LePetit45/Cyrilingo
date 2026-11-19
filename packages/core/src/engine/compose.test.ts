@@ -1,16 +1,18 @@
 import { describe, expect, it } from 'vitest';
 import { BULGARIAN_ALPHABET, type BulgarianLetter } from '../alphabet.js';
 import { getLesson, LESSONS, lettersKnownIn } from '../content/course.js';
-import { isWord } from '../content/corpus.js';
+import { isWord, WORDS } from '../content/corpus.js';
 import { seededRandom } from '../random.js';
 import { lettersIn } from '../reading.js';
 import {
 	composeExam,
 	composeFreeReview,
 	composeLesson,
+	composeListReview,
 	EXAM_QUESTION_COUNT,
 	EXAM_READING_COUNT,
 	FREE_REVIEW_COUNT,
+	LIST_REVIEW_COUNT,
 	reviewLetters
 } from './compose.js';
 import type { Question } from './questions.js';
@@ -181,6 +183,40 @@ describe('composeFreeReview', () => {
 	it('covers every letter once before repeating one', () => {
 		const questions = composeFreeReview(['l1', 'l2'], seededRandom(5));
 		expect(new Set(questions.slice(0, 6).map((question) => question.letter)).size).toBe(6);
+	});
+});
+
+describe('composeListReview', () => {
+	const words = Object.keys(WORDS);
+
+	it('[AC-34] asks a reading question on each word of a short list', () => {
+		const list = ['котка', 'мама', 'България'];
+		const questions = composeListReview(list, seededRandom(1));
+		expect(questions).toHaveLength(3);
+		expect(questions.every((question) => question.kind === 'reading')).toBe(true);
+		expect(
+			questions.map((question) => (question.kind === 'reading' ? question.reading : '')).sort()
+		).toEqual([...list].sort());
+	});
+
+	it('[AC-34] asks on 12 distinct words of a longer list, picked at random', () => {
+		const list = words.slice(0, 40);
+		const first = composeListReview(list, seededRandom(1));
+		expect(first).toHaveLength(LIST_REVIEW_COUNT);
+		const readings = first.map((question) => (question.kind === 'reading' ? question.reading : ''));
+		expect(new Set(readings).size).toBe(LIST_REVIEW_COUNT);
+		for (const reading of readings) expect(list).toContain(reading);
+		expect(composeListReview(list, seededRandom(2))).not.toEqual(first);
+	});
+
+	it('[AC-34] cannot review an empty list', () => {
+		expect(composeListReview([], seededRandom(1))).toEqual([]);
+	});
+
+	it('leaves out words the corpus no longer has', () => {
+		expect(composeListReview(['котка', 'нямаго'], seededRandom(1))).toEqual([
+			{ kind: 'reading', reading: 'котка' }
+		]);
 	});
 });
 

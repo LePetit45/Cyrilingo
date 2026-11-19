@@ -12,10 +12,23 @@
 		progress,
 		label,
 		quitTitle = m.session.quitTitle,
-		quitMessage = m.session.quitMessage
-	}: { progress?: number; label?: string; quitTitle?: string; quitMessage?: string } = $props();
+		quitMessage = m.session.quitMessage,
+		quitHref = resolve('/(tabs)')
+	}: {
+		progress?: number;
+		label?: string;
+		quitTitle?: string;
+		quitMessage?: string;
+		/** Where leaving goes: the path, unless the session started elsewhere. */
+		quitHref?: string;
+	} = $props();
 
 	let confirming = $state(false);
+
+	function quit() {
+		// eslint-disable-next-line svelte/no-navigation-without-resolve -- callers pass a resolved href
+		void goto(quitHref);
+	}
 </script>
 
 <header>
@@ -41,7 +54,7 @@
 	confirmLabel={m.session.quitConfirm}
 	cancelLabel={m.session.quitCancel}
 	danger
-	onconfirm={() => goto(resolve('/(tabs)'))}
+	onconfirm={quit}
 />
 
 <style>

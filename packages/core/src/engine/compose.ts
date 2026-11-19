@@ -17,6 +17,8 @@ import {
 export const LESSON_REVIEW_COUNT = 4;
 /** Questions in a free review (spec §4.7). */
 export const FREE_REVIEW_COUNT = 12;
+/** Words asked at most in « Réviser ma liste » (SPEC.md › Review). */
+export const LIST_REVIEW_COUNT = 12;
 /** Questions in the final exam, one per letter (spec §4.6). */
 export const EXAM_QUESTION_COUNT = BULGARIAN_ALPHABET.length;
 /** Reading questions in the final exam: a majority (spec §4.6). */
@@ -103,6 +105,18 @@ export function composeFreeReview(
 	return targets
 		.slice(0, FREE_REVIEW_COUNT)
 		.map((letter) => questionFor(letter, randomKind(random), known, used, random));
+}
+
+/**
+ * « Réviser ma liste » (SPEC.md › Review): a reading question on each of up to 12 words of a
+ * personal list, picked at random. Words the corpus no longer has are left out. Empty for a list
+ * without words: such a list cannot be reviewed.
+ */
+export function composeListReview(words: readonly string[], random: Random): Question[] {
+	const readable = [...new Set(words)].filter((word): word is Word => Object.hasOwn(WORDS, word));
+	return shuffle(readable, random)
+		.slice(0, LIST_REVIEW_COUNT)
+		.map((reading) => ({ kind: 'reading', reading }));
 }
 
 /**
