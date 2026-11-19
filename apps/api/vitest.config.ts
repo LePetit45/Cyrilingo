@@ -3,12 +3,9 @@ import path from 'node:path';
 import { parseEnv } from 'node:util';
 import { defineConfig } from 'vitest/config';
 
-// DATABASE_URL (or TEST_DATABASE_URL) from the repository's .env and .env.local, as `npm run dev`
-// reads them; a variable already set in the shell (as in CI) wins.
-const fromFiles = ['.env', '.env.local'].reduce<Record<string, string | undefined>>(
-	(env, file) => ({ ...env, ...readEnvFile(path.resolve(import.meta.dirname, '../..', file)) }),
-	{}
-);
+// DATABASE_URL (or TEST_DATABASE_URL) from the repository's .env, as `npm run dev` reads it;
+// a variable already set in the shell (as in CI) wins.
+const fromFiles = readEnvFile(path.resolve(import.meta.dirname, '../..', '.env'));
 const env = Object.fromEntries(
 	Object.entries(fromFiles).filter(([name]) => process.env[name] === undefined)
 ) as Record<string, string>;

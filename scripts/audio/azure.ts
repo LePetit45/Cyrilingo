@@ -1,5 +1,5 @@
 // Minimal Azure Speech text-to-speech client (spec §10.1), shared by the bench and the generator.
-// Reads AZURE_SPEECH_KEY and AZURE_SPEECH_REGION: run the scripts with --env-file=.env.local.
+// Reads AZURE_SPEECH_KEY and AZURE_SPEECH_REGION: run the scripts with --env-file=.env.
 
 /** MP3 mono, 24 kHz, 48 kbit/s: plenty for a voice, about 6 KB per second. */
 const FORMAT = 'audio-24khz-48kbitrate-mono-mp3';
@@ -14,7 +14,7 @@ export interface Voice {
 
 function env(name: string): string {
 	const value = process.env[name];
-	if (!value) throw new Error(`${name} is missing: run with --env-file=.env.local`);
+	if (!value) throw new Error(`${name} is missing: run with --env-file=.env`);
 	return value;
 }
 

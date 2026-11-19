@@ -4,12 +4,10 @@ import { spawn } from 'node:child_process';
 import { createInterface } from 'node:readline';
 
 // Both sides see the local settings: the API reads them, Vite needs API_PORT to proxy /api.
-for (const file of ['.env', '.env.local']) {
-	try {
-		process.loadEnvFile(file);
-	} catch {
-		// No such file: the defaults apply.
-	}
+try {
+	process.loadEnvFile('.env');
+} catch {
+	// No such file: the defaults apply.
 }
 
 const workspaces = { web: '@cyrilingo/web', api: '@cyrilingo/api' };

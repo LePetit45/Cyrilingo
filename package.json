@@ -23,8 +23,8 @@
 		"test:unit": "vitest",
 		"test:e2e": "playwright test",
 		"icons": "node scripts/generate-icons.js",
-		"audio": "node --env-file=.env.local scripts/audio/generate.ts",
-		"audio:bench": "node --env-file=.env.local scripts/audio/bench.ts",
+		"audio": "node --env-file=.env scripts/audio/generate.ts",
+		"audio:bench": "node --env-file=.env scripts/audio/bench.ts",
 		"db:migrate": "npm run db:migrate -w @cyrilingo/api"
 	},
 	"devDependencies": {

@@ -4,11 +4,11 @@
 	"description": "Cyrilingo back end: Hono REST API, PostgreSQL migrations and seed.",
 	"type": "module",
 	"scripts": {
-		"dev": "node --env-file-if-exists=../../.env --env-file-if-exists=../../.env.local --import tsx --watch src/main.ts",
+		"dev": "node --env-file-if-exists=../../.env --import tsx --watch src/main.ts",
 		"start": "node --import tsx src/main.ts",
-		"db:migrate": "node --env-file-if-exists=../../.env --env-file-if-exists=../../.env.local --import tsx src/db/migrate-cli.ts",
+		"db:migrate": "node --env-file-if-exists=../../.env --import tsx src/db/migrate-cli.ts",
 		"check": "tsc -p tsconfig.json",
-		"e2e": "node --env-file-if-exists=../../.env --env-file-if-exists=../../.env.local --import tsx src/e2e-server.ts"
+		"e2e": "node --env-file-if-exists=../../.env --import tsx src/e2e-server.ts"
 	},
 	"dependencies": {
 		"@cyrilingo/core": "*",
