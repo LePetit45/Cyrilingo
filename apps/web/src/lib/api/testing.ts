@@ -56,6 +56,7 @@ export function fakeApi(
 			ok(wordList({ id, words: [{ cyrillic: word, latin: word }] }))
 		),
 		removeWordFromList: vi.fn(async (id: string) => ok(wordList({ id }))),
+		recognizeSpeech: vi.fn(async () => ok({ outcome: 'match' as const })),
 		...overrides
 	};
 }

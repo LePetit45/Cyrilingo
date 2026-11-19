@@ -2,7 +2,8 @@
 	import type { Snippet } from 'svelte';
 
 	// Bar fixed to the bottom of the screen, across the whole width, for the main actions of the
-	// play screens (spec §8): a white bar with a top border, or the green / red answer feedback.
+	// play screens (spec §8): a white bar with a top border, or the green / red answer feedback
+	// (blue when read aloud could not be checked).
 	// The same height is kept free in the page, so nothing hides behind it.
 	//
 	// In `actions` mode, children are laid out as a row of buttons: give the main one the `grow`
@@ -12,7 +13,7 @@
 		tone,
 		actions = false,
 		children
-	}: { tone?: 'correct' | 'wrong'; actions?: boolean; children: Snippet } = $props();
+	}: { tone?: 'correct' | 'wrong' | 'info'; actions?: boolean; children: Snippet } = $props();
 
 	let height = $state(0);
 </script>
@@ -41,7 +42,8 @@
 	}
 
 	.correct,
-	.wrong {
+	.wrong,
+	.info {
 		background: var(--color-success-light);
 		border-top-color: transparent;
 		animation: slide-up 220ms cubic-bezier(0.2, 1.2, 0.5, 1);
@@ -49,6 +51,11 @@
 
 	.wrong {
 		background: var(--color-error-light);
+	}
+
+	/* Neither right nor wrong: read aloud could not be checked. */
+	.info {
+		background: var(--color-accent-light);
 	}
 
 	.inner {

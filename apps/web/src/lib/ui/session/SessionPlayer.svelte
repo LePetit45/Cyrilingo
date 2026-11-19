@@ -7,8 +7,11 @@
 		createSession,
 		currentQuestion,
 		isFinished,
+		missTry,
+		pass,
 		progress,
 		summarize,
+		type Session,
 		type Summary
 	} from '@cyrilingo/core/engine/session.js';
 	import { shuffle } from '@cyrilingo/core/random.js';
@@ -24,11 +27,14 @@
 	import { app } from '../state/app.svelte.js';
 	import ChoiceButtons, { type Choice } from './ChoiceButtons.svelte';
 	import Feedback from './Feedback.svelte';
+	import ReadAloud from './ReadAloud.svelte';
+	import { canRetry, type ReadAloudResult } from './read-aloud.js';
 	import ReadingInput from './ReadingInput.svelte';
 	import SessionHeader from './SessionHeader.svelte';
 
 	// Plays a list of questions (spec §4.5): lessons and free review repeat missed questions until
-	// each one is answered correctly; the exam counts every answer once.
+	// each one is answered correctly; the exam counts every answer once. Read-aloud questions are
+	// never repeated: 2 tries, then the lesson moves on (SPEC.md › The model feature).
 	let {
 		questions,
 		repeatMisses,
@@ -51,6 +57,8 @@
 		dontKnow: boolean;
 		selectedKey?: string;
 		check?: ReadingCheck;
+		/** Verdict of a read-aloud try. */
+		speech?: ReadAloudResult;
 		missedLetters: BulgarianLetter[];
 	}
 
@@ -63,13 +71,15 @@
 	let typed = $state('');
 	let shaking = $state(false);
 	let prompt: HTMLElement | undefined = $state();
+	/** Read-aloud tries made on the current question. */
+	let speechTries = $state(0);
 
 	const question = $derived(currentQuestion(session));
 	const canCheck = $derived(typed.trim() !== '');
 
 	const choices = $derived.by((): Choice[] => {
 		void shown;
-		if (!question || question.kind === 'reading') return [];
+		if (!question || question.kind === 'reading' || question.kind === 'readAloud') return [];
 		const choices: Choice[] =
 			question.kind === 'letterToSound'
 				? question.choices.map((choice) => ({
@@ -115,7 +125,7 @@
 	}
 
 	function choose(key: string) {
-		if (!question || question.kind === 'reading') return;
+		if (!question || question.kind === 'reading' || question.kind === 'readAloud') return;
 		record({ correct: key === question.letter, dontKnow: false, selectedKey: key });
 	}
 
@@ -132,10 +142,49 @@
 		record({ correct: false, dontKnow: true });
 	}
 
-	async function next() {
-		if (!result) return;
-		session = answer(session, result);
+	function heard(speech: ReadAloudResult) {
+		if (!question || question.kind !== 'readAloud' || result) return;
+		speechTries++;
+		const correct = speech.outcome === 'match';
+		result = { correct, dontKnow: false, speech, missedLetters: [] };
+		if (speech.outcome !== 'unavailable') {
+			if (app.settings.soundEffects) playEffect(correct ? 'correct' : 'wrong');
+			if (!correct) vibrateWrong();
+		}
+		revealAnswer();
+	}
+
+	/** The second try at a read-aloud question: the first counts as missed (AC-43). */
+	function retry() {
+		session = missTry(session);
 		result = undefined;
+		window.scrollTo({ top: 0 });
+	}
+
+	/** « Je ne peux pas parler »: no more read-aloud questions in this lesson (AC-41). */
+	function cantSpeak(event: MouseEvent) {
+		if (event.detail > 1 || result) return;
+		void advance(pass(session, { dropReadAloud: true }));
+	}
+
+	function next() {
+		if (!result) return;
+		const speech = result.speech;
+		if (!speech) return advance(answer(session, result));
+		if (speech.outcome === 'match') return advance(answer(session, { correct: true }));
+		// Unavailable: the remaining read-aloud questions go too (AC-41). After 2 failed tries,
+		// the question is passed without penalty (AC-43).
+		return advance(
+			speech.outcome === 'unavailable'
+				? pass(session, { dropReadAloud: true })
+				: pass(missTry(session))
+		);
+	}
+
+	async function advance(nextSession: Session) {
+		session = nextSession;
+		result = undefined;
+		speechTries = 0;
 		typed = '';
 		shaking = false;
 		shown++;
@@ -188,6 +237,12 @@
 					revealed={result !== undefined}
 					onchoose={choose}
 				/>
+			{:else if question.kind === 'readAloud'}
+				<h1 class="prompt" tabindex="-1" bind:this={prompt}>{m.question.readAloud}</h1>
+				<p class="shown word"><Cyrillic>{question.word}</Cyrillic></p>
+				<div class="input">
+					<ReadAloud word={question.word} disabled={result !== undefined} onresult={heard} />
+				</div>
 			{:else}
 				<h1 class="prompt" tabindex="-1" bind:this={prompt}>
 					{isWord(question.reading) ? m.question.readWord : m.question.readSyllable}
@@ -206,14 +261,26 @@
 
 	<!-- The actions, replaced by the feedback once answered. -->
 	{#if result}
-		<BottomBar tone={result.correct ? 'correct' : 'wrong'}>
+		<BottomBar
+			tone={result.speech?.outcome === 'unavailable'
+				? 'info'
+				: result.correct
+					? 'correct'
+					: 'wrong'}
+		>
 			<Feedback
 				{question}
 				correct={result.correct}
 				dontKnow={result.dontKnow}
 				check={result.check}
+				speech={result.speech}
+				onretry={result.speech && canRetry(result.speech, speechTries) ? retry : undefined}
 				oncontinue={next}
 			/>
+		</BottomBar>
+	{:else if question.kind === 'readAloud'}
+		<BottomBar actions>
+			<Button variant="secondary" class="side" onclick={cantSpeak}>{m.question.cantSpeak}</Button>
 		</BottomBar>
 	{:else}
 		<BottomBar actions>

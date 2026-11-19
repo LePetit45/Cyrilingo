@@ -16,7 +16,9 @@
 		back: 'M15 5l-7 7 7 7',
 		forward: 'M9 5l7 7-7 7',
 		play: 'M7 4.5v15l12-7.5-12-7.5Z',
-		refresh: 'M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7'
+		refresh: 'M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7',
+		mic: 'M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3ZM5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7',
+		stop: 'M7 7h10v10H7Z'
 	} as const;
 
 	export type IconName = keyof typeof PATHS;

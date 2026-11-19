@@ -11,6 +11,10 @@ export type ApiErrorCode =
 	| 'invalid_password'
 	| 'wrong_password'
 	| 'too_many_attempts'
+	| 'too_many_sign_ups'
+	| 'speech_quota_reached'
+	| 'unknown_word'
+	| 'payload_too_large'
 	| 'unauthenticated'
 	| 'invalid_input'
 	| 'invalid_list_name'
@@ -60,6 +64,16 @@ export interface WordList {
 	words: ListWord[];
 }
 
+/**
+ * `POST /api/speech/recognitions`: the verdict on a read-aloud recording. Only a mismatch carries
+ * the text heard, already validated by the API.
+ */
+export type SpeechCheck =
+	| { outcome: 'match' }
+	| { outcome: 'mismatch'; heard: string }
+	| { outcome: 'not_understood' }
+	| { outcome: 'unavailable' };
+
 const KNOWN_CODES = new Set<string>([
 	'invalid_credentials',
 	'email_taken',
@@ -67,6 +81,10 @@ const KNOWN_CODES = new Set<string>([
 	'invalid_password',
 	'wrong_password',
 	'too_many_attempts',
+	'too_many_sign_ups',
+	'speech_quota_reached',
+	'unknown_word',
+	'payload_too_large',
 	'unauthenticated',
 	'invalid_input',
 	'invalid_list_name',
@@ -83,7 +101,12 @@ const KNOWN_CODES = new Set<string>([
 export const REQUEST_TIMEOUT_MS = 15_000;
 
 export function createApiClient(fetchFn: typeof fetch = (...args) => fetch(...args)) {
-	async function call<T>(method: string, path: string, body?: unknown): Promise<ApiResult<T>> {
+	async function call<T>(
+		method: string,
+		path: string,
+		body?: unknown,
+		audio?: Uint8Array
+	): Promise<ApiResult<T>> {
 		const timeout = new AbortController();
 		const timer = setTimeout(() => timeout.abort(), REQUEST_TIMEOUT_MS);
 		let response: Response;
@@ -91,8 +114,16 @@ export function createApiClient(fetchFn: typeof fetch = (...args) => fetch(...ar
 		try {
 			response = await fetchFn(`/api${path}`, {
 				method,
-				headers: body === undefined ? {} : { 'Content-Type': 'application/json' },
-				body: body === undefined ? undefined : JSON.stringify(body),
+				headers: audio
+					? { 'Content-Type': 'audio/wav' }
+					: body === undefined
+						? {}
+						: { 'Content-Type': 'application/json' },
+				body: audio
+					? (audio as Uint8Array<ArrayBuffer>)
+					: body === undefined
+						? undefined
+						: JSON.stringify(body),
 				signal: timeout.signal
 			});
 			data = await response.json().catch(() => undefined);
@@ -135,6 +166,13 @@ export function createApiClient(fetchFn: typeof fetch = (...args) => fetch(...ar
 			call<WordList>(
 				'DELETE',
 				`/word-lists/${encodeURIComponent(id)}/words/${encodeURIComponent(word)}`
+			),
+		recognizeSpeech: (word: string, audio: Uint8Array) =>
+			call<SpeechCheck>(
+				'POST',
+				`/speech/recognitions?word=${encodeURIComponent(word)}`,
+				undefined,
+				audio
 			)
 	};
 }

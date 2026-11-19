@@ -35,6 +35,31 @@ describe('createApiClient', () => {
 		});
 	});
 
+	it('sends a recording as WAV audio, with the word in the query', async () => {
+		const fetchFn = vi.fn(async () => Response.json({ outcome: 'match' }));
+		const audio = new Uint8Array([82, 73, 70, 70]);
+		const result = await createApiClient(fetchFn).recognizeSpeech('котка', audio);
+		expect(result).toEqual({ ok: true, value: { outcome: 'match' } });
+		expect(fetchFn).toHaveBeenCalledWith(
+			`/api/speech/recognitions?word=${encodeURIComponent('котка')}`,
+			expect.objectContaining({
+				method: 'POST',
+				headers: { 'Content-Type': 'audio/wav' },
+				body: audio
+			})
+		);
+	});
+
+	it('knows the read-aloud refusals', async () => {
+		const fetchFn = vi.fn(async () =>
+			Response.json({ error: { code: 'speech_quota_reached', message: '…' } }, { status: 429 })
+		);
+		expect(await createApiClient(fetchFn).recognizeSpeech('котка', new Uint8Array())).toEqual({
+			ok: false,
+			error: 'speech_quota_reached'
+		});
+	});
+
 	it('encodes list ids and Cyrillic words in paths', async () => {
 		const fetch = fakeFetch(200, {});
 		await createApiClient(fetch).removeWordFromList('a1b2', 'котка');

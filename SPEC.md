@@ -112,8 +112,8 @@ Typed TypeScript data files (letters, lessons, ~270 words and ~60 syllables, tra
 
 During a lesson, a signed-in learner sees **2 read-aloud questions**: a word of the lesson is shown, the learner taps the microphone, reads the word aloud and taps it again to stop (recording stops by itself after **5 seconds**), and the app says whether the word heard is the word expected. They come **in addition to** the regular questions (none of them is replaced).
 
-- **Which words**: words of the lesson's reading questions with **at least 2 vowel letters** (а, е, и, о, у, ъ, ю, я: in Bulgarian spelling, one vowel letter is one syllable), since one-syllable words such as да or не are poorly recognized on their own. When fewer than 2 such words exist, shorter words of the lesson fill in; a lesson with a single word has 1 read-aloud question, a lesson with no word (only syllables, lesson 1) has none.
-- **When**: whenever the feature is on (`features.speech` from `GET /api/me`, kept on the device). The lesson does not check the network: without it, the first try is unavailable (below).
+- **Which words**: words of the lesson's reading questions with **at least 2 vowel letters** (а, е, и, о, у, ъ, ю, я: in Bulgarian spelling, one vowel letter is one syllable), since one-syllable words such as да or не are poorly recognized on their own. When fewer than 2 such words exist, shorter words of the lesson fill in; a lesson with a single word has 1 read-aloud question, a lesson whose readings are all syllables has none.
+- **When**: whenever the feature is on (`features.readAloud` from `GET /api/me`, as loaded when the lesson starts). The lesson does not check the network: without it, the first try is unavailable (below).
 - **« Je ne peux pas parler »** skips the question and removes the read-aloud questions for the rest of the lesson; it counts neither as right nor as wrong.
 - A **match** counts as a right answer. A **mismatch** shows « J'ai entendu : … » with the validated text, plays the reference recording and allows a second try; **not understood** shows « Je n'ai rien entendu. Rapproche-toi du micro et réessaie. » and is a failed try too. After 2 failed tries the question is passed **without penalty**, since recognizing a single isolated word is never 100 % reliable.
 - **Progress**: unlike every other question (D9), a read-aloud question never comes back later in the lesson; the progress bar moves on as soon as it ends, right or wrong. In the summary's first-try success rate it counts as right when its first try is a match and as missed when its first try is a mismatch or not understood; a question skipped or unavailable is not counted. It never adds letters to the letters missed.
@@ -159,7 +159,7 @@ A match is equality of the normalized text with the normalized expected word.
 | more than **500 tries by all users** within the last 24 hours (`SPEECH_DAILY_LIMIT`) | `unavailable` without calling the provider; no try recorded                                         |
 | microphone refused or missing                                                        | handled in the browser, question passed, readable sentence                                          |
 
-Both limits count the tries recorded in `speech_attempts` over a **rolling 24 hours** (no time zone involved). A request refused before that point (bad body, unknown word, a limit reached) is not a try. The global cap exists because accounts cost nothing to create: without it, many accounts could drain the free tier (5 audio hours a month, about 6 000 tries of 3 s) and turn the feature off for everyone until the month ends. At 500 tries a day, that is at most about 25 minutes of audio a day.
+Both limits count the tries recorded in `speech_attempts` over a **rolling 24 hours** (no time zone involved); older rows are deleted as new tries come in, since nothing reads them. A request refused before that point (bad body, unknown word, a limit reached) is not a try. Deleting an account keeps its rows of the last 24 hours without the user, so deleting accounts cannot reset the global cap; such a row says nothing about who made it. The global cap exists because accounts cost nothing to create: without it, many accounts could drain the free tier (5 audio hours a month, about 6 000 tries of 3 s) and turn the feature off for everyone until the month ends. At 500 tries a day, that is at most about 25 minutes of audio a day.
 
 The fallback is written first: every other feature works with no key at all.
 
@@ -347,21 +347,21 @@ The MCP tool `delete_word_list` (`apps/api/src/mcp/tools.ts`) enters at step 4 w
 
 PostgreSQL. Reference data (letters, lessons, words) comes from the TypeScript content files and is **seeded** into the database on every deployment (idempotent upsert), so foreign keys can point at it. The seed never deletes a row: a word dropped from the content stays in the lists that hold it. Seeding changes data, not the schema; every schema change is a numbered migration. The seed creates no account: accounts are made through sign-up, in development too.
 
-| Table                | Content                                                                                                                          | Owned by a user        |
-| -------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
-| `letters`            | the 30 letters (`id` = the uppercase letter, `section` = its group, position)                                                    | no                     |
-| `lessons`            | the 10 lessons (`id` = `l1`…`l10`, section, position)                                                                            | no                     |
-| `lesson_letters`     | **many-to-many** lessons ↔ letters (3 letters per lesson)                                                                        | no                     |
-| `words`              | corpus words and syllables (`id` = the Cyrillic text, kind); no translation: translations are per language, in the content files | no                     |
-| `users`              | `id`, `email` (unique, lowercased), `email_verified`, `password_hash` (nullable), `exam_passed_at`, `created_at`                 | —                      |
-| `oauth_accounts`     | `(provider, provider_user_id)` → `user_id`: one row per Google identity linked to a user                                         | yes                    |
-| `sessions`           | `id` = SHA-256 of the token, `user_id`, `kind` (`browser` or `agent`), `expires_at`, `created_at`                                | yes                    |
-| `lesson_completions` | **many-to-many** users ↔ lessons, with `completed_at`                                                                            | yes                    |
-| `word_lists`         | `id`, `user_id`, `name`, `created_at`, `updated_at`                                                                              | yes                    |
-| `word_list_words`    | **many-to-many** word lists ↔ words, with `added_at`                                                                             | yes (through the list) |
-| `speech_attempts`    | `user_id`, `created_at`, `outcome` (empty until the provider answers) — counts the speech quotas; no audio, no text              | yes                    |
+| Table                | Content                                                                                                                                                                            | Owned by a user        |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
+| `letters`            | the 30 letters (`id` = the uppercase letter, `section` = its group, position)                                                                                                      | no                     |
+| `lessons`            | the 10 lessons (`id` = `l1`…`l10`, section, position)                                                                                                                              | no                     |
+| `lesson_letters`     | **many-to-many** lessons ↔ letters (3 letters per lesson)                                                                                                                          | no                     |
+| `words`              | corpus words and syllables (`id` = the Cyrillic text, kind); no translation: translations are per language, in the content files                                                   | no                     |
+| `users`              | `id`, `email` (unique, lowercased), `email_verified`, `password_hash` (nullable), `exam_passed_at`, `created_at`                                                                   | —                      |
+| `oauth_accounts`     | `(provider, provider_user_id)` → `user_id`: one row per Google identity linked to a user                                                                                           | yes                    |
+| `sessions`           | `id` = SHA-256 of the token, `user_id`, `kind` (`browser` or `agent`), `expires_at`, `created_at`                                                                                  | yes                    |
+| `lesson_completions` | **many-to-many** users ↔ lessons, with `completed_at`                                                                                                                              | yes                    |
+| `word_lists`         | `id`, `user_id`, `name`, `created_at`, `updated_at`                                                                                                                                | yes                    |
+| `word_list_words`    | **many-to-many** word lists ↔ words, with `added_at`                                                                                                                               | yes (through the list) |
+| `speech_attempts`    | `user_id` (emptied when the user is deleted), `created_at`, `outcome` (empty until the provider answers) — counts the speech quotas over 24 hours, then deleted; no audio, no text | yes                    |
 
-Deleting a user cascades to everything they own.
+Deleting a user cascades to everything they own, except their read-aloud tries of the last 24 hours, kept without the user for the global cap (see The model feature).
 
 ### REST API
 
@@ -458,7 +458,7 @@ Local development: `docker compose up db` then `npm run dev` (front end and API 
 - [AC-16] A Google identity whose e-mail is not verified neither creates nor links an account.
 - [AC-17] Linking Google to a local account whose e-mail was never verified removes its password and revokes its other sessions.
 - [AC-18] A signed-in user can set or change their password; changing it requires the current one when one exists and revokes the other sessions.
-- [AC-19] Deleting the account removes the user, their sessions, progress, lists and speech attempts.
+- [AC-19] Deleting the account removes the user, their sessions, progress and lists, and detaches their speech attempts from them.
 - [AC-20] More than 10 failed sign-ins from one IP within 15 minutes are refused with 429.
 - [AC-21] A mutating request with a foreign `Origin` or an unexpected content type is refused with 403.
 - [AC-26] More than 5 sign-ups from one IP within an hour are refused with 429.

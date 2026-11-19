@@ -80,7 +80,14 @@ export const fr = {
 		answerPlaceholder: 'Écris ce que tu lis',
 		check: 'Vérifier',
 		dontKnow: 'Je ne sais pas',
-		keyHint: 'Astuce : touches 1 à 4 pour répondre'
+		keyHint: 'Astuce : touches 1 à 4 pour répondre',
+		readAloud: 'Lis ce mot à voix haute',
+		readAloudHint: 'Touche le micro, lis le mot, puis touche-le à nouveau.',
+		startRecording: 'Parler',
+		stopRecording: 'Arrêter',
+		listening: 'J’écoute…',
+		analyzing: 'J’analyse ta lecture…',
+		cantSpeak: 'Je ne peux pas parler'
 	},
 	feedback: {
 		correct: ['Bravo !', 'Excellent !', 'Parfait !', 'Bien joué !', 'Super !'],
@@ -91,7 +98,23 @@ export const fr = {
 		dontKnow: 'Voici la réponse',
 		answer: 'Réponse :',
 		yourAnswer: 'Ta réponse :',
-		meaning: 'Sens :'
+		meaning: 'Sens :',
+		heard: 'J’ai entendu :',
+		notHeard: 'Je n’ai rien entendu',
+		notHeardHint: 'Rapproche-toi du micro et réessaie.',
+		retry: 'Réessayer',
+		passed: 'On passe à la suite, sans pénalité.',
+		unavailableTitle: 'Lecture à voix haute indisponible',
+		/** Why a read-aloud question could not be checked; the lesson goes on without them. */
+		unavailable: {
+			service:
+				'La vérification de ta lecture ne répond pas pour l’instant. La leçon continue sans lecture à voix haute.',
+			quota:
+				'Tu as fait beaucoup d’essais de lecture à voix haute ces dernières 24 heures. La leçon continue sans.',
+			denied:
+				'Le micro est bloqué. Autorise-le dans les réglages de ton navigateur pour lire à voix haute. La leçon continue sans.',
+			missing: 'Aucun micro n’est disponible sur cet appareil. La leçon continue sans.'
+		}
 	},
 	keyboard: {
 		label: 'Clavier',
@@ -116,7 +139,9 @@ export const fr = {
 		noMiss: 'Aucune erreur, chapeau !',
 		next: 'Continuer',
 		replay: 'Recommencer',
-		home: 'Accueil'
+		home: 'Accueil',
+		readAloudInvite: 'Avec un compte, tu lis aussi des mots à voix haute pendant les leçons.',
+		readAloudSignIn: 'Se connecter'
 	},
 	review: {
 		title: 'Révision libre',
@@ -304,6 +329,12 @@ export const fr = {
 		invalid_password: 'Le mot de passe doit faire de 8 à 128 caractères.',
 		wrong_password: 'Ton mot de passe actuel est incorrect.',
 		too_many_attempts: 'Trop de tentatives de connexion. Réessaie dans un quart d’heure.',
+		too_many_sign_ups:
+			'Trop de comptes ont été créés depuis cette connexion. Réessaie dans une heure.',
+		speech_quota_reached:
+			'Tu as fait beaucoup d’essais de lecture à voix haute ces dernières 24 heures. Réessaie plus tard.',
+		unknown_word: 'Ce mot ne fait pas partie du cours.',
+		payload_too_large: 'L’enregistrement est trop long.',
 		unauthenticated: 'Ta session a expiré. Reconnecte-toi.',
 		invalid_input: 'Vérifie l’adresse e-mail et le mot de passe.',
 		invalid_list_name: 'Le nom d’une liste doit faire de 1 à 40 caractères.',
@@ -318,7 +349,8 @@ export const fr = {
 		title: 'À propos',
 		paragraphs: [
 			'Cyrilingo t’apprend à lire l’alphabet cyrillique bulgare : panneaux, menus, noms de villes… même sans comprendre la langue.',
-			'Tout fonctionne hors connexion une fois l’application ouverte. Sans compte, ta progression reste dans ton navigateur. Le seul cookie est celui de ta session si tu te connectes, et il n’y a aucun suivi.'
+			'Tout fonctionne hors connexion une fois l’application ouverte. Sans compte, ta progression reste dans ton navigateur. Le seul cookie est celui de ta session si tu te connectes, et il n’y a aucun suivi.',
+			'Lecture à voix haute : quand tu lis un mot au micro, l’enregistrement de ta voix est envoyé à Microsoft Azure, qui le transcrit. Ni Cyrilingo ni Azure ne le conservent, et rien d’autre n’est envoyé : ni le mot attendu, ni ton adresse e-mail.'
 		],
 		version: (version: string) => `Version ${version}`,
 		back: 'Retour aux réglages'
