@@ -104,7 +104,7 @@ Typed TypeScript data files (letters, lessons, ~270 words and ~60 syllables, tra
 ## The model feature
 
 - Model: Azure AI Speech, speech to text (short-audio REST API, language `bg-BG`), called from `apps/api/src/speech/` and nowhere else.
-- Input: a recording of the learner reading one word aloud (at most 5 seconds, 16 kHz mono 16-bit PCM WAV, so at most 160 044 bytes) and the language code; never the expected word, never anything about the user.
+- Input: a recording of the learner reading one word aloud (at most 5 seconds, 16 kHz mono 16-bit PCM WAV; the server accepts up to 200 KB, about 6.4 s, for margin) and the language code; never the expected word, never anything about the user.
 - Output: the lexical form of the text heard, validated (non-empty, at most 40 characters, only Bulgarian letters) then compared with the expected word, giving `match`, `mismatch` (with the validated text), `not_understood` or `unavailable`.
 - When it fails: no key, a timeout after 8 seconds, a provider error, a provider 429, a refused key or an exhausted free tier, or the daily cap of all users reached all give `unavailable`: the learner sees a sentence saying so, the question is passed without penalty, the remaining read-aloud questions of the lesson are removed and the lesson goes on. An output that fails validation is never shown (`not_understood`). Every other feature works with no key at all.
 
@@ -113,7 +113,7 @@ Typed TypeScript data files (letters, lessons, ~270 words and ~60 syllables, tra
 During a lesson, a signed-in learner sees **2 read-aloud questions**: a word of the lesson is shown, the learner taps the microphone, reads the word aloud and taps it again to stop (recording stops by itself after **5 seconds**), and the app says whether the word heard is the word expected. They come **in addition to** the regular questions (none of them is replaced).
 
 - **Which words**: words of the lesson's reading questions with **at least 2 vowel letters** (а, е, и, о, у, ъ, ю, я: in Bulgarian spelling, one vowel letter is one syllable), since one-syllable words such as да or не are poorly recognized on their own. When fewer than 2 such words exist, shorter words of the lesson fill in; a lesson with a single word has 1 read-aloud question, a lesson with no word (only syllables, lesson 1) has none.
-- **When**: only if, when the lesson is composed, the device is online and the feature is on (`features.speech` from `GET /api/me`, kept on the device). Otherwise the lesson has none; a network lost mid-lesson is handled as unavailable (below).
+- **When**: whenever the feature is on (`features.speech` from `GET /api/me`, kept on the device). The lesson does not check the network: without it, the first try is unavailable (below).
 - **« Je ne peux pas parler »** skips the question and removes the read-aloud questions for the rest of the lesson; it counts neither as right nor as wrong.
 - A **match** counts as a right answer. A **mismatch** shows « J'ai entendu : … » with the validated text, plays the reference recording and allows a second try; **not understood** shows « Je n'ai rien entendu. Rapproche-toi du micro et réessaie. » and is a failed try too. After 2 failed tries the question is passed **without penalty**, since recognizing a single isolated word is never 100 % reliable.
 - **Progress**: unlike every other question (D9), a read-aloud question never comes back later in the lesson; the progress bar moves on as soon as it ends, right or wrong. In the summary's first-try success rate it counts as right when its first try is a match and as missed when its first try is a mismatch or not understood; a question skipped or unavailable is not counted. It never adds letters to the letters missed.
@@ -132,7 +132,7 @@ Rejected: **Gemini** (multimodal LLM: can hallucinate a transcription; on the fr
 ### How it works
 
 1. The browser records with `MediaRecorder` until the learner taps again, **5 seconds** at most, converts the recording **in the browser** to 16 kHz mono 16-bit PCM WAV (`AudioContext`, then `OfflineAudioContext` to resample), and sends it to `POST /api/speech/recognitions?word=<id>`. The server does no audio processing.
-2. The route checks the session, then the body: at most **160 044 bytes** (a 44-byte header and 5 s of audio at 32 000 bytes per second; larger is refused with 413, a limit set on this route only, every other route keeps the 16 KB JSON limit) and a WAV header saying RIFF/WAVE, PCM, 1 channel, 16 000 Hz, 16 bits, with a non-empty data chunk (anything else is refused with 400 `invalid_input`). Neither refusal reaches the provider. Then it calls `speechService.check(userId, wordId, audio)`.
+2. The route checks the session, then the body: at most **200 KB** (204 800 bytes; 5 s of audio is 160 044 bytes with its header, so the limit leaves room for a recording stopped a little late; larger is refused with 413, a limit set on this route only, every other route keeps the 16 KB JSON limit) and a WAV header saying RIFF/WAVE, PCM, 1 channel, 16 000 Hz, 16 bits, with a non-empty data chunk (anything else is refused with 400 `invalid_input`). Neither refusal reaches the provider. Then it calls `speechService.check(userId, wordId, audio)`.
 3. The service checks the word is in the corpus, then the quotas (see Timeout, fallback and limits): the count and the recording of the try in `speech_attempts` happen **in one transaction, before the provider call**, so two simultaneous requests can never both be the 60th; the try's outcome is filled in afterwards. Then it calls the **speech client** (an interface; `AzureSpeechClient` in production, `FakeSpeechClient` in tests). Only the audio and the language go to the provider: **never the expected word**, so the model cannot be biased toward the right answer.
 4. The client calls the short-audio REST endpoint with `language=bg-BG`, `format=detailed` and `profanity=raw`, with a **timeout of 8 seconds** (`AbortSignal.timeout`). Its answer is parsed with Zod, and only `RecognitionStatus` and `NBest[0].Lexical` are read. The lexical form is used rather than `DisplayText`, which adds punctuation, writes numbers as digits (две → 2) and masks words it finds rude.
 5. The service **validates** the output, then compares it with the expected word, and returns `match`, `mismatch`, `not_understood` or `unavailable`.
@@ -485,7 +485,7 @@ Local development: `docker compose up db` then `npm run dev` (front end and API 
 
 ### Read aloud (model feature)
 
-- [AC-40] A lesson composed signed in, online and with the feature on contains 2 read-aloud questions on words of the lesson with at least 2 vowel letters (shorter words filling in when needed), in addition to the regular questions; a guest's lesson, or one composed offline, contains none.
+- [AC-40] A lesson composed signed in with the feature on contains 2 read-aloud questions on words of the lesson with at least 2 vowel letters (shorter words filling in when needed), in addition to the regular questions; a guest's lesson contains none.
 - [AC-41] « Je ne peux pas parler », an `unavailable` outcome, a 429 or a refused microphone pass the question, remove the remaining read-aloud questions of the lesson, and count neither right nor wrong.
 - [AC-42] The text checked is the provider's lexical form (`NBest[0].Lexical`), never `DisplayText`. A recognized text is shown only if it is non-empty, at most 40 characters, and made only of Bulgarian letters, spaces and hyphens after normalization; otherwise the outcome is `not_understood`.
 - [AC-43] A recognized text equal to the expected word is a right answer; a different one is shown as « J'ai entendu », and after 2 failed tries (mismatch or not understood) the question is passed without penalty. A read-aloud question never comes back later in the lesson, and its first try counts in the summary's first-try success rate.
@@ -494,7 +494,7 @@ Local development: `docker compose up db` then `npm run dev` (front end and API 
 - [AC-46] A user's 61st recognition within 24 hours is refused with 429; once all users made `SPEECH_DAILY_LIMIT` recognitions within 24 hours, the next gives `unavailable` without calling the provider; simultaneous requests never exceed either limit.
 - [AC-47] The provider receives only the audio and the language, never the expected word nor user data; the audio and recognized text are neither stored nor logged.
 - [AC-48] While recording and while waiting, the read-aloud question shows that it is working; on failure, it shows a readable sentence.
-- [AC-49] A speech body over 160 044 bytes is refused with 413, and one that is not 16 kHz mono 16-bit PCM WAV with audio data is refused with 400; neither reaches the provider.
+- [AC-49] A speech body over 200 KB (204 800 bytes) is refused with 413, and one that is not 16 kHz mono 16-bit PCM WAV with audio data is refused with 400; neither reaches the provider.
 
 ### MCP server
 
