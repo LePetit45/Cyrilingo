@@ -21,6 +21,16 @@ export type ServiceErrorCode =
 	| 'too_many_attempts'
 	/** Progress naming a lesson the course does not have. */
 	| 'unknown_lesson'
+	/** A word list name that is empty or longer than 40 characters, once trimmed. */
+	| 'invalid_list_name'
+	/** A 21st word list. */
+	| 'list_limit_reached'
+	/** A word the corpus does not have (syllables are not words). */
+	| 'unknown_word'
+	/** A word the list already holds. */
+	| 'word_already_in_list'
+	/** A 201st word in a list. */
+	| 'list_full'
 	/** Missing, or owned by somebody else: the same answer for both. */
 	| 'not_found';
 

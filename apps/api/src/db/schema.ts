@@ -63,6 +63,20 @@ export interface LessonCompletionsTable {
 	completed_at: Generated<Date>;
 }
 
+export interface WordListsTable {
+	id: Generated<string>;
+	user_id: string;
+	name: string;
+	created_at: Generated<Date>;
+	updated_at: Generated<Date>;
+}
+
+export interface WordListWordsTable {
+	list_id: string;
+	word_id: string;
+	added_at: Generated<Date>;
+}
+
 export interface Database {
 	letters: LettersTable;
 	lessons: LessonsTable;
@@ -72,4 +86,6 @@ export interface Database {
 	oauth_accounts: OAuthAccountsTable;
 	sessions: SessionsTable;
 	lesson_completions: LessonCompletionsTable;
+	word_lists: WordListsTable;
+	word_list_words: WordListWordsTable;
 }
