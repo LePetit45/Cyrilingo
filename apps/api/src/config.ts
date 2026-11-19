@@ -12,6 +12,10 @@ export interface Config {
 	google: { clientId: string; clientSecret: string } | null;
 	/** Null turns the read-aloud questions off. */
 	azureSpeech: { key: string; region: string } | null;
+	/** Read-aloud tries all users together may make in 24 hours. */
+	speechDailyLimit: number;
+	/** Settings ignored at start, to report: the API still starts. */
+	warnings: string[];
 }
 
 /** A setting is missing or invalid: the API must not start. */
@@ -36,14 +40,30 @@ const schema = z.object({
 	GOOGLE_CLIENT_ID: z.string().optional(),
 	GOOGLE_CLIENT_SECRET: z.string().optional(),
 	AZURE_SPEECH_KEY: z.string().optional(),
-	AZURE_SPEECH_REGION: z.string().optional()
+	AZURE_SPEECH_REGION: z.string().optional(),
+	SPEECH_DAILY_LIMIT: z.coerce
+		.number({ error: 'SPEECH_DAILY_LIMIT must be a whole number' })
+		.int('SPEECH_DAILY_LIMIT must be a whole number')
+		.min(0, 'SPEECH_DAILY_LIMIT must be a whole number')
+		.default(500)
 });
+
+/** An Azure region name, as `westeurope`: it goes into the provider's host name. */
+const AZURE_REGION = /^[a-z0-9]+$/;
 
 type Env = Record<string, string | undefined>;
 
 /** Reads the configuration, or throws a `ConfigError` naming every missing or invalid setting. */
 export function loadConfig(env: Env): Config {
 	const settings = parse(schema, env);
+	const warnings: string[] = [];
+	const { AZURE_SPEECH_KEY: speechKey, AZURE_SPEECH_REGION: region } = settings;
+	const regionValid = region !== undefined && AZURE_REGION.test(region);
+	if (speechKey && region && !regionValid) {
+		warnings.push(
+			'AZURE_SPEECH_REGION is not a region name (such as westeurope): read aloud is off'
+		);
+	}
 	return {
 		publicUrl: new URL(settings.PUBLIC_URL).origin,
 		databaseUrl: settings.DATABASE_URL,
@@ -53,10 +73,9 @@ export function loadConfig(env: Env): Config {
 			settings.GOOGLE_CLIENT_ID && settings.GOOGLE_CLIENT_SECRET
 				? { clientId: settings.GOOGLE_CLIENT_ID, clientSecret: settings.GOOGLE_CLIENT_SECRET }
 				: null,
-		azureSpeech:
-			settings.AZURE_SPEECH_KEY && settings.AZURE_SPEECH_REGION
-				? { key: settings.AZURE_SPEECH_KEY, region: settings.AZURE_SPEECH_REGION }
-				: null
+		azureSpeech: speechKey && region && regionValid ? { key: speechKey, region } : null,
+		speechDailyLimit: settings.SPEECH_DAILY_LIMIT,
+		warnings
 	};
 }
 
@@ -75,7 +94,9 @@ function parse<T extends z.ZodType>(target: T, env: Env): z.infer<T> {
 	const parsed = target.safeParse(values);
 	if (!parsed.success) {
 		const problems = parsed.error.issues.map((issue) =>
-			issue.code === 'invalid_type' ? `${String(issue.path[0])} is required` : issue.message
+			issue.code === 'invalid_type' && values[String(issue.path[0])] === undefined
+				? `${String(issue.path[0])} is required`
+				: issue.message
 		);
 		throw new ConfigError(`Invalid configuration: ${problems.join('; ')}`);
 	}

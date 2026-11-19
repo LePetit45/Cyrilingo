@@ -27,8 +27,22 @@ describe('loadConfig', () => {
 			port: 3000,
 			trustProxy: false,
 			google: null,
-			azureSpeech: null
+			azureSpeech: null,
+			speechDailyLimit: 500,
+			warnings: []
 		});
+	});
+
+	it('[AC-45] turns read aloud off, with a warning, when the Azure region is not a region name', () => {
+		const config = loadConfig({
+			...required,
+			AZURE_SPEECH_KEY: 'key',
+			AZURE_SPEECH_REGION: 'evil.example/x?'
+		});
+		expect(config.azureSpeech).toBeNull();
+		expect(config.warnings).toEqual([
+			'AZURE_SPEECH_REGION is not a region name (such as westeurope): read aloud is off'
+		]);
 	});
 
 	it('reads every setting', () => {
@@ -39,13 +53,16 @@ describe('loadConfig', () => {
 			GOOGLE_CLIENT_ID: 'id',
 			GOOGLE_CLIENT_SECRET: 'secret',
 			AZURE_SPEECH_KEY: 'key',
-			AZURE_SPEECH_REGION: 'westeurope'
+			AZURE_SPEECH_REGION: 'westeurope',
+			SPEECH_DAILY_LIMIT: '1000'
 		});
 		expect(config).toMatchObject({
 			port: 8000,
 			trustProxy: true,
 			google: { clientId: 'id', clientSecret: 'secret' },
-			azureSpeech: { key: 'key', region: 'westeurope' }
+			azureSpeech: { key: 'key', region: 'westeurope' },
+			speechDailyLimit: 1000,
+			warnings: []
 		});
 	});
 
@@ -64,6 +81,11 @@ describe('loadConfig', () => {
 		);
 		expect(() => loadConfig({ ...required, API_PORT: 'eighty' })).toThrow(ConfigError);
 		expect(() => loadConfig({ ...required, TRUST_PROXY: 'yes' })).toThrow(ConfigError);
+		for (const limit of ['-1', '2.5', 'many']) {
+			expect(() => loadConfig({ ...required, SPEECH_DAILY_LIMIT: limit })).toThrow(
+				'SPEECH_DAILY_LIMIT must be a whole number'
+			);
+		}
 	});
 });
 

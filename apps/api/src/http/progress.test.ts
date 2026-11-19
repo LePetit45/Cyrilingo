@@ -8,8 +8,9 @@ const publicUrl = 'https://cyrilingo.example';
 const db = createDb(inject('databaseUrl'));
 afterAll(() => db.destroy());
 
+// Behind a trusted proxy, so each learner signs up from an address of their own (AC-26).
 const app = createApp({
-	config: { publicUrl, trustProxy: false },
+	config: { publicUrl, trustProxy: true },
 	services: createServices(db),
 	log: () => {}
 });
@@ -18,7 +19,11 @@ const app = createApp({
 async function signedIn(): Promise<string> {
 	const response = await app.request('/api/auth/signup', {
 		method: 'POST',
-		headers: { Origin: publicUrl, 'Content-Type': 'application/json' },
+		headers: {
+			Origin: publicUrl,
+			'Content-Type': 'application/json',
+			'X-Forwarded-For': randomUUID()
+		},
 		body: JSON.stringify({ email: `learner-${randomUUID()}@example.com`, password: 'a password' })
 	});
 	return response.headers.get('Set-Cookie')?.split(';')[0] ?? '';

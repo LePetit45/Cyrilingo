@@ -5,7 +5,12 @@ import { createDb } from '../db/database.js';
 import { createAccountService } from './account.js';
 import { createAuthService, SESSION_LIFETIME_MS } from './auth.js';
 import { ServiceError } from './errors.js';
-import { createLoginAttempts, FAILED_SIGN_IN_WINDOW_MS } from './login-attempts.js';
+import {
+	createLoginAttempts,
+	createSignUpLimit,
+	FAILED_SIGN_IN_WINDOW_MS,
+	SIGN_UP_WINDOW_MS
+} from './ip-limits.js';
 
 const db = createDb(inject('databaseUrl'));
 afterAll(() => db.destroy());
@@ -17,10 +22,17 @@ const account = createAccountService(db);
 
 beforeEach(() => {
 	clock = new Date('2026-11-03T12:00:00Z');
-	auth = createAuthService({ db, loginAttempts: createLoginAttempts(), now: () => clock });
+	auth = createAuthService({
+		db,
+		loginAttempts: createLoginAttempts(),
+		signUps: createSignUpLimit(),
+		now: () => clock
+	});
 });
 
 const newEmail = () => `learner-${randomUUID()}@example.com`;
+/** A fresh client IP, so the sign-ups of the tests never add up to the limit (AC-26). */
+const newIp = () => randomUUID();
 const PASSWORD = 'correct horse battery';
 
 const userRow = (email: string) =>
@@ -41,7 +53,7 @@ async function refusal(promise: Promise<unknown>) {
 describe('sign-up', () => {
 	it('[AC-10] creates a user with an argon2id hash and no clear password, and starts a session', async () => {
 		const email = newEmail();
-		const session = await auth.signUp(`  ${email.toUpperCase()} `, PASSWORD);
+		const session = await auth.signUp(`  ${email.toUpperCase()} `, PASSWORD, newIp());
 
 		const user = await userRow(email);
 		expect(user.email_verified).toBe(false);
@@ -53,36 +65,40 @@ describe('sign-up', () => {
 	});
 
 	it('[AC-10] accepts passwords of 8 to 128 characters only', async () => {
-		expect(await refusal(auth.signUp(newEmail(), 'a'.repeat(7)))).toBe('invalid_password');
-		expect(await refusal(auth.signUp(newEmail(), 'a'.repeat(129)))).toBe('invalid_password');
-		await expect(auth.signUp(newEmail(), 'a'.repeat(8))).resolves.toBeDefined();
-		await expect(auth.signUp(newEmail(), 'é'.repeat(128))).resolves.toBeDefined();
+		expect(await refusal(auth.signUp(newEmail(), 'a'.repeat(7), newIp()))).toBe('invalid_password');
+		expect(await refusal(auth.signUp(newEmail(), 'a'.repeat(129), newIp()))).toBe(
+			'invalid_password'
+		);
+		await expect(auth.signUp(newEmail(), 'a'.repeat(8), newIp())).resolves.toBeDefined();
+		await expect(auth.signUp(newEmail(), 'é'.repeat(128), newIp())).resolves.toBeDefined();
 	});
 
 	it('[AC-12] refuses an e-mail that already has an account, whatever its case', async () => {
 		const email = newEmail();
-		await auth.signUp(email, PASSWORD);
-		expect(await refusal(auth.signUp(email.toUpperCase(), 'another password'))).toBe('email_taken');
+		await auth.signUp(email, PASSWORD, newIp());
+		expect(await refusal(auth.signUp(email.toUpperCase(), 'another password', newIp()))).toBe(
+			'email_taken'
+		);
 	});
 
 	it('[AC-12] tells when the existing account signs in with Google only', async () => {
 		const email = newEmail();
 		await db.insertInto('users').values({ email, email_verified: true }).execute();
-		expect(await refusal(auth.signUp(email, PASSWORD))).toBe('email_taken_google');
+		expect(await refusal(auth.signUp(email, PASSWORD, newIp()))).toBe('email_taken_google');
 	});
 });
 
 describe('sign-in', () => {
 	it('starts a new session with the right password', async () => {
 		const email = newEmail();
-		await auth.signUp(email, PASSWORD);
+		await auth.signUp(email, PASSWORD, newIp());
 		const session = await auth.signIn(email.toUpperCase(), PASSWORD, '203.0.113.1');
 		expect(await auth.authenticate(session.token)).toMatchObject({ kind: 'browser' });
 	});
 
 	it('[AC-11] gives the same refusal for an unknown e-mail and a wrong password', async () => {
 		const email = newEmail();
-		await auth.signUp(email, PASSWORD);
+		await auth.signUp(email, PASSWORD, newIp());
 		expect(await refusal(auth.signIn(newEmail(), PASSWORD, '203.0.113.1'))).toBe(
 			'invalid_credentials'
 		);
@@ -99,7 +115,7 @@ describe('sign-in', () => {
 
 	it('[AC-20] refuses an 11th sign-in after 10 failures from one IP within 15 minutes', async () => {
 		const email = newEmail();
-		await auth.signUp(email, PASSWORD);
+		await auth.signUp(email, PASSWORD, newIp());
 		for (let attempt = 0; attempt < 10; attempt++) {
 			expect(await refusal(auth.signIn(email, 'wrong password', '203.0.113.7'))).toBe(
 				'invalid_credentials'
@@ -112,12 +128,32 @@ describe('sign-in', () => {
 		clock = new Date(clock.getTime() + FAILED_SIGN_IN_WINDOW_MS + 1);
 		await expect(auth.signIn(email, PASSWORD, '203.0.113.7')).resolves.toBeDefined();
 	});
+
+	it('[AC-26] refuses a 6th sign-up from one IP within an hour, before creating the account', async () => {
+		for (let i = 0; i < 5; i++) await auth.signUp(newEmail(), PASSWORD, '203.0.113.20');
+		const email = newEmail();
+		expect(await refusal(auth.signUp(email, PASSWORD, '203.0.113.20'))).toBe('too_many_sign_ups');
+		expect(await db.selectFrom('users').where('email', '=', email).execute()).toEqual([]);
+		await expect(auth.signUp(email, PASSWORD, '203.0.113.21')).resolves.toBeDefined();
+
+		clock = new Date(clock.getTime() + SIGN_UP_WINDOW_MS + 1);
+		await expect(auth.signUp(newEmail(), PASSWORD, '203.0.113.20')).resolves.toBeDefined();
+	});
+
+	it('[AC-26] counts only the accounts created, not refused sign-ups', async () => {
+		const email = newEmail();
+		await auth.signUp(email, PASSWORD, '203.0.113.30');
+		for (let i = 0; i < 6; i++) {
+			expect(await refusal(auth.signUp(email, PASSWORD, '203.0.113.30'))).toBe('email_taken');
+		}
+		await expect(auth.signUp(newEmail(), PASSWORD, '203.0.113.30')).resolves.toBeDefined();
+	});
 });
 
 describe('sessions', () => {
 	it('[AC-13] uses a random token whose SHA-256 hash only is stored, valid for 30 days', async () => {
 		const email = newEmail();
-		const first = await auth.signUp(email, PASSWORD);
+		const first = await auth.signUp(email, PASSWORD, newIp());
 		const second = await auth.signIn(email, PASSWORD, '203.0.113.1');
 		expect(first.token).not.toBe(second.token);
 		expect(first.token).toMatch(/^[A-Za-z0-9_-]{43}$/);
@@ -130,14 +166,14 @@ describe('sessions', () => {
 	});
 
 	it('[AC-13] refuses an expired session', async () => {
-		const { token } = await auth.signUp(newEmail(), PASSWORD);
+		const { token } = await auth.signUp(newEmail(), PASSWORD, newIp());
 		clock = new Date(clock.getTime() + SESSION_LIFETIME_MS + 1);
 		expect(await auth.authenticate(token)).toBeNull();
 		expect(await auth.authenticate('not a token')).toBeNull();
 	});
 
 	it('renews a session used during its last 15 days, not before', async () => {
-		const { token } = await auth.signUp(newEmail(), PASSWORD);
+		const { token } = await auth.signUp(newEmail(), PASSWORD, newIp());
 		clock = new Date(clock.getTime() + 14 * DAY_MS);
 		expect((await auth.authenticate(token))?.renewedUntil).toBeUndefined();
 
@@ -149,7 +185,7 @@ describe('sessions', () => {
 	});
 
 	it('[AC-13] deletes the session at sign-out', async () => {
-		const { token } = await auth.signUp(newEmail(), PASSWORD);
+		const { token } = await auth.signUp(newEmail(), PASSWORD, newIp());
 		await auth.signOut(token);
 		expect(await auth.authenticate(token)).toBeNull();
 		expect(
@@ -161,14 +197,14 @@ describe('sessions', () => {
 describe('account', () => {
 	it('describes the account', async () => {
 		const email = newEmail();
-		const { token } = await auth.signUp(email, PASSWORD);
+		const { token } = await auth.signUp(email, PASSWORD, newIp());
 		const { userId } = (await auth.authenticate(token))!;
 		expect(await account.get(userId)).toEqual({ email, hasPassword: true, providers: [] });
 	});
 
 	it('[AC-18] changes the password with the current one, and revokes the other sessions', async () => {
 		const email = newEmail();
-		const current = await auth.signUp(email, PASSWORD);
+		const current = await auth.signUp(email, PASSWORD, newIp());
 		const other = await auth.signIn(email, PASSWORD, '203.0.113.1');
 		const { userId, sessionId } = (await auth.authenticate(current.token))!;
 
@@ -206,7 +242,7 @@ describe('account', () => {
 
 	it('[AC-19] deletes the user and their sessions', async () => {
 		const email = newEmail();
-		const { token } = await auth.signUp(email, PASSWORD);
+		const { token } = await auth.signUp(email, PASSWORD, newIp());
 		const { userId } = (await auth.authenticate(token))!;
 		await account.remove(userId);
 		expect(await db.selectFrom('users').where('id', '=', userId).selectAll().execute()).toEqual([]);

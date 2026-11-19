@@ -143,6 +143,28 @@ describe('POST /api/auth/login', () => {
 		);
 		expect(other.status).toBe(204);
 	});
+
+	it('[AC-26] answers 429 to a 6th sign-up from one IP within an hour', async () => {
+		const app = newApp(true);
+		const from = { 'X-Forwarded-For': '198.51.100.20' };
+		for (let i = 0; i < 5; i++) {
+			const created = await post(
+				app,
+				'/api/auth/signup',
+				{ email: newEmail(), password: PASSWORD },
+				from
+			);
+			expect(created.status).toBe(201);
+		}
+		const refused = await post(
+			app,
+			'/api/auth/signup',
+			{ email: newEmail(), password: PASSWORD },
+			from
+		);
+		expect(refused.status).toBe(429);
+		expect(await refused.json()).toMatchObject({ error: { code: 'too_many_sign_ups' } });
+	});
 });
 
 describe('POST /api/auth/logout', () => {
