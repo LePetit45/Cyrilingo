@@ -42,5 +42,10 @@ export const SERVICE_ERRORS: Record<
 	google_unverified: { status: 403, message: 'Google has not verified this e-mail' },
 	too_many_attempts: { status: 429, message: 'Too many failed sign-ins, try again later' },
 	unknown_lesson: { status: 400, message: 'No lesson has this id' },
+	invalid_list_name: { status: 400, message: 'A list name has 1 to 40 characters' },
+	list_limit_reached: { status: 409, message: 'An account has at most 20 word lists' },
+	unknown_word: { status: 400, message: 'The corpus has no such word' },
+	word_already_in_list: { status: 409, message: 'The list already has this word' },
+	list_full: { status: 409, message: 'A list holds at most 200 words' },
 	not_found: { status: 404, message: 'Not found' }
 };

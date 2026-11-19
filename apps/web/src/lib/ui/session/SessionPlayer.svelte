@@ -34,12 +34,15 @@
 		repeatMisses,
 		quitTitle,
 		quitMessage,
+		quitHref,
 		onfinish
 	}: {
 		questions: readonly Question[];
 		repeatMisses: boolean;
 		quitTitle?: string;
 		quitMessage?: string;
+		/** Where leaving goes; the path by default. */
+		quitHref?: string;
 		onfinish: (summary: Summary) => void;
 	} = $props();
 
@@ -153,7 +156,7 @@
 	}
 </script>
 
-<SessionHeader progress={progress(session)} {quitTitle} {quitMessage} />
+<SessionHeader progress={progress(session)} {quitTitle} {quitMessage} {quitHref} />
 
 <p class="visually-hidden" role="status">
 	{result ? (result.correct ? m.feedback.announceCorrect : m.feedback.announceWrong) : ''}

@@ -13,6 +13,11 @@ export type ApiErrorCode =
 	| 'too_many_attempts'
 	| 'unauthenticated'
 	| 'invalid_input'
+	| 'invalid_list_name'
+	| 'list_limit_reached'
+	| 'word_already_in_list'
+	| 'list_full'
+	| 'not_found'
 	| 'network'
 	| 'unknown';
 
@@ -39,6 +44,22 @@ export interface Progress {
 	examPassed: boolean;
 }
 
+/** A word of a list: the Cyrillic text and its official Latin transliteration. */
+export interface ListWord {
+	cyrillic: string;
+	latin: string;
+}
+
+/** `GET /api/word-lists`: one of the learner's personal word lists. */
+export interface WordList {
+	id: string;
+	name: string;
+	createdAt: string;
+	updatedAt: string;
+	/** In the order they were added. */
+	words: ListWord[];
+}
+
 const KNOWN_CODES = new Set<string>([
 	'invalid_credentials',
 	'email_taken',
@@ -47,7 +68,12 @@ const KNOWN_CODES = new Set<string>([
 	'wrong_password',
 	'too_many_attempts',
 	'unauthenticated',
-	'invalid_input'
+	'invalid_input',
+	'invalid_list_name',
+	'list_limit_reached',
+	'word_already_in_list',
+	'list_full',
+	'not_found'
 ]);
 
 /**
@@ -97,7 +123,19 @@ export function createApiClient(fetchFn: typeof fetch = (...args) => fetch(...ar
 		deleteAccount: () => call<void>('DELETE', '/me'),
 		getProgress: () => call<Progress>('GET', '/progress'),
 		mergeProgress: (progress: Progress) => call<Progress>('PATCH', '/progress', progress),
-		resetProgress: () => call<void>('DELETE', '/progress')
+		resetProgress: () => call<void>('DELETE', '/progress'),
+		getWordLists: () => call<WordList[]>('GET', '/word-lists'),
+		createWordList: (name: string) => call<WordList>('POST', '/word-lists', { name }),
+		renameWordList: (id: string, name: string) =>
+			call<WordList>('PATCH', `/word-lists/${encodeURIComponent(id)}`, { name }),
+		deleteWordList: (id: string) => call<void>('DELETE', `/word-lists/${encodeURIComponent(id)}`),
+		addWordToList: (id: string, word: string) =>
+			call<WordList>('POST', `/word-lists/${encodeURIComponent(id)}/words`, { word }),
+		removeWordFromList: (id: string, word: string) =>
+			call<WordList>(
+				'DELETE',
+				`/word-lists/${encodeURIComponent(id)}/words/${encodeURIComponent(word)}`
+			)
 	};
 }
 

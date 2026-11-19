@@ -35,6 +35,15 @@ describe('createApiClient', () => {
 		});
 	});
 
+	it('encodes list ids and Cyrillic words in paths', async () => {
+		const fetch = fakeFetch(200, {});
+		await createApiClient(fetch).removeWordFromList('a1b2', 'котка');
+		expect(fetch).toHaveBeenCalledWith(
+			`/api/word-lists/a1b2/words/${encodeURIComponent('котка')}`,
+			expect.objectContaining({ method: 'DELETE' })
+		);
+	});
+
 	it('returns the parsed body of a success', async () => {
 		const account = {
 			email: 'ana@example.com',

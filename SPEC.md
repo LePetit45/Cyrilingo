@@ -247,7 +247,7 @@ Stack: SvelteKit + Svelte 5 + TypeScript, built as a static PWA (`adapter-static
 | **Sign in** / **Sign up**             | e-mail and password forms, « Continuer avec Google »                                                                                                                                         |
 | **Settings**                          | sound, sound effects, account (e-mail, password, agent tokens, sign out, delete account), reset progress, about                                                                              |
 
-Words are added to a list from the feedback panel of a reading or read-aloud question (« Ajouter à une liste »), for signed-in learners. Navigation: bottom tab bar on mobile with **5 entries** (Parcours, Alphabet, Révision libre, Listes, Plus), left sidebar with the same entries on desktop; hidden during a lesson, review or exam. Guests opening Listes see a sign-in invitation.
+Words are added to a list from the feedback panel of a reading or read-aloud question (« Ajouter à une liste »), for signed-in learners: to one of their lists, or to a new list made there with a + button (named « Nouvelle liste », its name selected to be typed over; unticked right away, it is deleted). The lists holding the word are ticked there, and choosing one again removes the word, so a word added by mistake is taken back on the spot. Only words go into lists, not syllables; a word already in a list, a 21st list and a 201st word are refused with a sentence saying so. Navigation: bottom tab bar on mobile with **5 entries** (Parcours, Alphabet, Révision libre, Listes, Plus), left sidebar with the same entries on desktop; hidden during a lesson, review or exam. Guests opening Listes see a sign-in invitation.
 
 ### Visual identity
 
@@ -325,7 +325,7 @@ apps/api/        Hono on Node.js:
 
 One request through every layer, deleting a word list:
 
-1. `apps/web/src/routes/(tabs)/lists/[id]/+page.svelte`: the learner confirms the deletion; the page calls the API client.
+1. `apps/web/src/routes/(tabs)/list/+page.svelte` (`/list?id=…`: the app is prerendered and list ids only exist at run time, so the id is in the query string): the learner confirms the deletion; the page calls the API client.
 2. `apps/web/src/lib/api/client.ts`: `DELETE /api/word-lists/:id`, with the session cookie.
 3. `apps/api/src/http/word-lists.ts`: checks the session and the id, calls `wordListService.remove(userId, listId)`, maps "not found" to 404.
 4. `apps/api/src/services/word-lists.ts`: deletes the list only if `user_id` is the acting user, else throws "not found".
@@ -468,6 +468,9 @@ Local development: `docker compose up db` then `npm run dev` (front end and API 
 - [AC-34] « Réviser ma liste » asks reading questions on up to 12 words of the list and saves nothing; an empty list cannot be reviewed.
 - [AC-35] From the feedback panel of a reading question, a signed-in user can add the word to one of their lists.
 - [AC-36] Every word list route answers 401 without a session.
+- [AC-37] In « Ajouter à une liste », the lists that already hold the word are ticked, and choosing one of them removes the word from it, to undo a mistake.
+- [AC-38] In « Ajouter à une liste », the + button creates a list named « Nouvelle liste » (numbered when taken) holding the word, with its name selected so that typing renames it.
+- [AC-39] Taking the word back out of a list the + button made in the same dialog deletes that list.
 
 ### Read aloud (model feature)
 

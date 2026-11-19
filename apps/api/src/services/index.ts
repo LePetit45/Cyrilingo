@@ -8,6 +8,7 @@ import { createHealthService, type HealthService } from './health.js';
 import { createLessonService, type LessonService } from './lessons.js';
 import { createLoginAttempts } from './login-attempts.js';
 import { createProgressService, type ProgressService } from './progress.js';
+import { createWordListService, type WordListService } from './word-lists.js';
 
 /** Every service, built once at start and handed to the HTTP routes and the MCP tools. */
 export interface Services {
@@ -18,6 +19,7 @@ export interface Services {
 	account: AccountService;
 	lessons: LessonService;
 	progress: ProgressService;
+	wordLists: WordListService;
 	/** Which optional features are on, from the configuration. */
 	features: { readAloud: boolean; google: boolean };
 }
@@ -51,6 +53,7 @@ export function createServices(
 		account: createAccountService(db),
 		lessons: createLessonService(db),
 		progress: createProgressService(db, now),
+		wordLists: createWordListService(db, now),
 		features: { readAloud: config.azureSpeech !== null, google: google !== null }
 	};
 }
