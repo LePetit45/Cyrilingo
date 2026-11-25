@@ -567,7 +567,7 @@ Nothing has been built from this spec yet. Once slice 1 is built and checked: wh
 | D29 | MCP server                                  | **Official SDK, stdio, 6 tools**, one user through an agent session token                                                        |
 | D30 | Deployment                                  | **Docker Compose built from the repository**, behind any HTTPS reverse proxy; nothing host-specific committed                    |
 | D31 | Contrast                                    | **4.5:1 for all text**, white-on-color included                                                                                  |
-| D32 | Read-aloud recording                        | **Tap to start, tap to stop, 5 s at most**; converted to WAV in the browser, no audio processing on the server                   |
+| D32 | Read-aloud recording                        | **Tap to start, tap to stop, 5 s at most**; converted to WAV, low-cut and amplified in the browser; nothing done on the server   |
 | D33 | Speech limits                               | **60 per user and 500 for everyone over a rolling 24 h**, plus 5 sign-ups per IP per hour, so the free tier cannot be drained    |
 | D34 | Read aloud in a lesson                      | **Never repeated, counted in the first-try rate**; any failure removes the remaining read-aloud questions                        |
 | D35 | Telling learners their voice leaves the app | **In Settings › about only**                                                                                                     |
