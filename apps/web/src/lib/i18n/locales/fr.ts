@@ -303,20 +303,6 @@ export const fr = {
 		checking: 'Vérification de ton compte…',
 		changePassword: 'Changer mon mot de passe',
 		setPassword: 'Choisir un mot de passe',
-		agentKey: 'Clé pour un agent IA',
-		agentKeyIntro:
-			'Permet à un assistant IA compatible MCP d’utiliser Cyrilingo à ta place, avec tes droits et rien de plus.',
-		agentKeyNone: 'Aucune clé pour l’instant.',
-		agentKeyHidden:
-			'Une clé existe, mais elle ne peut plus être affichée. Régénère-la pour en obtenir une nouvelle.',
-		agentKeyFresh: 'Copie-la maintenant : elle ne sera plus affichée une fois la page quittée.',
-		show: 'Afficher',
-		hide: 'Masquer',
-		regenerate: 'Régénérer',
-		regenerateTitle: 'Régénérer la clé ?',
-		regenerateMessage:
-			'L’ancienne clé cessera aussitôt de fonctionner : les agents qui l’utilisent devront recevoir la nouvelle.',
-		regenerateConfirm: 'Régénérer',
 		signOut: 'Se déconnecter',
 		signedOut: 'Déconnexion réussie sur cet appareil.',
 		deleteAccount: 'Supprimer mon compte',
@@ -325,6 +311,21 @@ export const fr = {
 			'Ton compte et tout ce qu’il contient seront effacés définitivement, sur tous tes appareils.',
 		deleteConfirm: 'Supprimer définitivement',
 		deleted: 'Ton compte a été supprimé.'
+	},
+	agent: {
+		section: 'Clé MCP',
+		help: 'À quoi sert cette clé ?',
+		helpText:
+			'Elle permet à un assistant IA compatible MCP d’utiliser Cyrilingo à ta place. Elle n’est visible qu’au moment où tu la régénères.',
+		key: 'Clé pour un agent IA',
+		none: 'Aucune clé',
+		copy: 'Copier la clé',
+		copied: 'Clé copiée.',
+		regenerate: 'Régénérer',
+		regenerateTitle: 'Régénérer la clé ?',
+		regenerateMessage:
+			'L’ancienne clé cessera aussitôt de fonctionner : les agents qui l’utilisent devront recevoir la nouvelle.',
+		regenerateConfirm: 'Régénérer'
 	},
 	password: {
 		title: 'Mot de passe',
