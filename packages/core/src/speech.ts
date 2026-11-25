@@ -32,9 +32,37 @@ export function validHeardText(text: string): string | null {
 		: null;
 }
 
-/** Whether a validated text heard is the expected word (AC-43). */
+/** Words this long or longer are accepted with one letter off. */
+export const TOLERANT_FROM_LENGTH = 4;
+
+/**
+ * Whether a validated text heard counts as the expected word (AC-43). Spaces and hyphens are
+ * ignored (the model may split a word: « аз бука »), and a word of 4 letters or more is accepted
+ * with one letter added, missing or changed: recognizing an isolated word read with a French
+ * accent is never exact (« вече » for « вечер », « меска » for « маска »).
+ */
 export function isSameWord(heard: string, expected: string): boolean {
-	return heard === normalizeSpeech(expected);
+	const said = heard.replace(/[ -]/g, '');
+	const word = normalizeSpeech(expected).replace(/[ -]/g, '');
+	if (said === '') return false;
+	return editDistance(said, word) <= (word.length >= TOLERANT_FROM_LENGTH ? 1 : 0);
+}
+
+/** Letters to add, remove or change to turn one text into the other (Levenshtein). */
+export function editDistance(a: string, b: string): number {
+	let previous = Array.from({ length: b.length + 1 }, (_, j) => j);
+	for (let i = 1; i <= a.length; i++) {
+		const current = [i];
+		for (let j = 1; j <= b.length; j++) {
+			current[j] = Math.min(
+				previous[j] + 1,
+				current[j - 1] + 1,
+				previous[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)
+			);
+		}
+		previous = current;
+	}
+	return previous[b.length];
 }
 
 /** How many syllables a Bulgarian word has: its number of vowel letters. */

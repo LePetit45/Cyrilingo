@@ -144,7 +144,9 @@ The provider's text is shown to nobody until it passes these checks:
 - recognition status is `Success` (anything else → `not_understood`);
 - after lowercasing, Unicode NFC and removing punctuation, the lexical text is **non-empty**, at most **40 characters**, and made **only of the 30 Bulgarian letters, spaces and hyphens** (anything else — Latin letters, digits, other Cyrillic letters such as ы or ё — → `not_understood`).
 
-A match is equality of the normalized text with the normalized expected word.
+A match is the normalized text equal to the normalized expected word, spaces and hyphens ignored (the model may split a word: « аз бука »), with **one letter added, missing or changed allowed for words of 4 letters or more**. Measured with French voices reading the Latin transliteration, as a French learner would, exact equality accepted 20 tries out of 48, and this tolerance 28; a native voice went from 21 to 23 out of 24. In return, 36 of the 271 corpus words have another one within one letter, which a learner would get accepted by misreading: acceptable for an exercise that never penalizes.
+
+Rejected: Azure **Pronunciation Assessment**, which takes the expected word and scores the pronunciation. It does not assess Bulgarian: tried with another word read in place of the expected one, it still scored 100 and reported hearing the expected word.
 
 ### Timeout, fallback and limits
 
@@ -488,7 +490,7 @@ Local development: `docker compose up db` then `npm run dev` (front end and API 
 - [AC-40] A lesson composed signed in with the feature on contains 2 read-aloud questions on words of the lesson with at least 2 vowel letters (shorter words filling in when needed), in addition to the regular questions; a guest's lesson contains none.
 - [AC-41] « Je ne peux pas parler », an `unavailable` outcome, a 429 or a refused microphone pass the question, remove the remaining read-aloud questions of the lesson, and count neither right nor wrong.
 - [AC-42] The text checked is the provider's lexical form (`NBest[0].Lexical`), never `DisplayText`. A recognized text is shown only if it is non-empty, at most 40 characters, and made only of Bulgarian letters, spaces and hyphens after normalization; otherwise the outcome is `not_understood`.
-- [AC-43] A recognized text equal to the expected word is a right answer; a different one is shown as « J'ai entendu », and after 2 failed tries (mismatch or not understood) the question is passed without penalty. A read-aloud question never comes back later in the lesson, and its first try counts in the summary's first-try success rate.
+- [AC-43] A recognized text equal to the expected word, spaces and hyphens ignored, or one letter off for a word of 4 letters or more, is a right answer; a different one is shown as « J'ai entendu », and after 2 failed tries (mismatch or not understood) the question is passed without penalty. A read-aloud question never comes back later in the lesson, and its first try counts in the summary's first-try success rate.
 - [AC-44] A provider that does not answer within 8 seconds, fails, rate-limits or refuses the key gives the outcome `unavailable`, and the lesson goes on.
 - [AC-45] Without `AZURE_SPEECH_KEY`, the API starts, every other feature works, and lessons have no read-aloud question.
 - [AC-46] A user's 61st recognition within 24 hours is refused with 429; once all users made `SPEECH_DAILY_LIMIT` recognitions within 24 hours, the next gives `unavailable` without calling the provider; simultaneous requests never exceed either limit.

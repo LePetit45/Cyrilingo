@@ -52,6 +52,11 @@ describe('speech service', () => {
 		expect(await speech.check(await newUser(), WORD, AUDIO)).toEqual({ outcome: 'match' });
 	});
 
+	it('[AC-43] answers a match for a text one letter off a word of 4 letters or more', async () => {
+		const speech = serviceWith(new FakeSpeechClient({ status: 'success', text: 'котки' }));
+		expect(await speech.check(await newUser(), WORD, AUDIO)).toEqual({ outcome: 'match' });
+	});
+
 	it('[AC-43] answers a mismatch with the validated text heard', async () => {
 		const speech = serviceWith(new FakeSpeechClient({ status: 'success', text: 'Мляко!' }));
 		expect(await speech.check(await newUser(), WORD, AUDIO)).toEqual({

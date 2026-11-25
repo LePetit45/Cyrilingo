@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { isSameWord, normalizeSpeech, syllableCount, validHeardText } from './speech.js';
+import {
+	editDistance,
+	isSameWord,
+	normalizeSpeech,
+	syllableCount,
+	validHeardText
+} from './speech.js';
 
 describe('validHeardText', () => {
 	it('[AC-42] keeps a text of Bulgarian letters, spaces and hyphens, lowercased and without punctuation', () => {
@@ -24,10 +30,41 @@ describe('validHeardText', () => {
 });
 
 describe('isSameWord', () => {
-	it('[AC-43] compares the normalized text heard with the normalized expected word', () => {
+	it('[AC-43] accepts the expected word, whatever its case', () => {
 		expect(isSameWord('котка', 'котка')).toBe(true);
 		expect(isSameWord('софия', 'София')).toBe(true);
-		expect(isSameWord('котки', 'котка')).toBe(false);
+	});
+
+	it('[AC-43] ignores spaces and hyphens the model put in the word', () => {
+		expect(isSameWord('аз бука', 'азбука')).toBe(true);
+		expect(isSameWord('стара загора', 'Стара-Загора')).toBe(true);
+	});
+
+	it('[AC-43] accepts one letter added, missing or changed in a word of 4 letters or more', () => {
+		expect(isSameWord('вече', 'вечер')).toBe(true);
+		expect(isSameWord('меска', 'маска')).toBe(true);
+		expect(isSameWord('в париж', 'Париж')).toBe(true);
+		expect(isSameWord('тима', 'тема')).toBe(true);
+	});
+
+	it('[AC-43] refuses two letters off, any letter off in a shorter word, and nothing heard', () => {
+		expect(isSameWord('селета', 'салата')).toBe(false);
+		expect(isSameWord('студа', 'студент')).toBe(false);
+		expect(isSameWord('ми', 'име')).toBe(false);
+		expect(isSameWord('ние', 'име')).toBe(false);
+		expect(isSameWord('', 'име')).toBe(false);
+		expect(isSameWord(' - ', 'мама')).toBe(false);
+	});
+});
+
+describe('editDistance', () => {
+	it('counts the letters to add, remove or change', () => {
+		expect(editDistance('', '')).toBe(0);
+		expect(editDistance('котка', 'котка')).toBe(0);
+		expect(editDistance('котка', 'котки')).toBe(1);
+		expect(editDistance('кот', 'котка')).toBe(2);
+		expect(editDistance('', 'абв')).toBe(3);
+		expect(editDistance('маска', 'меске')).toBe(2);
 	});
 });
 
