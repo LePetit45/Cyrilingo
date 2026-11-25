@@ -1,9 +1,10 @@
 // Question lists of lessons, free review and the final exam (spec §4.3, §4.4, §4.6, §4.7).
 import { BULGARIAN_ALPHABET, type BulgarianLetter } from '../alphabet.js';
 import { getLesson, LESSONS, lettersKnownIn } from '../content/course.js';
-import { WORDS, type Reading, type Word } from '../content/corpus.js';
+import { isWord, WORDS, type Reading, type Word } from '../content/corpus.js';
 import { pick, shuffle, type Random } from '../random.js';
 import { lettersIn } from '../reading.js';
+import { syllableCount } from '../speech.js';
 import {
 	letterToSound,
 	pickReading,
@@ -26,12 +27,20 @@ export const EXAM_READING_COUNT = 16;
 
 /** Readings mixing new and previously learned letters in a lesson (spec §4.3, step 3). */
 export const MIXED_READING_COUNT = 3;
+/** Read-aloud questions in a lesson, for a signed-in learner (SPEC.md › The model feature). */
+export const READ_ALOUD_COUNT = 2;
 
 /**
  * The questions of a lesson, in play order (spec §4.3). Discovery cards come before them. Its
- * readings are drawn at random from the corpus, so replaying a lesson shows other words.
+ * readings are drawn at random from the corpus, so replaying a lesson shows other words. With
+ * `readAloud` (a signed-in learner, the feature on), up to 2 read-aloud questions are added on
+ * words of its readings, after the questions on the new letters (AC-40).
  */
-export function composeLesson(lessonId: string, random: Random): Question[] {
+export function composeLesson(
+	lessonId: string,
+	random: Random,
+	{ readAloud = false }: { readAloud?: boolean } = {}
+): Question[] {
 	const lesson = getLesson(lessonId);
 	const known = lettersKnownIn(lessonId);
 	const used: Reading[] = [];
@@ -59,7 +68,27 @@ export function composeLesson(lessonId: string, random: Random): Question[] {
 		questionFor(letter, randomKind(random), known, used, random)
 	);
 
-	return [...spread(newLetters, random), ...mixed, ...shuffle(review, random)];
+	const questions = [...spread(newLetters, random), ...mixed, ...shuffle(review, random)];
+	if (!readAloud) return questions;
+	// Step 5: read-aloud questions, among the questions that follow the new letters.
+	for (const word of readAloudWords(used, random)) {
+		const at =
+			newLetters.length + Math.floor(random() * (questions.length - newLetters.length + 1));
+		questions.splice(at, 0, { kind: 'readAloud', word });
+	}
+	return questions;
+}
+
+/**
+ * Words to read aloud, among the lesson's readings: words of 2 syllables or more first, since
+ * one-syllable words such as да or не are poorly recognized on their own, then shorter ones
+ * when too few exist. None in a lesson of syllables only.
+ */
+export function readAloudWords(readings: readonly Reading[], random: Random): Word[] {
+	const words = [...new Set(readings.filter(isWord))];
+	const long = words.filter((word) => syllableCount(word) >= 2);
+	const short = words.filter((word) => syllableCount(word) < 2);
+	return [...shuffle(long, random), ...shuffle(short, random)].slice(0, READ_ALOUD_COUNT);
 }
 
 /**
@@ -126,7 +155,7 @@ export function composeListReview(words: readonly string[], random: Random): Que
 export function composeExam(random: Random): Question[] {
 	const known = BULGARIAN_ALPHABET;
 	const letters = shuffle(BULGARIAN_ALPHABET, random);
-	const kinds = new Map<BulgarianLetter, QuestionKind>(
+	const kinds = new Map<BulgarianLetter, LetterQuestionKind>(
 		letters.map((letter, index) => [
 			letter,
 			index < EXAM_READING_COUNT ? 'reading' : index % 2 === 0 ? 'letterToSound' : 'soundToLetter'
@@ -154,7 +183,10 @@ function wordCount(letter: BulgarianLetter): number {
 	return (Object.keys(WORDS) as Word[]).filter((word) => lettersIn(word).includes(letter)).length;
 }
 
-function randomKind(random: Random): QuestionKind {
+/** The kinds a letter can be asked with; read aloud is asked on a word, not a letter. */
+type LetterQuestionKind = Exclude<QuestionKind, 'readAloud'>;
+
+function randomKind(random: Random): LetterQuestionKind {
 	return pick(['letterToSound', 'soundToLetter', 'reading'] as const, random)!;
 }
 
@@ -164,7 +196,7 @@ function randomKind(random: Random): QuestionKind {
  */
 function questionFor(
 	letter: BulgarianLetter,
-	kind: QuestionKind,
+	kind: LetterQuestionKind,
 	known: readonly BulgarianLetter[],
 	used: Reading[],
 	random: Random,

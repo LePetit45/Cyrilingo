@@ -31,7 +31,18 @@ export interface ReadingQuestion {
 	letter?: BulgarianLetter;
 }
 
-export type Question = LetterToSoundQuestion | SoundToLetterQuestion | ReadingQuestion;
+/**
+ * Read aloud (SPEC.md › The model feature): a word the learner says aloud, checked by the speech
+ * model. Only in lessons, for a signed-in learner.
+ */
+export interface ReadAloudQuestion {
+	kind: 'readAloud';
+	word: Word;
+	letter?: undefined;
+}
+
+export type Question =
+	LetterToSoundQuestion | SoundToLetterQuestion | ReadingQuestion | ReadAloudQuestion;
 
 export type QuestionKind = Question['kind'];
 
@@ -191,6 +202,8 @@ export function pickReading(
  * answered wrong, or the letter it was chosen for, or else all its letters.
  */
 export function lettersMissed(question: Question, check?: ReadingCheck): BulgarianLetter[] {
+	// Read aloud never adds letters: the speech model cannot tell which letter was misread.
+	if (question.kind === 'readAloud') return [];
 	if (question.kind !== 'reading') return [question.letter];
 	const wrong = check?.letters?.filter((letter) => !letter.correct).map(({ letter }) => letter);
 	if (wrong?.length) return [...new Set(wrong)];

@@ -18,7 +18,8 @@
 		summary,
 		newLetters,
 		nextHref,
-		onreplay
+		onreplay,
+		readAloudInvite = false
 	}: {
 		title: string;
 		summary: Summary;
@@ -26,6 +27,8 @@
 		newLetters?: readonly BulgarianLetter[];
 		nextHref: string;
 		onreplay?: () => void;
+		/** After a guest's lesson: signing in adds read-aloud questions (SPEC.md › The model feature). */
+		readAloudInvite?: boolean;
 	} = $props();
 
 	const home = resolve('/(tabs)');
@@ -91,6 +94,13 @@
 			</div>
 		{:else}
 			<p class="perfect">{m.summary.noMiss}</p>
+		{/if}
+
+		{#if readAloudInvite}
+			<p class="invite">
+				{m.summary.readAloudInvite}
+				<a href={resolve('/(tabs)/signin')}>{m.summary.readAloudSignIn}</a>
+			</p>
 		{/if}
 	</div>
 
@@ -164,6 +174,19 @@
 		margin: 0;
 		font-weight: 800;
 		color: var(--color-success-dark);
+	}
+
+	.invite {
+		max-width: 22rem;
+		margin: 0;
+		font-weight: 700;
+		color: var(--color-text-muted);
+		text-align: center;
+	}
+
+	.invite a {
+		color: var(--color-accent-dark);
+		font-weight: 800;
 	}
 
 	@keyframes pop {

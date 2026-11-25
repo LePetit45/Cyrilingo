@@ -77,6 +77,17 @@ export interface WordListWordsTable {
 	added_at: Generated<Date>;
 }
 
+export type SpeechOutcome = 'match' | 'mismatch' | 'not_understood' | 'unavailable';
+
+export interface SpeechAttemptsTable {
+	id: Generated<string>;
+	/** Null once the user is deleted: the row still counts for the global limit. */
+	user_id: string | null;
+	created_at: Date;
+	/** Null until the provider answered. */
+	outcome: SpeechOutcome | null;
+}
+
 export interface Database {
 	letters: LettersTable;
 	lessons: LessonsTable;
@@ -88,4 +99,5 @@ export interface Database {
 	lesson_completions: LessonCompletionsTable;
 	word_lists: WordListsTable;
 	word_list_words: WordListWordsTable;
+	speech_attempts: SpeechAttemptsTable;
 }

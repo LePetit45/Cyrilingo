@@ -7,14 +7,19 @@ import { createAccountService } from './account.js';
 import { createAuthService } from './auth.js';
 import { ServiceError } from './errors.js';
 import { createGoogleAuthService, type GoogleAuthService } from './google-auth.js';
-import { createLoginAttempts } from './login-attempts.js';
+import { createLoginAttempts, createSignUpLimit } from './ip-limits.js';
 import { createProgressService } from './progress.js';
 
 const db = createDb(inject('databaseUrl'));
 afterAll(() => db.destroy());
 
 const clock = new Date('2026-11-17T12:00:00Z');
-const auth = createAuthService({ db, loginAttempts: createLoginAttempts(), now: () => clock });
+const auth = createAuthService({
+	db,
+	loginAttempts: createLoginAttempts(),
+	signUps: createSignUpLimit(),
+	now: () => clock
+});
 const account = createAccountService(db);
 const progress = createProgressService(db, () => clock);
 
@@ -27,6 +32,8 @@ beforeEach(() => {
 });
 
 const newEmail = () => `learner-${randomUUID()}@example.com`;
+/** A fresh client IP, so the sign-ups of the tests never add up to the limit (AC-26). */
+const newIp = () => randomUUID();
 const identity = (email: string, emailVerified = true): GoogleIdentity => ({
 	sub: `google-${randomUUID()}`,
 	email,
@@ -135,7 +142,7 @@ describe('one person, one account', () => {
 
 	it('[AC-15] signs into the existing user with the same verified e-mail: same id, same progress, no second row', async () => {
 		const email = newEmail();
-		const local = await auth.signUp(email, PASSWORD);
+		const local = await auth.signUp(email, PASSWORD, newIp());
 		const userId = (await auth.authenticate(local.token))!.userId;
 		await progress.merge(userId, { completedLessons: ['l1', 'l2'], examPassed: false });
 
@@ -171,7 +178,7 @@ describe('one person, one account', () => {
 		expect(await refusal(signInAs(identity(email, false)))).toBe('google_unverified');
 		expect(await usersWith(email)).toEqual([]);
 
-		await auth.signUp(email, PASSWORD);
+		await auth.signUp(email, PASSWORD, newIp());
 		expect(await refusal(signInAs(identity(email, false)))).toBe('google_unverified');
 		const [user] = await usersWith(email);
 		expect(await linksOf(user!.id)).toEqual([]);
@@ -180,7 +187,7 @@ describe('one person, one account', () => {
 
 	it('[AC-17] removes the password of a never-verified local account and revokes its other sessions', async () => {
 		const email = newEmail();
-		const local = await auth.signUp(email, PASSWORD);
+		const local = await auth.signUp(email, PASSWORD, newIp());
 		const userId = (await auth.authenticate(local.token))!.userId;
 
 		const { session, passwordRemoved } = await signInAs(identity(email));

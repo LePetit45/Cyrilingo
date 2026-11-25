@@ -51,7 +51,7 @@ export function authRoutes(
 	return new Hono<{ Variables: SessionVariables }>()
 		.post('/signup', async (c) => {
 			const { email, password } = await readJson(c, credentials);
-			const session = await services.auth.signUp(email, password);
+			const session = await services.auth.signUp(email, password, clientIp(c, options.trustProxy));
 			cookies.set(c, session.token, session.expiresAt);
 			return c.body(null, 201);
 		})

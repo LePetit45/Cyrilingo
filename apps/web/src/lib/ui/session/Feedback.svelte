@@ -18,6 +18,7 @@
 	import AddToListDialog from '../lists/AddToListDialog.svelte';
 	import { account } from '../state/account.svelte.js';
 	import { isWord } from '@cyrilingo/core/content/corpus.js';
+	import type { ReadAloudResult } from './read-aloud.js';
 
 	// Colored panel at the bottom of the screen after each answer (spec §5.3): the right answer, the
 	// wrong letters and, after a reading, the word with the letter being learned underlined, and its
@@ -27,6 +28,8 @@
 		correct,
 		dontKnow,
 		check,
+		speech,
+		onretry,
 		oncontinue
 	}: {
 		question: Question;
@@ -34,11 +37,34 @@
 		dontKnow: boolean;
 		/** Result of a typed reading answer. */
 		check?: ReadingCheck;
+		/** Verdict of a read-aloud try (SPEC.md › The model feature). */
+		speech?: ReadAloudResult;
+		/** Set when a failed read-aloud try leaves a second one: « Réessayer » replaces Continue. */
+		onretry?: () => void;
 		oncontinue: () => void;
 	} = $props();
 
 	const praise = m.feedback.correct[Math.floor(Math.random() * m.feedback.correct.length)];
-	const title = $derived(correct ? praise : dontKnow ? m.feedback.dontKnow : m.feedback.wrong);
+	const tone = $derived(speech?.outcome === 'unavailable' ? 'info' : correct ? 'correct' : 'wrong');
+	const title = $derived(
+		correct
+			? praise
+			: speech?.outcome === 'unavailable'
+				? m.feedback.unavailableTitle
+				: speech?.outcome === 'not_understood'
+					? m.feedback.notHeard
+					: dontKnow
+						? m.feedback.dontKnow
+						: m.feedback.wrong
+	);
+	/** The word of a reading or read-aloud question. */
+	const word = $derived(
+		question.kind === 'reading'
+			? question.reading
+			: question.kind === 'readAloud'
+				? question.word
+				: undefined
+	);
 
 	// Focus Continue, so Enter (or Space) moves on with the button's own behavior and keyboard
 	// users land on the next action. Without scrolling: the panel is still sliding in from below
@@ -46,37 +72,46 @@
 	let continueArea: HTMLElement | undefined = $state();
 	let addingToList = $state(false);
 	/** Words of a reading can go to a personal list, for signed-in learners (AC-35). */
-	const listWord = $derived(
-		account.signedIn && question.kind === 'reading' && isWord(question.reading)
-			? question.reading
-			: undefined
-	);
+	const listWord = $derived(account.signedIn && word && isWord(word) ? word : undefined);
 	$effect(() => {
 		continueArea?.querySelector('button')?.focus({ preventScroll: true });
 	});
 </script>
 
-<section class={['feedback', correct ? 'correct' : 'wrong']} aria-labelledby="feedback-title">
+<section class={['feedback', tone]} aria-labelledby="feedback-title">
 	<div class="details">
 		<p class="title" id="feedback-title">
 			<span class="verdict-icon" aria-hidden="true"
-				><Icon name={correct ? 'check' : 'close'} size={20} /></span
+				><Icon name={correct ? 'check' : tone === 'info' ? 'mic' : 'close'} size={20} /></span
 			>{title}
 		</p>
 
-		{#if question.kind === 'reading'}
+		{#if word}
 			<div class="reading">
-				<HighlightedReading reading={question.reading} letter={question.letter} />
-				<AudioButton name={question.reading} autoplay />
+				<HighlightedReading reading={word} letter={question.letter} />
+				<AudioButton name={word} autoplay />
 			</div>
-			{#if !correct}
+			{#if speech?.outcome === 'mismatch'}
+				<p class="heard">
+					{m.feedback.heard}
+					<Cyrillic class="heard-text">{speech.heard}</Cyrillic>
+				</p>
+			{:else if speech?.outcome === 'not_understood'}
+				<p class="hint">{m.feedback.notHeardHint}</p>
+			{:else if speech?.outcome === 'unavailable'}
+				<p class="hint">{m.feedback.unavailable[speech.reason]}</p>
+			{/if}
+			{#if !correct && speech?.outcome !== 'unavailable'}
 				<p class="answer">
 					{m.feedback.answer}
-					<strong>{phoneticReading(question.reading)}</strong>
-					{#if officialTransliteration(question.reading) !== phoneticReading(question.reading)}
-						<span class="official">({officialTransliteration(question.reading)})</span>
+					<strong>{phoneticReading(word)}</strong>
+					{#if officialTransliteration(word) !== phoneticReading(word)}
+						<span class="official">({officialTransliteration(word)})</span>
 					{/if}
 				</p>
+				{#if speech && !onretry}
+					<p class="hint">{m.feedback.passed}</p>
+				{/if}
 				{#if check?.letters}
 					<p class="typed">
 						{m.feedback.yourAnswer}
@@ -88,8 +123,8 @@
 					</p>
 				{/if}
 			{/if}
-			{#if translationOf(question.reading)}
-				<p class="meaning">{m.feedback.meaning} {translationOf(question.reading)}</p>
+			{#if translationOf(word)}
+				<p class="meaning">{m.feedback.meaning} {translationOf(word)}</p>
 			{/if}
 			{#if listWord}
 				<button type="button" class="add" onclick={() => (addingToList = true)}>
@@ -97,7 +132,7 @@
 				</button>
 				<AddToListDialog bind:open={addingToList} word={listWord} />
 			{/if}
-		{:else}
+		{:else if question.kind === 'letterToSound' || question.kind === 'soundToLetter'}
 			<!-- The letter's sound, right or wrong: the question could not play it without giving the
 			     answer away. -->
 			<div class="letter">
@@ -117,13 +152,15 @@
 		<!-- The second click of a double click on « Vérifier », which sat here, must not skip the
 		     feedback. -->
 		<Button
-			variant={correct ? 'success' : 'danger'}
+			variant={correct ? 'success' : tone === 'info' ? 'accent' : 'danger'}
 			wide
 			onclick={(event) => {
-				if (event.detail <= 1) oncontinue();
+				if (event.detail > 1) return;
+				if (onretry) onretry();
+				else oncontinue();
 			}}
 		>
-			{m.common.continue}
+			{onretry ? m.feedback.retry : m.common.continue}
 		</Button>
 	</div>
 </section>
@@ -141,6 +178,10 @@
 
 	.wrong {
 		--tone: var(--color-error-dark);
+	}
+
+	.info {
+		--tone: var(--color-accent-dark);
 	}
 
 	.details {
@@ -187,8 +228,16 @@
 
 	.answer,
 	.typed,
-	.meaning {
+	.meaning,
+	.heard,
+	.hint {
 		color: var(--color-text);
+	}
+
+	.feedback :global(.heard-text) {
+		font-size: 1.25rem;
+		font-weight: 900;
+		color: var(--tone);
 	}
 
 	.answer strong {

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { composeLesson } from '@cyrilingo/core/engine/compose.js';
+	import type { Question } from '@cyrilingo/core/engine/questions.js';
 	import type { Summary } from '@cyrilingo/core/engine/session.js';
 	import { suggestedLesson } from '@cyrilingo/core/progress.js';
 	import { m } from '#lib/i18n/index.js';
@@ -11,6 +12,7 @@
 	import SessionHeader from '#lib/ui/session/SessionHeader.svelte';
 	import SessionPlayer from '#lib/ui/session/SessionPlayer.svelte';
 	import SessionSummary from '#lib/ui/session/SessionSummary.svelte';
+	import { account } from '#lib/ui/state/account.svelte.js';
 	import { app } from '#lib/ui/state/app.svelte.js';
 	import { progressSync } from '#lib/ui/state/progress-sync.svelte.js';
 	import type { PageProps } from './$types';
@@ -20,10 +22,20 @@
 	let { data }: PageProps = $props();
 
 	type Phase =
-		{ name: 'cards'; index: number } | { name: 'play' } | { name: 'done'; summary: Summary };
+		| { name: 'cards'; index: number }
+		| { name: 'play'; questions: Question[] }
+		| { name: 'done'; summary: Summary };
 
 	let phase = $state<Phase>({ name: 'cards', index: 0 });
-	const questions = $derived(composeLesson(data.lesson.id, Math.random));
+
+	/**
+	 * The questions, drawn when the cards are done. A signed-in learner also reads words aloud
+	 * when the API says the feature is on (SPEC.md › The model feature).
+	 */
+	function play() {
+		const readAloud = account.signedIn && account.details?.features.readAloud === true;
+		phase = { name: 'play', questions: composeLesson(data.lesson.id, Math.random, { readAloud }) };
+	}
 
 	// Opening another lesson reuses this page component: start over.
 	$effect.pre(() => {
@@ -61,20 +73,21 @@
 			<Button
 				class="grow"
 				variant={last ? 'success' : 'primary'}
-				onclick={() => (phase = last ? { name: 'play' } : { name: 'cards', index: index + 1 })}
+				onclick={() => (last ? play() : (phase = { name: 'cards', index: index + 1 }))}
 			>
 				{last ? m.card.start : m.card.next}
 			</Button>
 		</BottomBar>
 	</div>
 {:else if phase.name === 'play'}
-	<SessionPlayer {questions} repeatMisses onfinish={finish} />
+	<SessionPlayer questions={phase.questions} repeatMisses onfinish={finish} />
 {:else}
 	<SessionSummary
 		title={m.summary.lessonTitle}
 		summary={phase.summary}
 		newLetters={data.lesson.letters}
 		{nextHref}
+		readAloudInvite={!account.signedIn}
 	/>
 {/if}
 

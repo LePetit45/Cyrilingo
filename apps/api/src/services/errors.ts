@@ -19,6 +19,8 @@ export type ServiceErrorCode =
 	| 'google_unverified'
 	/** Too many failed sign-ins from one IP. */
 	| 'too_many_attempts'
+	/** Too many accounts created from one IP. */
+	| 'too_many_sign_ups'
 	/** Progress naming a lesson the course does not have. */
 	| 'unknown_lesson'
 	/** A word list name that is empty or longer than 40 characters, once trimmed. */
@@ -31,6 +33,8 @@ export type ServiceErrorCode =
 	| 'word_already_in_list'
 	/** A 201st word in a list. */
 	| 'list_full'
+	/** A user's read-aloud try beyond their limit. */
+	| 'speech_quota_reached'
 	/** Missing, or owned by somebody else: the same answer for both. */
 	| 'not_found';
 

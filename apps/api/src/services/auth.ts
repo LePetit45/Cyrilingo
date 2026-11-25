@@ -5,7 +5,7 @@ import type { SessionKind } from '../db/schema.js';
 import { deleteSession, findLiveSession, insertSession, setSessionExpiry } from '../db/sessions.js';
 import { findUserByEmail, insertUser } from '../db/users.js';
 import { ServiceError } from './errors.js';
-import type { LoginAttempts } from './login-attempts.js';
+import type { IpLimit } from './ip-limits.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 /** A session lasts 30 days… */
@@ -31,7 +31,8 @@ export interface Authenticated {
 }
 
 export interface AuthService {
-	signUp(email: string, password: string): Promise<StartedSession>;
+	/** Creates an account; `ip` counts toward the sign-up limit (AC-26). */
+	signUp(email: string, password: string, ip: string): Promise<StartedSession>;
 	signIn(email: string, password: string, ip: string): Promise<StartedSession>;
 	signOut(token: string): Promise<void>;
 	/** The user and session a token stands for, or null when it is unknown or expired. */
@@ -40,7 +41,8 @@ export interface AuthService {
 
 export interface AuthDeps {
 	db: Db;
-	loginAttempts: LoginAttempts;
+	loginAttempts: IpLimit;
+	signUps: IpLimit;
 	now?: () => Date;
 }
 
@@ -71,10 +73,12 @@ export async function startSession(db: Db, userId: string, now: Date): Promise<S
 export function createAuthService({
 	db,
 	loginAttempts,
+	signUps,
 	now = () => new Date()
 }: AuthDeps): AuthService {
 	return {
-		async signUp(email, password) {
+		async signUp(email, password, ip) {
+			if (signUps.isBlocked(ip, now())) throw new ServiceError('too_many_sign_ups');
 			checkPasswordLength(password);
 			const normalized = normalizeEmail(email);
 			const user = await insertUser(db, {
@@ -86,6 +90,7 @@ export function createAuthService({
 				const existing = await findUserByEmail(db, normalized);
 				throw new ServiceError(existing?.passwordHash ? 'email_taken' : 'email_taken_google');
 			}
+			signUps.record(ip, now());
 			return startSession(db, user.id, now());
 		},
 
@@ -96,7 +101,7 @@ export function createAuthService({
 			if (user?.passwordHash) valid = await verifyPassword(user.passwordHash, password);
 			else await spendPasswordCheckTime(password);
 			if (!user || !valid) {
-				loginAttempts.recordFailure(ip, now());
+				loginAttempts.record(ip, now());
 				throw new ServiceError('invalid_credentials');
 			}
 			return startSession(db, user.id, now());

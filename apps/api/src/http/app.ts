@@ -12,6 +12,7 @@ import { meRoutes } from './me.js';
 import { lessonRoutes, progressRoutes } from './progress.js';
 import { requireSameOrigin } from './security.js';
 import { sessionCookies } from './session.js';
+import { speechRoutes } from './speech.js';
 import { wordListRoutes } from './word-lists.js';
 
 export interface AppOptions {
@@ -20,8 +21,13 @@ export interface AppOptions {
 	log?: (line: string) => void;
 }
 
-/** JSON bodies are small: credentials, names, ids. */
+/** JSON bodies are small: credentials, names, ids. Speech recordings have their own limit. */
 const JSON_BODY_LIMIT = 16 * 1024;
+
+const jsonBodyLimit = bodyLimit({
+	maxSize: JSON_BODY_LIMIT,
+	onError: (c) => errorResponse(c, 413, 'payload_too_large', 'The body is too large')
+});
 
 /** The whole HTTP API, under `/api`. */
 export function createApp({ config, services, log }: AppOptions) {
@@ -29,12 +35,8 @@ export function createApp({ config, services, log }: AppOptions) {
 
 	app.use(requestLogger(log));
 	app.use(requireSameOrigin(config.publicUrl));
-	app.use(
-		bodyLimit({
-			maxSize: JSON_BODY_LIMIT,
-			onError: (c) => errorResponse(c, 413, 'payload_too_large', 'The body is too large')
-		})
-	);
+	// A limit set here could not be raised by a route: the speech route sets its own.
+	app.use((c, next) => (c.req.path.startsWith('/api/speech/') ? next() : jsonBodyLimit(c, next)));
 
 	app.route('/health', healthRoutes(services));
 	const secure = config.publicUrl.startsWith('https:');
@@ -44,6 +46,7 @@ export function createApp({ config, services, log }: AppOptions) {
 	app.route('/lessons', lessonRoutes(services, cookies));
 	app.route('/progress', progressRoutes(services, cookies));
 	app.route('/word-lists', wordListRoutes(services, cookies));
+	app.route('/speech', speechRoutes(services, cookies));
 
 	app.notFound((c) => errorResponse(c, 404, 'not_found', 'No such route'));
 	app.onError((error, c) => {
