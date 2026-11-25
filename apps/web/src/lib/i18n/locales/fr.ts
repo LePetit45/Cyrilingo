@@ -317,6 +317,7 @@ export const fr = {
 		help: 'À quoi sert cette clé ?',
 		helpText:
 			'Elle permet à un assistant IA compatible MCP d’utiliser Cyrilingo à ta place. Elle n’est visible qu’au moment où tu la régénères.',
+		serverAddress: (url: string) => `Adresse du serveur : ${url}`,
 		key: 'Clé pour un agent IA',
 		none: 'Aucune clé',
 		copy: 'Copier la clé',

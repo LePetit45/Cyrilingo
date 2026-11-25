@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
 	import { m } from '#lib/i18n/index.js';
 	import Button from '#lib/ui/Button.svelte';
 	import { hasVoice } from '#lib/ui/audio/voice.js';
@@ -143,6 +144,7 @@
 				</button>
 				<span id="agent-help" role="tooltip" class="tooltip" class:open={agentHelpOpen}>
 					{m.agent.helpText}
+					<span class="address">{m.agent.serverAddress(`${page.url.origin}/mcp`)}</span>
 				</span>
 			</span>
 		</div>
@@ -385,6 +387,13 @@
 		color: var(--color-surface);
 		background: var(--color-text);
 		border-radius: var(--radius-sm);
+	}
+
+	/* The address, on a line of its own, wraps anywhere rather than widening the bubble. */
+	.address {
+		display: block;
+		margin-top: 0.375rem;
+		overflow-wrap: anywhere;
 	}
 
 	.help:hover .tooltip,

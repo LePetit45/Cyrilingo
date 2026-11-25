@@ -228,9 +228,9 @@ The settings show the e-mail and the linked providers, let the learner set or ch
 
 ## MCP tools
 
-An MCP server (stdio transport, `npm run --silent mcp`) lets an AI agent use Cyrilingo **as one learner**. It is built with the official TypeScript SDK (`@modelcontextprotocol/sdk`), which handles the JSON-RPC 2.0 protocol (the `initialize` handshake, `tools/list`, `tools/call`); the project only declares the tools.
+An MCP server lets an AI agent use Cyrilingo **as one learner**, through two transports that declare the same tools: **Streamable HTTP at `/mcp`** on the app's own origin, so any learner can plug in their agent, and **stdio** (`npm run --silent mcp`) for a server run beside the database. It is built with the official TypeScript SDK (`@modelcontextprotocol/sdk`), which handles the JSON-RPC 2.0 protocol (the `initialize` handshake, `tools/list`, `tools/call`); the project only declares the tools.
 
-- **One user, never an admin**: the server reads the account's agent key from `CYRILINGO_SESSION_TOKEN` and resolves it with the same auth service as the HTTP API; it refuses to start when the key is missing, unknown, expired or replaced. An account has **at most one agent key**: a session of kind `agent` that lives and renews like any session (see Sessions). It is made in the settings, section « Clé MCP », with « Régénérer », which replaces the previous key at once, after a confirmation when there is one. Only its hash is stored, like every session token, so the key is in clear (with a copy button) only right after it was made, until the learner leaves the page; after that its field shows asterisks, and getting it again means regenerating it. A « ? » next to the section title says, on hover, what the key is for. The two kinds do not mix: a browser session cookie does not start the MCP server, and an agent key sent as a cookie opens no browser session. The key is checked again on every tool call, so regenerating it stops a server that is already running with the old one. No tool takes a user id: the key is the only way to name one. There is no admin token anywhere.
+- **One user, never an admin**: the server reads the account's agent key (over HTTP from `Authorization: Bearer <key>`, on stdio from `CYRILINGO_SESSION_TOKEN`) and resolves it with the same auth service as the HTTP API; it refuses to start when the key is missing, unknown, expired or replaced. An account has **at most one agent key**: a session of kind `agent` that lives and renews like any session (see Sessions). It is made in the settings, section « Clé MCP », with « Régénérer », which replaces the previous key at once, after a confirmation when there is one. Only its hash is stored, like every session token, so the key is in clear (with a copy button) only right after it was made, until the learner leaves the page; after that its field shows asterisks, and getting it again means regenerating it. A « ? » next to the section title says, on hover, what the key is for and the server's address (`<PUBLIC_URL>/mcp`). The two kinds do not mix: a browser session cookie does not start the MCP server, and an agent key sent as a cookie opens no browser session. The key is checked again on every tool call, so regenerating it stops a server that is already running with the old one. No tool takes a user id: the key is the only way to name one. There is no admin token anywhere.
 - **One set of rules, two front doors**: every tool validates its input, then calls **the same service function as the matching HTTP route**, and maps service errors to MCP errors. No tool runs its own query.
 
 | Tool               | What it does                                                                                                        | Who may call it                 | Service function          | HTTP route                       |
@@ -244,7 +244,21 @@ An MCP server (stdio transport, `npm run --silent mcp`) lets an AI agent use Cyr
 
 The first two are read-only, over the course; the four others act on the learner's own data. Each tool answers, as JSON text, what its HTTP route answers (`delete_word_list`, whose route answers 204 with no body, answers `{"deleted": true}`). A refusal is a tool error (`isError`) carrying the route's own body, `{"error": {"code": "...", "message": "..."}}`; a replaced or expired key gives `unauthenticated`, and an unexpected failure `internal`, with no detail.
 
-To use the server, set `DATABASE_URL` and `CYRILINGO_SESSION_TOKEN` (locally against the development database, or inside the `api` container of a deployment) and run `npm run --silent mcp`: stdout carries the protocol only, so `--silent` keeps npm's own lines off it, and the server writes its messages to stderr. An MCP client starts it with a configuration such as:
+Over HTTP, `POST /mcp` takes one JSON-RPC message and answers in JSON. The server is **stateless**: each request builds a server for the key it carries, answers, and is closed, so the key is checked on every request and nothing is kept between requests; `GET` and `DELETE` (an event stream, the end of a session) answer 405. A missing, unknown, expired or replaced key, or a browser session, answers **401** with `WWW-Authenticate: Bearer`. Agents send no `Origin`; a request that carries one other than `PUBLIC_URL` is refused with 403 (DNS rebinding protection, as the MCP specification asks). Bodies over 64 KB are refused with 413. The session cookie plays no part, so the CSRF checks of the REST API do not apply. An MCP client connects with a configuration such as:
+
+```json
+{
+	"mcpServers": {
+		"cyrilingo": {
+			"type": "http",
+			"url": "https://<PUBLIC_URL host>/mcp",
+			"headers": { "Authorization": "Bearer <agent key>" }
+		}
+	}
+}
+```
+
+On stdio, set `DATABASE_URL` and `CYRILINGO_SESSION_TOKEN` (locally against the development database, or inside the `api` container of a deployment) and run `npm run --silent mcp`: stdout carries the protocol only, so `--silent` keeps npm's own lines off it, and the server writes its messages to stderr. An MCP client starts it with a configuration such as:
 
 ```json
 {
@@ -341,7 +355,7 @@ apps/api/        Hono on Node.js:
   src/db/          Kysely queries, connection, migration runner, seed
   src/auth/        password hashing, tokens, Google OAuth client
   src/speech/      SpeechClient interface, Azure client, fake client
-  src/mcp/         MCP server: tool declarations calling the services
+  src/mcp/         MCP server: tool declarations calling the services, stdio and HTTP (/mcp)
   src/main.ts      starts the HTTP API; src/mcp-main.ts starts the MCP server on stdio
   migrations/      0001_init.sql, 0002_…sql
 ```
@@ -423,7 +437,7 @@ Mutating requests must carry `Content-Type: application/json` (or `audio/wav` fo
 | Passwords      | argon2id (`@node-rs/argon2`)                                                                                         | memory-hard hash, current OWASP recommendation  |
 | Google sign-in | Arctic (OAuth 2.0 + PKCE client)                                                                                     | only the OAuth plumbing; sessions stay ours     |
 | Speech         | Azure AI Speech REST API through `fetch`                                                                             | see The model feature                           |
-| MCP            | `@modelcontextprotocol/sdk`, stdio                                                                                   | official SDK                                    |
+| MCP            | `@modelcontextprotocol/sdk`, Streamable HTTP + stdio                                                                 | official SDK                                    |
 | Tests          | Vitest (unit, services against a throwaway PostgreSQL, components), Playwright (end to end), axe-core                |                                                 |
 | Coverage       | `@vitest/coverage-v8`                                                                                                | one command, lines and branches                 |
 | Deployment     | Docker Compose                                                                                                       | see Deployment                                  |
@@ -442,13 +456,13 @@ Mutating requests must carry `Content-Type: application/json` (or `audio/wav` fo
 - `db`: PostgreSQL with a named volume, on an internal network only;
 - `migrate`: runs the migrations then the seed, once, before `api` starts;
 - `api`: the Hono server;
-- `web`: Nginx serving the static front end and forwarding `/api` to `api`; the only published port, `${WEB_PORT:-8080}`.
+- `web`: Nginx serving the static front end and forwarding `/api` and `/mcp` to `api`; the only published port, `${WEB_PORT:-8080}`.
 
 HTTPS is terminated by whatever reverse proxy sits in front of `web`; the app trusts its `X-Forwarded-*` headers only when `TRUST_PROXY=true`. Images are built from the repository (`build:`), so any host that can run Docker Compose from a Git repository can deploy it; a merge into `main` is a release.
 
 Configuration, all through environment variables (template in `.env.example`; real values never committed): `PUBLIC_URL`, `API_PORT` (default 3000), `WEB_PORT`, `TRUST_PROXY`, `POSTGRES_PASSWORD`, `DATABASE_URL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION`, `SPEECH_DAILY_LIMIT` (default 500). Missing Google or Azure settings turn the matching feature off; a missing `PUBLIC_URL` or database setting stops the API at start with a clear message. CI runs a secret scanner (gitleaks) on every pull request.
 
-Local development: `docker compose up db` then `npm run dev` (front end and API with hot reload, Vite proxies `/api`), or `docker compose up --build` for the full stack.
+Local development: `docker compose up db` then `npm run dev` (front end and API with hot reload, Vite proxies `/api` and `/mcp`), or `docker compose up --build` for the full stack.
 
 ## Acceptance criteria
 
@@ -518,6 +532,7 @@ Local development: `docker compose up db` then `npm run dev` (front end and API 
 - [AC-51] Each MCP tool calls the same service function as its HTTP route, and gets the same result and the same errors (an MCP `delete_word_list` on another user's list fails like the HTTP route).
 - [AC-52] The MCP server refuses to start without a valid session token, and acts as that token's user only.
 - [AC-53] A signed-in user can regenerate their account's one agent key in the settings, shown only until they leave the page and stored only as a hash; regenerating it refuses the previous key to the MCP server.
+- [AC-54] `POST /mcp` serves the same 6 tools over Streamable HTTP to the learner whose agent key is sent as a Bearer token, answers 401 with `WWW-Authenticate: Bearer` without a valid key (a replaced one included), and refuses an `Origin` other than `PUBLIC_URL`.
 
 ### UI
 
@@ -578,7 +593,7 @@ Nothing has been built from this spec yet. Once slice 1 is built and checked: wh
 | D26 | Guests                                      | **Kept**, progress merged into the account at sign-in                                                                                                                       |
 | D27 | User-owned data                             | **Personal word lists**, used for review only                                                                                                                               |
 | D28 | Model feature                               | **Read aloud, checked by Azure speech to text**, signed-in users only, in addition to the existing questions                                                                |
-| D29 | MCP server                                  | **Official SDK, stdio, 6 tools**, one user through an agent session token                                                                                                   |
+| D29 | MCP server                                  | **Official SDK, 6 tools, Streamable HTTP at `/mcp` (stateless, Bearer key) and stdio**, one user through the account's agent key                                            |
 | D30 | Deployment                                  | **Docker Compose built from the repository**, behind any HTTPS reverse proxy; nothing host-specific committed                                                               |
 | D31 | Contrast                                    | **4.5:1 for all text**, white-on-color included                                                                                                                             |
 | D32 | Read-aloud recording                        | **Tap to start, tap to stop, 5 s at most**; converted to WAV, low-cut and amplified in the browser; nothing done on the server                                              |
