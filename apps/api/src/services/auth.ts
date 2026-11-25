@@ -4,9 +4,9 @@ import type { Db } from '../db/database.js';
 import type { SessionKind } from '../db/schema.js';
 import {
 	deleteSession,
-	deleteSessionsOfKind,
 	findLiveSession,
 	insertSession,
+	replaceSessionsOfKind,
 	setSessionExpiry
 } from '../db/sessions.js';
 import { findUserByEmail, insertUser } from '../db/users.js';
@@ -46,10 +46,11 @@ export interface AuthService {
 	 * kind: a browser cookie is no agent token, and an agent token opens no browser session.
 	 */
 	authenticate(token: string, kind?: SessionKind): Promise<Authenticated | null>;
-	/** Creates an agent token for the MCP server (AC-53): shown once, only its hash is stored. */
-	createAgentToken(userId: string): Promise<StartedSession>;
-	/** Revokes every agent token of the user (AC-53). */
-	revokeAgentTokens(userId: string): Promise<void>;
+	/**
+	 * Gives the account a new agent key for the MCP server, in place of the previous one, which
+	 * stops working (AC-53). Only its hash is stored: this answer is the key's only copy.
+	 */
+	regenerateAgentToken(userId: string): Promise<StartedSession>;
 }
 
 export interface AuthDeps {
@@ -76,21 +77,17 @@ export function checkPasswordLength(password: string): void {
  * Creates a browser session for a user and returns its token. Every way of signing in ends here,
  * so a password and Google give the same kind of session.
  */
-export function startSession(db: Db, userId: string, now: Date): Promise<StartedSession> {
-	return insertNewSession(db, userId, 'browser', now);
+export async function startSession(db: Db, userId: string, now: Date): Promise<StartedSession> {
+	const { token, session } = newSession(userId, 'browser', now);
+	await insertSession(db, session);
+	return { token, expiresAt: session.expiresAt };
 }
 
-/** Creates a session of either kind; they live and renew alike (SPEC.md › Sessions). */
-async function insertNewSession(
-	db: Db,
-	userId: string,
-	kind: SessionKind,
-	now: Date
-): Promise<StartedSession> {
+/** A new token and the row that stands for it; both kinds live and renew alike. */
+function newSession(userId: string, kind: SessionKind, now: Date) {
 	const token = generateToken();
 	const expiresAt = new Date(now.getTime() + SESSION_LIFETIME_MS);
-	await insertSession(db, { id: hashToken(token), userId, kind, expiresAt });
-	return { token, expiresAt };
+	return { token, session: { id: hashToken(token), userId, kind, expiresAt } };
 }
 
 export function createAuthService({
@@ -150,12 +147,10 @@ export function createAuthService({
 			return authenticated;
 		},
 
-		createAgentToken(userId) {
-			return insertNewSession(db, userId, 'agent', now());
-		},
-
-		async revokeAgentTokens(userId) {
-			await deleteSessionsOfKind(db, userId, 'agent');
+		async regenerateAgentToken(userId) {
+			const { token, session } = newSession(userId, 'agent', now());
+			await replaceSessionsOfKind(db, session);
+			return { token, expiresAt: session.expiresAt };
 		}
 	};
 }

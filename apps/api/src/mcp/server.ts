@@ -9,8 +9,8 @@ export class McpStartError extends Error {
 
 /**
  * The MCP server of SPEC.md › MCP tools, acting as the user of one agent token (AC-52). Refuses to
- * start when the token is missing, unknown, expired, revoked or a browser session; the token is
- * checked again on every tool call, so revoking it stops a running server (AC-53).
+ * start when the key is missing, unknown, expired, replaced or a browser session; the key is
+ * checked again on every tool call, so regenerating it stops a running server (AC-53).
  */
 export async function createMcpServer(
 	services: Services,
@@ -19,12 +19,12 @@ export async function createMcpServer(
 	const agentToken = token?.trim();
 	if (!agentToken) {
 		throw new McpStartError(
-			'CYRILINGO_SESSION_TOKEN is missing: create an agent token in Cyrilingo’s settings'
+			'CYRILINGO_SESSION_TOKEN is missing: regenerate the agent key in Cyrilingo’s settings'
 		);
 	}
 	const authenticate = () => services.auth.authenticate(agentToken, 'agent');
 	if (!(await authenticate())) {
-		throw new McpStartError('CYRILINGO_SESSION_TOKEN is unknown, expired or revoked');
+		throw new McpStartError('CYRILINGO_SESSION_TOKEN is unknown, expired or was regenerated');
 	}
 
 	const server = new McpServer({ name: 'cyrilingo', version: '1.0.0' });

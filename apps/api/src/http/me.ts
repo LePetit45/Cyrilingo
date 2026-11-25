@@ -28,14 +28,10 @@ export function meRoutes(services: Services, cookies: SessionCookies) {
 				});
 				return c.body(null, 204);
 			})
-			// Agent tokens for the MCP server (SPEC.md › MCP tools): the token is in this answer only.
-			.post('/agent-tokens', async (c) => {
-				const { token, expiresAt } = await services.auth.createAgentToken(c.var.session.userId);
+			// The account's agent key for the MCP server (SPEC.md › MCP tools), in this answer only.
+			.post('/agent-token', async (c) => {
+				const { token, expiresAt } = await services.auth.regenerateAgentToken(c.var.session.userId);
 				return c.json({ token, expiresAt }, 201);
-			})
-			.delete('/agent-tokens', async (c) => {
-				await services.auth.revokeAgentTokens(c.var.session.userId);
-				return c.body(null, 204);
 			})
 			.delete('/', async (c) => {
 				await services.account.remove(c.var.session.userId);

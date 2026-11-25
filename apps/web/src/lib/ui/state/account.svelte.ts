@@ -90,18 +90,14 @@ export class AccountState {
 		return result;
 	}
 
-	/** Creates a token for an AI agent (SPEC.md › MCP tools): the answer is its only copy. */
-	async createAgentToken(): Promise<ApiResult<AgentToken>> {
-		return this.#signedOutOn401(await this.#api.createAgentToken());
-	}
-
-	/** Revokes every agent token of the account; this device stays signed in. */
-	async revokeAgentTokens(): Promise<ApiResult<void>> {
-		return this.#signedOutOn401(await this.#api.revokeAgentTokens());
-	}
-
-	#signedOutOn401<T>(result: ApiResult<T>): ApiResult<T> {
-		if (!result.ok && result.error === 'unauthenticated') this.#forget();
+	/**
+	 * Gives the account a new agent key (SPEC.md › MCP tools), in place of the previous one. The
+	 * answer is the key's only copy: the API keeps its hash.
+	 */
+	async regenerateAgentToken(): Promise<ApiResult<AgentToken>> {
+		const result = await this.#api.regenerateAgentToken();
+		if (result.ok && this.details) this.details = { ...this.details, hasAgentToken: true };
+		else if (!result.ok && result.error === 'unauthenticated') this.#forget();
 		return result;
 	}
 

@@ -35,21 +35,14 @@ describe('createApiClient', () => {
 		});
 	});
 
-	it('creates and revokes agent tokens under /api/me/agent-tokens', async () => {
+	it('regenerates the agent key with POST /api/me/agent-token', async () => {
 		const fetch = vi.fn(async () => Response.json({ token: 't', expiresAt: 'later' }));
-		const client = createApiClient(fetch);
-		expect(await client.createAgentToken()).toEqual({
+		expect(await createApiClient(fetch).regenerateAgentToken()).toEqual({
 			ok: true,
 			value: { token: 't', expiresAt: 'later' }
 		});
-		expect(fetch).toHaveBeenLastCalledWith('/api/me/agent-tokens', {
+		expect(fetch).toHaveBeenCalledWith('/api/me/agent-token', {
 			method: 'POST',
-			headers: {},
-			signal: expect.any(AbortSignal)
-		});
-		await client.revokeAgentTokens();
-		expect(fetch).toHaveBeenLastCalledWith('/api/me/agent-tokens', {
-			method: 'DELETE',
 			headers: {},
 			signal: expect.any(AbortSignal)
 		});

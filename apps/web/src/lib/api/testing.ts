@@ -6,6 +6,7 @@ export const ACCOUNT: Account = {
 	email: 'ana@example.com',
 	hasPassword: true,
 	providers: [],
+	hasAgentToken: false,
 	features: { readAloud: true, google: false }
 };
 
@@ -36,10 +37,9 @@ export function fakeApi(
 		getAccount: vi.fn(async () => ok(ACCOUNT)),
 		setPassword: vi.fn(async () => ok(undefined)),
 		deleteAccount: vi.fn(async () => ok(undefined)),
-		createAgentToken: vi.fn(async () =>
+		regenerateAgentToken: vi.fn(async () =>
 			ok({ token: 'a'.repeat(43), expiresAt: '2026-12-25T12:00:00.000Z' })
 		),
-		revokeAgentTokens: vi.fn(async () => ok(undefined)),
 		getProgress: vi.fn(async () => ok(server.progress)),
 		mergeProgress: vi.fn(async ({ completedLessons, examPassed }: Progress) => {
 			server.progress = {

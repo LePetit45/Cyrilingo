@@ -126,7 +126,8 @@ describe('one person, one account', () => {
 		expect(await account.get(user!.id)).toEqual({
 			email,
 			hasPassword: false,
-			providers: ['google']
+			providers: ['google'],
+			hasAgentToken: false
 		});
 	});
 

@@ -6,30 +6,38 @@ test.beforeEach(async ({ page }) => {
 	await skipWelcome(page);
 });
 
-test('[AC-53] creates an agent token shown once, then revokes every token', async ({
+test('[AC-53] regenerates the agent key in the settings, shown only until the page is left', async ({
 	page,
 	browserName
 }) => {
 	await signUp(page, newEmail(browserName));
 	await page.goto('/settings');
-	await accountSection(page).getByRole('link', { name: 'Agent IA' }).click();
-	await expect(page.getByRole('heading', { level: 1, name: 'Agent IA' })).toBeVisible();
+	const account = accountSection(page);
+	const key = account.getByLabel('Clé pour un agent IA');
+	const show = account.getByRole('button', { name: 'Afficher' });
+	await expect(account).toContainText('Aucune clé pour l’instant.');
+	await expect(show).toBeDisabled();
 
-	await page.getByRole('button', { name: 'Créer un jeton pour un agent' }).click();
-	const field = page.getByLabel('Ton jeton');
-	await expect(field).toHaveValue(/^[\w-]{43}$/);
-	await expect(page.getByText('il ne sera plus jamais affiché')).toBeVisible();
+	// The first key needs no confirmation: there is none to replace.
+	await account.getByRole('button', { name: 'Régénérer' }).click();
+	await expect(key).toHaveAttribute('type', 'password');
+	await show.click();
+	await expect(key).toHaveAttribute('type', 'text');
+	await expect(key).toHaveValue(/^[\w-]{43}$/);
+	const first = await key.inputValue();
+	await account.getByRole('button', { name: 'Masquer' }).click();
+	await expect(key).toHaveAttribute('type', 'password');
 
-	// Shown once: coming back to the page shows no token.
+	// Once the page is left, the key exists but cannot be shown again.
 	await page.reload();
-	await expect(page.getByRole('button', { name: 'Créer un jeton pour un agent' })).toBeVisible();
-	await expect(page.getByLabel('Ton jeton')).toHaveCount(0);
+	await expect(account).toContainText('Une clé existe, mais elle ne peut plus être affichée.');
+	await expect(key).toHaveValue('');
+	await expect(show).toBeDisabled();
 
-	await page.getByRole('button', { name: 'Révoquer tous les jetons' }).click();
-	await page.getByRole('dialog').getByRole('button', { name: 'Révoquer', exact: true }).click();
-	await expect(page.getByRole('status')).toHaveText('Tous tes jetons ont été révoqués.');
-
-	// This device is still signed in.
-	await page.goto('/settings');
-	await expect(accountSection(page).getByRole('button', { name: 'Se déconnecter' })).toBeVisible();
+	// Replacing it asks first, then gives a new key.
+	await account.getByRole('button', { name: 'Régénérer' }).click();
+	await page.getByRole('dialog').getByRole('button', { name: 'Régénérer' }).click();
+	await show.click();
+	await expect(key).toHaveValue(/^[\w-]{43}$/);
+	expect(await key.inputValue()).not.toBe(first);
 });

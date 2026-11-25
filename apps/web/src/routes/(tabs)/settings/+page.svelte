@@ -44,6 +44,31 @@
 			.join(' · ');
 	});
 
+	// The account's agent key (SPEC.md › MCP tools). The API keeps only its hash, so the key can be
+	// shown only right after « Régénérer », while this page stays open; it is never stored.
+	const agentKey = new AsyncState();
+	let agentToken = $state('');
+	let agentTokenShown = $state(false);
+	let confirmingRegenerate = $state(false);
+	const hasAgentToken = $derived(account.details?.hasAgentToken ?? false);
+
+	/** The line under the key: what can be done with it now. */
+	const agentKeyStatus = $derived(
+		agentToken
+			? m.account.agentKeyFresh
+			: hasAgentToken
+				? m.account.agentKeyHidden
+				: account.details
+					? m.account.agentKeyNone
+					: ''
+	);
+
+	async function regenerateAgentKey() {
+		agentTokenShown = false;
+		const result = await agentKey.run(() => account.regenerateAgentToken());
+		if (result?.ok) agentToken = result.value.token;
+	}
+
 	function resetProgress() {
 		void reset.run(() => progressSync.reset());
 	}
@@ -73,10 +98,41 @@
 				{account.details?.hasPassword === false ? m.account.setPassword : m.account.changePassword}
 				<Icon name="forward" size={22} />
 			</a>
-			<a class="row" href={resolve('/(tabs)/settings/agent')}>
-				{m.account.agent}
-				<Icon name="forward" size={22} />
-			</a>
+			<div class="agent-key" aria-busy={agentKey.loading}>
+				<label class="label" for="agent-key">{m.account.agentKey}</label>
+				<p class="hint">{m.account.agentKeyIntro}</p>
+				<div class="key-row">
+					<input
+						id="agent-key"
+						type={agentTokenShown ? 'text' : 'password'}
+						readonly
+						autocomplete="off"
+						value={agentToken}
+						placeholder={hasAgentToken ? '••••••••••••••••' : ''}
+						aria-describedby="agent-key-status"
+						onfocus={(event) => event.currentTarget.select()}
+					/>
+					<button
+						type="button"
+						class="key-button"
+						disabled={!agentToken}
+						aria-pressed={agentTokenShown}
+						onclick={() => (agentTokenShown = !agentTokenShown)}
+					>
+						{agentTokenShown ? m.account.hide : m.account.show}
+					</button>
+					<button
+						type="button"
+						class="key-button"
+						disabled={agentKey.loading}
+						onclick={() => (hasAgentToken ? (confirmingRegenerate = true) : regenerateAgentKey())}
+					>
+						{agentKey.loading ? m.auth.busy : m.account.regenerate}
+					</button>
+				</div>
+				<p id="agent-key-status" class="hint" class:fresh={agentToken}>{agentKeyStatus}</p>
+				<p class="error" role="alert">{agentKey.error ? m.errors[agentKey.error] : ''}</p>
+			</div>
 			<button type="button" class="row" disabled={accountAction.loading} onclick={signOut}>
 				{accountAction.loading ? m.auth.busy : m.account.signOut}
 			</button>
@@ -157,6 +213,14 @@
 	confirmLabel={m.account.deleteConfirm}
 	danger
 	onconfirm={deleteAccount}
+/>
+
+<ConfirmDialog
+	bind:open={confirmingRegenerate}
+	title={m.account.regenerateTitle}
+	message={m.account.regenerateMessage}
+	confirmLabel={m.account.regenerateConfirm}
+	onconfirm={regenerateAgentKey}
 />
 
 <ConfirmDialog
@@ -256,6 +320,86 @@
 	.value {
 		max-width: 100%;
 		overflow-wrap: anywhere;
+	}
+
+	/* The agent key: its label, the field and its two buttons, then what can be done with it. */
+	.agent-key {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr);
+		gap: 0.5rem;
+		padding: 0.75rem 1.25rem 1rem;
+	}
+
+	.agent-key p {
+		margin: 0;
+	}
+
+	.hint {
+		font-size: 0.875rem;
+		color: var(--color-text-muted);
+	}
+
+	.hint.fresh {
+		font-weight: 700;
+		color: var(--color-accent-dark);
+	}
+
+	.hint:empty {
+		display: none;
+	}
+
+	.key-row {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+	}
+
+	/* The key is long and has no spaces: it scrolls inside its field instead of widening the page. */
+	.key-row input {
+		flex: 1 1 100%;
+		width: 100%;
+		min-width: 0;
+		min-height: 3rem;
+		padding: 0.5rem 0.875rem;
+		font-family: var(--font-mono);
+		font-size: 1rem;
+		color: var(--color-text);
+		background: var(--color-surface-muted);
+		border: 2px solid var(--color-border-dark);
+		border-radius: var(--radius-md);
+	}
+
+	.key-row input::placeholder {
+		color: var(--color-text-muted);
+	}
+
+	.key-row input:focus {
+		border-color: var(--color-accent);
+		background: var(--color-surface);
+	}
+
+	/* Small buttons, like the rows: the key is a detail of the account, not an action of the page. */
+	.key-button {
+		flex: 1;
+		min-height: 3rem;
+		padding: 0 0.875rem;
+		font: inherit;
+		font-size: 0.9375rem;
+		font-weight: 800;
+		color: var(--color-accent-dark);
+		background: var(--color-surface);
+		border: 2px solid var(--color-border-dark);
+		border-radius: var(--radius-md);
+		cursor: pointer;
+	}
+
+	.key-button:hover:not(:disabled) {
+		background: var(--color-surface-muted);
+	}
+
+	.key-button:disabled {
+		color: var(--color-text-faint);
+		cursor: not-allowed;
 	}
 
 	.invite {

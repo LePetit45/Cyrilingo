@@ -303,7 +303,20 @@ export const fr = {
 		checking: 'Vérification de ton compte…',
 		changePassword: 'Changer mon mot de passe',
 		setPassword: 'Choisir un mot de passe',
-		agent: 'Agent IA',
+		agentKey: 'Clé pour un agent IA',
+		agentKeyIntro:
+			'Permet à un assistant IA compatible MCP d’utiliser Cyrilingo à ta place, avec tes droits et rien de plus.',
+		agentKeyNone: 'Aucune clé pour l’instant.',
+		agentKeyHidden:
+			'Une clé existe, mais elle ne peut plus être affichée. Régénère-la pour en obtenir une nouvelle.',
+		agentKeyFresh: 'Copie-la maintenant : elle ne sera plus affichée une fois la page quittée.',
+		show: 'Afficher',
+		hide: 'Masquer',
+		regenerate: 'Régénérer',
+		regenerateTitle: 'Régénérer la clé ?',
+		regenerateMessage:
+			'L’ancienne clé cessera aussitôt de fonctionner : les agents qui l’utilisent devront recevoir la nouvelle.',
+		regenerateConfirm: 'Régénérer',
 		signOut: 'Se déconnecter',
 		signedOut: 'Déconnexion réussie sur cet appareil.',
 		deleteAccount: 'Supprimer mon compte',
@@ -320,27 +333,6 @@ export const fr = {
 		save: 'Enregistrer',
 		saved: 'Ton mot de passe est changé. Tes autres appareils ont été déconnectés.',
 		back: 'Retour aux réglages'
-	},
-	agent: {
-		title: 'Agent IA',
-		back: 'Retour aux réglages',
-		intro:
-			'Un jeton permet à un assistant IA compatible MCP d’utiliser Cyrilingo à ta place : voir les leçons et ta progression, et gérer tes listes de mots. Il a exactement tes droits, rien de plus.',
-		create: 'Créer un jeton pour un agent',
-		tokenLabel: 'Ton jeton',
-		copy: 'Copier',
-		copied: 'Jeton copié.',
-		shownOnce:
-			'Copie-le maintenant : il ne sera plus jamais affiché. Il reste valable 30 jours, prolongés à chaque utilisation.',
-		revokeSection: 'Jetons existants',
-		revokeHint:
-			'Un jeton perdu ou dont tu ne te sers plus ? Révoque-les tous : les agents perdent l’accès à ton compte.',
-		revoke: 'Révoquer tous les jetons',
-		revokeTitle: 'Révoquer tous tes jetons ?',
-		revokeMessage:
-			'Les agents qui les utilisent n’auront plus accès à ton compte. Ta session sur cet appareil est conservée.',
-		revokeConfirm: 'Révoquer',
-		revoked: 'Tous tes jetons ont été révoqués.'
 	},
 	/** One sentence per error code of the API client: never the response body (SPEC.md › UI). */
 	errors: {

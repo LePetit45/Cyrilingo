@@ -39,7 +39,7 @@ interface Learner {
 	userId: string;
 	/** The browser session cookie, `session=…`. */
 	cookie: string;
-	/** An agent token created in the settings. */
+	/** The account's agent key, made in the settings. */
 	token: string;
 }
 
@@ -55,7 +55,7 @@ async function newLearner(): Promise<Learner> {
 		body: JSON.stringify({ email: `learner-${randomUUID()}@example.com`, password: 'a password' })
 	});
 	const cookie = signUp.headers.get('Set-Cookie')?.split(';')[0] ?? '';
-	const created = await http('POST', '/me/agent-tokens', cookie);
+	const created = await http('POST', '/me/agent-token', cookie);
 	const { token } = (await created.json()) as { token: string };
 	const session = await services.auth.authenticate(cookie.slice('session='.length));
 	return { userId: session!.userId, cookie, token };
@@ -287,49 +287,68 @@ describe('MCP server', () => {
 	});
 });
 
-describe('/api/me/agent-tokens', () => {
-	it('[AC-53] creates an agent token shown once, of which only the hash is stored', async () => {
+describe('/api/me/agent-token', () => {
+	it('[AC-53] regenerates the account’s one agent key, of which only the hash is stored', async () => {
 		const learner = await newLearner();
-		const response = await http('POST', '/me/agent-tokens', learner.cookie);
+		const me = async () => (await http('GET', '/me', learner.cookie)).json();
+		expect(await me()).toMatchObject({ hasAgentToken: true });
+
+		const response = await http('POST', '/me/agent-token', learner.cookie);
 		expect(response.status).toBe(201);
 		const { token, expiresAt } = (await response.json()) as { token: string; expiresAt: string };
 		expect(token).toMatch(/^[\w-]{43}$/);
 		expect(token).not.toBe(learner.token);
 		expect(new Date(expiresAt).getTime()).toBeGreaterThan(Date.now());
 
+		// One key per account: the new one replaced the first, and only its hash is stored.
 		const stored = await db
 			.selectFrom('sessions')
 			.select(['id', 'kind'])
 			.where('user_id', '=', learner.userId)
 			.where('kind', '=', 'agent')
 			.execute();
-		expect(stored).toHaveLength(2);
-		expect(stored).toContainEqual({ id: hashToken(token), kind: 'agent' });
-		expect(JSON.stringify(stored)).not.toContain(token);
+		expect(stored).toEqual([{ id: hashToken(token), kind: 'agent' }]);
+		// The account tells whether a key exists, never the key.
+		expect(JSON.stringify(await me())).not.toContain(token);
 	});
 
-	it('[AC-53] revokes every agent token, after which the MCP server is refused', async () => {
+	it('[AC-53] regenerating refuses the previous key to the MCP server, even one already running', async () => {
 		const learner = await newLearner();
-		const second = (await (await http('POST', '/me/agent-tokens', learner.cookie)).json()) as {
-			token: string;
-		};
 		const running = await connect(learner.token);
 
-		const response = await http('DELETE', '/me/agent-tokens', learner.cookie);
-		expect(response.status).toBe(204);
+		const { token } = (await (await http('POST', '/me/agent-token', learner.cookie)).json()) as {
+			token: string;
+		};
 		expect(await startRefusal(learner.token)).toBeDefined();
-		expect(await startRefusal(second.token)).toBeDefined();
-		// A server already running is refused on its next call.
 		expect(await call(running, 'list_word_lists')).toEqual({
 			isError: true,
 			body: { error: { code: 'unauthenticated', message: expect.any(String) } }
 		});
-		// The browser session stays.
+		// The new key works, and the browser session stays.
+		expect(await call(await connect(token), 'list_word_lists')).toEqual({
+			isError: false,
+			body: []
+		});
 		expect((await http('GET', '/me', learner.cookie)).status).toBe(200);
 	});
 
+	it('tells that the account has no key before the first one, or once it expired', async () => {
+		const services31DaysLater = createServices(db, undefined, {
+			now: () => new Date(Date.now() + 31 * 24 * 60 * 60 * 1000)
+		});
+		const learner = await newLearner();
+		expect(await services31DaysLater.account.get(learner.userId)).toMatchObject({
+			hasAgentToken: false
+		});
+		await db
+			.deleteFrom('sessions')
+			.where('user_id', '=', learner.userId)
+			.where('kind', '=', 'agent')
+			.execute();
+		expect(await services.account.get(learner.userId)).toMatchObject({ hasAgentToken: false });
+	});
+
 	it('answers 401 without a session', async () => {
-		expect((await http('POST', '/me/agent-tokens', '')).status).toBe(401);
-		expect((await http('DELETE', '/me/agent-tokens', '')).status).toBe(401);
+		expect((await http('POST', '/me/agent-token', '')).status).toBe(401);
 	});
 });

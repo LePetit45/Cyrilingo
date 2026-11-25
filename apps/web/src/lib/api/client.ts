@@ -39,10 +39,12 @@ export interface Account {
 	email: string;
 	hasPassword: boolean;
 	providers: 'google'[];
+	/** Whether the account has an agent key for the MCP server; the key itself is never sent. */
+	hasAgentToken: boolean;
 	features: { readAloud: boolean; google: boolean };
 }
 
-/** `POST /api/me/agent-tokens`: a token for the MCP server, in this answer only. */
+/** `POST /api/me/agent-token`: the account's new agent key, in this answer only. */
 export interface AgentToken {
 	token: string;
 	expiresAt: string;
@@ -158,8 +160,7 @@ export function createApiClient(fetchFn: typeof fetch = (...args) => fetch(...ar
 		setPassword: (passwords: { currentPassword?: string; newPassword: string }) =>
 			call<void>('PUT', '/me/password', passwords),
 		deleteAccount: () => call<void>('DELETE', '/me'),
-		createAgentToken: () => call<AgentToken>('POST', '/me/agent-tokens'),
-		revokeAgentTokens: () => call<void>('DELETE', '/me/agent-tokens'),
+		regenerateAgentToken: () => call<AgentToken>('POST', '/me/agent-token'),
 		getProgress: () => call<Progress>('GET', '/progress'),
 		mergeProgress: (progress: Progress) => call<Progress>('PATCH', '/progress', progress),
 		resetProgress: () => call<void>('DELETE', '/progress'),

@@ -5,13 +5,13 @@ import { SERVICE_ERRORS } from '../http/errors.js';
 import { ServiceError } from '../services/errors.js';
 import type { Services } from '../services/index.js';
 
-/** The token was revoked or expired while the server ran: every tool is refused from then on. */
+/** The key was regenerated or expired while the server ran: every tool is refused from then on. */
 export class Unauthenticated extends Error {
 	override name = 'Unauthenticated';
 }
 
 /**
- * The user the agent acts as, checked again on every call so that revoking the token stops a
+ * The user the agent acts as, checked again on every call so that regenerating the key stops a
  * running server (AC-53). No tool takes a user id: the token is the only way to name one (AC-52).
  */
 export type ActingUser = () => Promise<string>;
@@ -111,7 +111,7 @@ async function answer(
 			return refusal(error.code, SERVICE_ERRORS[error.code].message);
 		}
 		if (error instanceof Unauthenticated) {
-			return refusal('unauthenticated', 'The agent token is unknown, expired or revoked');
+			return refusal('unauthenticated', 'The agent key is unknown, expired or was regenerated');
 		}
 		// Nothing about the failure reaches the agent: it may hold data it must not see.
 		console.error(`MCP tool failed: ${error instanceof Error ? error.name : 'unknown error'}`);
