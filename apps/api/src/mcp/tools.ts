@@ -18,9 +18,15 @@ export type ActingUser = () => Promise<string>;
 
 // The same loose bounds as the HTTP routes, against oversized input; the services check the real
 // rules (name length, list id, corpus word), so a tool and its route refuse alike (AC-51).
-const listId = z.string().max(100).describe('The id of one of the learner’s word lists');
-const listName = z.string().max(200).describe('The list name, 1 to 40 characters once trimmed');
-const word = z.string().max(100).describe('A word of the Cyrilingo corpus, written in Cyrillic');
+const listIdField = z.string().max(100).describe('The id of one of the learner’s word lists');
+const listNameField = z
+	.string()
+	.max(200)
+	.describe('The list name, 1 to 40 characters once trimmed');
+const wordField = z
+	.string()
+	.max(100)
+	.describe('A word of the Cyrilingo corpus, written in Cyrillic');
 
 /**
  * Declares the 6 tools of SPEC.md › MCP tools. Each one validates its input, calls the same
@@ -65,7 +71,7 @@ export function registerTools(server: McpServer, services: Services, actingUser:
 		{
 			description:
 				'Create a new, empty personal word list with the given name (1 to 40 characters).',
-			inputSchema: { name: listName }
+			inputSchema: { name: listNameField }
 		},
 		({ name }) => run((userId) => wordLists.create(userId, name))
 	);
@@ -75,7 +81,7 @@ export function registerTools(server: McpServer, services: Services, actingUser:
 		{
 			description:
 				'Add a word from the Cyrilingo corpus (written in Cyrillic) to one of the learner’s word lists.',
-			inputSchema: { listId, word }
+			inputSchema: { listId: listIdField, word: wordField }
 		},
 		({ listId, word }) => run((userId) => wordLists.addWord(userId, listId, word))
 	);
@@ -85,7 +91,7 @@ export function registerTools(server: McpServer, services: Services, actingUser:
 		{
 			description:
 				'Delete one of the learner’s word lists and every word in it. This cannot be undone.',
-			inputSchema: { listId },
+			inputSchema: { listId: listIdField },
 			annotations: { destructiveHint: true }
 		},
 		({ listId }) =>

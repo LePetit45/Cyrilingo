@@ -14,21 +14,21 @@ Cyrilingo teaches French speakers to read the Bulgarian Cyrillic alphabet. npm w
 
 Run from the repository root. Node.js version: [`.nvmrc`](.nvmrc). Local settings: copy `.env.example` to `.env` (read by Docker Compose, `npm run dev`, `npm run db:migrate` and the API tests).
 
-| Command                     | What it does                                                                                                                                              |
-| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `npm install`               | install every workspace                                                                                                                                   |
-| `docker compose up db`      | start PostgreSQL for development                                                                                                                          |
-| `npm run dev`               | front end and API with hot reload (Vite proxies `/api` and `/mcp`)                                                                                        |
-| `npm run db:migrate`        | apply pending migrations, then the seed                                                                                                                   |
-| `npm run lint`              | Prettier check + ESLint (including the layer boundaries)                                                                                                  |
-| `npm run check`             | type check every workspace                                                                                                                                |
-| `npm run test:unit`         | Vitest, all projects (add `-- --run` for a single run)                                                                                                    |
-| `npm run test:e2e`          | build, then Playwright end-to-end tests                                                                                                                   |
-| `npm run coverage`          | all Vitest projects with coverage; fails under 80 % lines or branches                                                                                     |
-| `npm run ac:check`          | fails if an acceptance criterion of SPEC.md has no test containing its id                                                                                 |
-| `npm run --silent mcp`      | start the MCP server on stdio; the API also serves it over HTTP at `/mcp` (needs `DATABASE_URL` and the account's agent key in `CYRILINGO_SESSION_TOKEN`) |
-| `npm run audio`             | regenerate recordings with Azure TTS (needs `AZURE_SPEECH_*` in `.env`)                                                                                   |
-| `docker compose up --build` | the full stack as deployed                                                                                                                                |
+| Command                     | What it does                                                              |
+| --------------------------- | ------------------------------------------------------------------------- |
+| `npm install`               | install every workspace                                                   |
+| `docker compose up db`      | start PostgreSQL for development                                          |
+| `npm run dev`               | front end and API with hot reload (Vite proxies `/api` and `/mcp`)        |
+| `npm run db:migrate`        | apply pending migrations, then the seed                                   |
+| `npm run lint`              | Prettier check + ESLint (including the layer boundaries)                  |
+| `npm run check`             | type check every workspace                                                |
+| `npm run test:unit`         | Vitest, all projects (add `-- --run` for a single run)                    |
+| `npm run test:e2e`          | build, then Playwright end-to-end tests                                   |
+| `npm run coverage`          | all Vitest projects with coverage; fails under 80 % lines or branches     |
+| `npm run ac:check`          | fails if an acceptance criterion of SPEC.md has no test containing its id |
+| `npm run --silent mcp`      | MCP server on stdio (needs `DATABASE_URL`, `CYRILINGO_SESSION_TOKEN`)     |
+| `npm run audio`             | regenerate recordings with Azure TTS (needs `AZURE_SPEECH_*` in `.env`)   |
+| `docker compose up --build` | the full stack as deployed                                                |
 
 Before saying a change is done: `npm run lint && npm run check && npm run coverage && npm run ac:check`, plus `npm run test:e2e` when the UI changed.
 

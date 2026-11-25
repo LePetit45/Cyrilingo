@@ -13,7 +13,8 @@ export default defineConfig({
 			adapter: adapter()
 		})
 	],
-	// In development the API runs beside Vite (`npm run dev`); in production Nginx forwards /api and /mcp.
+	// In development the API runs beside Vite (`npm run dev`); in production Nginx forwards /api
+	// and /mcp.
 	server: {
 		proxy: {
 			'/api': `http://localhost:${process.env.API_PORT || 3000}`,

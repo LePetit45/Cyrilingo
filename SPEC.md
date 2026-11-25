@@ -278,14 +278,14 @@ Stack: SvelteKit + Svelte 5 + TypeScript, built as a static PWA (`adapter-static
 
 ### Screens
 
-| Screen                                | Content                                                                                                                                                                                                                                                                                               |
-| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Path** (home)                       | letters-read count, current section banner, the path, free review and exam entries; sign-in invitation for guests                                                                                                                                                                                     |
-| **Lesson**, **Free review**, **Exam** | discovery cards, questions, bottom feedback panel, summary; diploma after a passed exam                                                                                                                                                                                                               |
-| **Alphabet**                          | the 30 letters, learned or not; a letter opens its discovery card                                                                                                                                                                                                                                     |
-| **Word lists**                        | the learner's lists; a list shows its words, lets the learner rename it, delete it, remove words, and start « Réviser ma liste » (reading questions on up to 12 of its words, nothing saved)                                                                                                          |
-| **Sign in** / **Sign up**             | e-mail and password forms, « Continuer avec Google »                                                                                                                                                                                                                                                  |
-| **Settings**                          | sound, sound effects, account (e-mail, password, sign out, delete account), Clé MCP (the agent key, its copy button and « Régénérer »), reset progress, about, with a privacy note: the read-aloud recording is sent to Microsoft Azure to be transcribed, and kept neither by Cyrilingo nor by Azure |
+| Screen                                | Content                                                                                                                                                                                                                                            |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Path** (home)                       | letters-read count, current section banner, the path, free review and exam entries; sign-in invitation for guests                                                                                                                                  |
+| **Lesson**, **Free review**, **Exam** | discovery cards, questions, bottom feedback panel, summary; diploma after a passed exam                                                                                                                                                            |
+| **Alphabet**                          | the 30 letters, learned or not; a letter opens its discovery card                                                                                                                                                                                  |
+| **Word lists**                        | the learner's lists; a list shows its words, lets the learner rename it, delete it, remove words, and start « Réviser ma liste » (reading questions on up to 12 of its words, nothing saved)                                                       |
+| **Sign in** / **Sign up**             | e-mail and password forms, « Continuer avec Google »                                                                                                                                                                                               |
+| **Settings**                          | sound, sound effects, account (e-mail, password, sign out, delete account), MCP key, reset progress, about, with a privacy note: the read-aloud recording is sent to Microsoft Azure to be transcribed, and kept neither by Cyrilingo nor by Azure |
 
 Words are added to a list from the feedback panel of a reading or read-aloud question (« Ajouter à une liste »), for signed-in learners: to one of their lists, or to a new list made there with a + button (named « Nouvelle liste », its name selected to be typed over; unticked right away, it is deleted). The lists holding the word are ticked there, and choosing one again removes the word, so a word added by mistake is taken back on the spot. Only words go into lists, not syllables; a word already in a list, a 21st list and a 201st word are refused with a sentence saying so. Navigation: bottom tab bar on mobile with **5 entries** (Parcours, Alphabet, Révision libre, Listes, Plus), left sidebar with the same entries on desktop; hidden during a lesson, review or exam. Guests opening Listes see a sign-in invitation.
 
@@ -398,29 +398,29 @@ Deleting a user cascades to everything they own, except their read-aloud tries o
 
 JSON over HTTPS under `/api`, served on the same origin as the front end (the front end calls relative paths). Errors are `{"error": {"code": "...", "message": "..."}}`; the front end shows a sentence in the interface language picked from `code`, never the body itself. The API holds no learner-facing text.
 
-| Method and path                          | What it does                                                                                                   | Auth    |
-| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------- |
-| `GET /api/health`                        | 200 when the database answers                                                                                  | —       |
-| `POST /api/auth/signup`                  | create a local account, start a session                                                                        | —       |
-| `POST /api/auth/login`                   | sign in with e-mail and password                                                                               | —       |
-| `POST /api/auth/logout`                  | end the current session                                                                                        | session |
-| `GET /api/auth/google`                   | start Google sign-in (redirect)                                                                                | —       |
-| `GET /api/auth/google/callback`          | finish Google sign-in, start a session, redirect to the app                                                    | —       |
-| `GET /api/me`                            | the signed-in user (e-mail, password set or not, linked providers, agent key or not, features on)              | session |
-| `PUT /api/me/password`                   | set or change the password                                                                                     | session |
-| `DELETE /api/me`                         | delete the account and all its data                                                                            | session |
-| `POST /api/me/agent-token`               | give the account a new agent key for the MCP server, in place of the previous one; the answer is its only copy | session |
-| `GET /api/lessons`                       | the lessons with their letters, and whether each is completed                                                  | session |
-| `GET /api/progress`                      | completed lessons and exam status                                                                              | session |
-| `PATCH /api/progress`                    | **merge** progress into the account (union of completed lessons; exam passed if passed on either side)         | session |
-| `DELETE /api/progress`                   | reset the account's progress (completed lessons and exam)                                                      | session |
-| `GET /api/word-lists`                    | the user's lists with their words                                                                              | session |
-| `POST /api/word-lists`                   | create a list                                                                                                  | session |
-| `PATCH /api/word-lists/:id`              | rename a list                                                                                                  | owner   |
-| `DELETE /api/word-lists/:id`             | delete a list                                                                                                  | owner   |
-| `POST /api/word-lists/:id/words`         | add a corpus word to a list                                                                                    | owner   |
-| `DELETE /api/word-lists/:id/words/:word` | remove a word from a list                                                                                      | owner   |
-| `POST /api/speech/recognitions`          | check a read-aloud recording against an expected word                                                          | session |
+| Method and path                          | What it does                                                                                           | Auth    |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------ | ------- |
+| `GET /api/health`                        | 200 when the database answers                                                                          | —       |
+| `POST /api/auth/signup`                  | create a local account, start a session                                                                | —       |
+| `POST /api/auth/login`                   | sign in with e-mail and password                                                                       | —       |
+| `POST /api/auth/logout`                  | end the current session                                                                                | session |
+| `GET /api/auth/google`                   | start Google sign-in (redirect)                                                                        | —       |
+| `GET /api/auth/google/callback`          | finish Google sign-in, start a session, redirect to the app                                            | —       |
+| `GET /api/me`                            | the signed-in user (e-mail, password set or not, linked providers, agent key or not, features on)      | session |
+| `PUT /api/me/password`                   | set or change the password                                                                             | session |
+| `DELETE /api/me`                         | delete the account and all its data                                                                    | session |
+| `POST /api/me/agent-token`               | replace the account's agent key for the MCP server with a new one, shown once                          | session |
+| `GET /api/lessons`                       | the lessons with their letters, and whether each is completed                                          | session |
+| `GET /api/progress`                      | completed lessons and exam status                                                                      | session |
+| `PATCH /api/progress`                    | **merge** progress into the account (union of completed lessons; exam passed if passed on either side) | session |
+| `DELETE /api/progress`                   | reset the account's progress (completed lessons and exam)                                              | session |
+| `GET /api/word-lists`                    | the user's lists with their words                                                                      | session |
+| `POST /api/word-lists`                   | create a list                                                                                          | session |
+| `PATCH /api/word-lists/:id`              | rename a list                                                                                          | owner   |
+| `DELETE /api/word-lists/:id`             | delete a list                                                                                          | owner   |
+| `POST /api/word-lists/:id/words`         | add a corpus word to a list                                                                            | owner   |
+| `DELETE /api/word-lists/:id/words/:word` | remove a word from a list                                                                              | owner   |
+| `POST /api/speech/recognitions`          | check a read-aloud recording against an expected word                                                  | session |
 
 Mutating requests must carry `Content-Type: application/json` (or `audio/wav` for speech) and an `Origin` equal to `PUBLIC_URL`; anything else is refused with 403 (CSRF protection on top of `SameSite=Lax`). JSON bodies over 16 KB are refused with 413 (speech recordings have their own limit, see The model feature › How it works); a malformed body gives 400 `invalid_input`.
 
@@ -570,37 +570,37 @@ Nothing has been built from this spec yet. Once slice 1 is built and checked: wh
 
 ## Decisions
 
-| #   | Question                                    | Decision                                                                                                                                                                    |
-| --- | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| D1  | Displayed transliteration                   | **Both**, French phonetic as reference                                                                                                                                      |
-| D2  | Bulgarian lowercase shapes                  | **From the start**, everywhere                                                                                                                                              |
-| D3  | Audio                                       | **Recordings** generated once with Azure TTS (voice Borislav), committed                                                                                                    |
-| D4  | Front end                                   | **SvelteKit (static) + Svelte 5 + TS**, rendered in the browser only                                                                                                        |
-| D5  | Interface language                          | **French first, English planned**: every learner-facing text in per-language files, nothing language-specific in API or database                                            |
-| D7  | Spaced repetition                           | **None time-based**, review driven by the path                                                                                                                              |
-| D8  | Unlocking                                   | **Free navigation**, suggested order only                                                                                                                                   |
-| D9  | Lesson progress                             | **Bar frozen on error, missed question repeated, 100 % to finish**                                                                                                          |
-| D11 | Answer input                                | **In-app keyboard** on touch devices, layout per language (AZERTY in French)                                                                                                |
-| D12 | Content format                              | **Typed TypeScript files + invariant tests**, seeded into the database                                                                                                      |
-| D13 | Theme                                       | **Single light gamified theme**                                                                                                                                             |
-| D17 | Answer confirmation                         | **MCQ on tap**, readings with « Vérifier »                                                                                                                                  |
-| D18 | Daily streaks                               | **Never**                                                                                                                                                                   |
-| D21 | Architecture                                | **Separate Hono API + static SvelteKit front end** in an npm workspaces monorepo: the REST boundary and the layers stay visible                                             |
-| D22 | Database and migrations                     | **PostgreSQL + Kysely + numbered SQL files**                                                                                                                                |
-| D23 | Social provider                             | **Google**                                                                                                                                                                  |
-| D24 | Sessions                                    | **Own opaque tokens in the database** (hashed), not JWTs: revocable, and the MCP server uses the same ones                                                                  |
-| D25 | Account linking                             | **On verified e-mail only**; linking to an unverified local account removes its password                                                                                    |
-| D26 | Guests                                      | **Kept**, progress merged into the account at sign-in                                                                                                                       |
-| D27 | User-owned data                             | **Personal word lists**, used for review only                                                                                                                               |
-| D28 | Model feature                               | **Read aloud, checked by Azure speech to text**, signed-in users only, in addition to the existing questions                                                                |
-| D29 | MCP server                                  | **Official SDK, 6 tools, Streamable HTTP at `/mcp` (stateless, Bearer key) and stdio**, one user through the account's agent key                                            |
-| D30 | Deployment                                  | **Docker Compose built from the repository**, behind any HTTPS reverse proxy; nothing host-specific committed                                                               |
-| D31 | Contrast                                    | **4.5:1 for all text**, white-on-color included                                                                                                                             |
-| D32 | Read-aloud recording                        | **Tap to start, tap to stop, 5 s at most**; converted to WAV, low-cut and amplified in the browser; nothing done on the server                                              |
-| D33 | Speech limits                               | **60 per user and 500 for everyone over a rolling 24 h**, plus 5 sign-ups per IP per hour, so the free tier cannot be drained                                               |
-| D34 | Read aloud in a lesson                      | **Never repeated, counted in the first-try rate**; any failure removes the remaining read-aloud questions                                                                   |
-| D35 | Telling learners their voice leaves the app | **In Settings › about only**                                                                                                                                                |
-| D36 | Agent key                                   | **One per account, in its own settings section**: in clear only right after « Régénérer » (only its hash is stored), never accepted as a cookie, checked on every tool call |
+| #   | Question                                    | Decision                                                                                                                         |
+| --- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| D1  | Displayed transliteration                   | **Both**, French phonetic as reference                                                                                           |
+| D2  | Bulgarian lowercase shapes                  | **From the start**, everywhere                                                                                                   |
+| D3  | Audio                                       | **Recordings** generated once with Azure TTS (voice Borislav), committed                                                         |
+| D4  | Front end                                   | **SvelteKit (static) + Svelte 5 + TS**, rendered in the browser only                                                             |
+| D5  | Interface language                          | **French first, English planned**: every learner-facing text in per-language files, nothing language-specific in API or database |
+| D7  | Spaced repetition                           | **None time-based**, review driven by the path                                                                                   |
+| D8  | Unlocking                                   | **Free navigation**, suggested order only                                                                                        |
+| D9  | Lesson progress                             | **Bar frozen on error, missed question repeated, 100 % to finish**                                                               |
+| D11 | Answer input                                | **In-app keyboard** on touch devices, layout per language (AZERTY in French)                                                     |
+| D12 | Content format                              | **Typed TypeScript files + invariant tests**, seeded into the database                                                           |
+| D13 | Theme                                       | **Single light gamified theme**                                                                                                  |
+| D17 | Answer confirmation                         | **MCQ on tap**, readings with « Vérifier »                                                                                       |
+| D18 | Daily streaks                               | **Never**                                                                                                                        |
+| D21 | Architecture                                | **Separate Hono API + static SvelteKit front end** in an npm workspaces monorepo: the REST boundary and the layers stay visible  |
+| D22 | Database and migrations                     | **PostgreSQL + Kysely + numbered SQL files**                                                                                     |
+| D23 | Social provider                             | **Google**                                                                                                                       |
+| D24 | Sessions                                    | **Own opaque tokens in the database** (hashed), not JWTs: revocable, and the MCP server uses the same ones                       |
+| D25 | Account linking                             | **On verified e-mail only**; linking to an unverified local account removes its password                                         |
+| D26 | Guests                                      | **Kept**, progress merged into the account at sign-in                                                                            |
+| D27 | User-owned data                             | **Personal word lists**, used for review only                                                                                    |
+| D28 | Model feature                               | **Read aloud, checked by Azure speech to text**, signed-in users only, in addition to the existing questions                     |
+| D29 | MCP server                                  | **Official SDK, 6 tools, Streamable HTTP at `/mcp` and stdio**, one user through the account's agent key                         |
+| D30 | Deployment                                  | **Docker Compose built from the repository**, behind any HTTPS reverse proxy; nothing host-specific committed                    |
+| D31 | Contrast                                    | **4.5:1 for all text**, white-on-color included                                                                                  |
+| D32 | Read-aloud recording                        | **Tap to start, tap to stop, 5 s at most**; converted to WAV, low-cut and amplified in the browser; nothing done on the server   |
+| D33 | Speech limits                               | **60 per user and 500 for everyone over a rolling 24 h**, plus 5 sign-ups per IP per hour, so the free tier cannot be drained    |
+| D34 | Read aloud in a lesson                      | **Never repeated, counted in the first-try rate**; any failure removes the remaining read-aloud questions                        |
+| D35 | Telling learners their voice leaves the app | **In Settings › about only**                                                                                                     |
+| D36 | Agent key                                   | **One per account**, in its own settings section; in clear only right after « Régénérer »; checked on every call                 |
 
 Missing numbers are earlier decisions, folded into the text above or superseded.
 

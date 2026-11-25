@@ -1,12 +1,12 @@
 import { Hono } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
 import type { Config } from '../config.js';
+import { mcpRoutes } from '../mcp/http.js';
 import { ServiceError } from '../services/errors.js';
 import type { Services } from '../services/index.js';
 import { authRoutes } from './auth.js';
 import { errorResponse, SERVICE_ERRORS } from './errors.js';
 import { healthRoutes } from './health.js';
-import { mcpRoutes } from '../mcp/http.js';
 import { InvalidInput } from './input.js';
 import { requestLogger } from './logger.js';
 import { meRoutes } from './me.js';

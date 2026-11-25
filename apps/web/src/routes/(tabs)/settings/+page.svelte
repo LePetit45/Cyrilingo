@@ -53,6 +53,8 @@
 	let confirmingRegenerate = $state(false);
 	let agentHelpOpen = $state(false);
 	const hasAgentToken = $derived(account.details?.hasAgentToken ?? false);
+	// Asks before replacing unless the account is known to have no key yet.
+	const mayReplaceKey = $derived(account.details?.hasAgentToken !== false);
 
 	async function regenerateAgentKey() {
 		agentKeyCopied = false;
@@ -156,7 +158,7 @@
 				autocomplete="off"
 				spellcheck="false"
 				value={agentToken || (hasAgentToken ? '••••••••••••••••' : '')}
-				placeholder={m.agent.none}
+				placeholder={account.details ? m.agent.none : ''}
 				onfocus={(event) => agentToken && event.currentTarget.select()}
 			/>
 			<button
@@ -173,7 +175,7 @@
 				type="button"
 				class="key-button"
 				disabled={agentKey.loading}
-				onclick={() => (hasAgentToken ? (confirmingRegenerate = true) : regenerateAgentKey())}
+				onclick={() => (mayReplaceKey ? (confirmingRegenerate = true) : regenerateAgentKey())}
 			>
 				{agentKey.loading ? m.auth.busy : m.agent.regenerate}
 			</button>
