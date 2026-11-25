@@ -7,12 +7,14 @@
 		"dev": "node --env-file-if-exists=../../.env --import tsx --watch src/main.ts",
 		"start": "node --import tsx src/main.ts",
 		"db:migrate": "node --env-file-if-exists=../../.env --import tsx src/db/migrate-cli.ts",
+		"mcp": "node --env-file-if-exists=../../.env --import tsx src/mcp-main.ts",
 		"check": "tsc -p tsconfig.json",
 		"e2e": "node --env-file-if-exists=../../.env --import tsx src/e2e-server.ts"
 	},
 	"dependencies": {
 		"@cyrilingo/core": "*",
 		"@hono/node-server": "^2.1.6",
+		"@modelcontextprotocol/sdk": "^1.32.2",
 		"@node-rs/argon2": "^2.2.2",
 		"arctic": "^3.7.0",
 		"hono": "^4.13.16",

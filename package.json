@@ -25,6 +25,7 @@
 		"icons": "node scripts/generate-icons.js",
 		"audio": "node --env-file=.env scripts/audio/generate.ts",
 		"audio:bench": "node --env-file=.env scripts/audio/bench.ts",
+		"mcp": "npm run mcp -w @cyrilingo/api",
 		"db:migrate": "npm run db:migrate -w @cyrilingo/api"
 	},
 	"devDependencies": {
