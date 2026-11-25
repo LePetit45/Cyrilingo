@@ -47,3 +47,12 @@ export async function deleteOtherSessions(db: Db, userId: string, keepId: string
 export async function deleteAllSessions(db: Db, userId: string): Promise<void> {
 	await db.deleteFrom('sessions').where('user_id', '=', userId).execute();
 }
+
+/** Deletes every session of one kind of a user (its agent tokens). */
+export async function deleteSessionsOfKind(
+	db: Db,
+	userId: string,
+	kind: SessionKind
+): Promise<void> {
+	await db.deleteFrom('sessions').where('user_id', '=', userId).where('kind', '=', kind).execute();
+}

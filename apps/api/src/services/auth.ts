@@ -2,7 +2,13 @@ import { hashPassword, spendPasswordCheckTime, verifyPassword } from '../auth/pa
 import { generateToken, hashToken } from '../auth/tokens.js';
 import type { Db } from '../db/database.js';
 import type { SessionKind } from '../db/schema.js';
-import { deleteSession, findLiveSession, insertSession, setSessionExpiry } from '../db/sessions.js';
+import {
+	deleteSession,
+	deleteSessionsOfKind,
+	findLiveSession,
+	insertSession,
+	setSessionExpiry
+} from '../db/sessions.js';
 import { findUserByEmail, insertUser } from '../db/users.js';
 import { ServiceError } from './errors.js';
 import type { IpLimit } from './ip-limits.js';
@@ -35,8 +41,15 @@ export interface AuthService {
 	signUp(email: string, password: string, ip: string): Promise<StartedSession>;
 	signIn(email: string, password: string, ip: string): Promise<StartedSession>;
 	signOut(token: string): Promise<void>;
-	/** The user and session a token stands for, or null when it is unknown or expired. */
-	authenticate(token: string): Promise<Authenticated | null>;
+	/**
+	 * The user and session a token stands for, or null when it is unknown, expired or of another
+	 * kind: a browser cookie is no agent token, and an agent token opens no browser session.
+	 */
+	authenticate(token: string, kind?: SessionKind): Promise<Authenticated | null>;
+	/** Creates an agent token for the MCP server (AC-53): shown once, only its hash is stored. */
+	createAgentToken(userId: string): Promise<StartedSession>;
+	/** Revokes every agent token of the user (AC-53). */
+	revokeAgentTokens(userId: string): Promise<void>;
 }
 
 export interface AuthDeps {
@@ -63,10 +76,20 @@ export function checkPasswordLength(password: string): void {
  * Creates a browser session for a user and returns its token. Every way of signing in ends here,
  * so a password and Google give the same kind of session.
  */
-export async function startSession(db: Db, userId: string, now: Date): Promise<StartedSession> {
+export function startSession(db: Db, userId: string, now: Date): Promise<StartedSession> {
+	return insertNewSession(db, userId, 'browser', now);
+}
+
+/** Creates a session of either kind; they live and renew alike (SPEC.md › Sessions). */
+async function insertNewSession(
+	db: Db,
+	userId: string,
+	kind: SessionKind,
+	now: Date
+): Promise<StartedSession> {
 	const token = generateToken();
 	const expiresAt = new Date(now.getTime() + SESSION_LIFETIME_MS);
-	await insertSession(db, { id: hashToken(token), userId, kind: 'browser', expiresAt });
+	await insertSession(db, { id: hashToken(token), userId, kind, expiresAt });
 	return { token, expiresAt };
 }
 
@@ -111,10 +134,10 @@ export function createAuthService({
 			await deleteSession(db, hashToken(token));
 		},
 
-		async authenticate(token) {
+		async authenticate(token, kind = 'browser') {
 			const at = now();
 			const session = await findLiveSession(db, hashToken(token), at);
-			if (!session) return null;
+			if (!session || session.kind !== kind) return null;
 			const authenticated: Authenticated = {
 				userId: session.userId,
 				sessionId: session.id,
@@ -125,6 +148,14 @@ export function createAuthService({
 				await setSessionExpiry(db, session.id, authenticated.renewedUntil);
 			}
 			return authenticated;
+		},
+
+		createAgentToken(userId) {
+			return insertNewSession(db, userId, 'agent', now());
+		},
+
+		async revokeAgentTokens(userId) {
+			await deleteSessionsOfKind(db, userId, 'agent');
 		}
 	};
 }
