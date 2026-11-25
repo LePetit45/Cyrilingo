@@ -40,10 +40,48 @@ export function downmix(channels: readonly Float32Array[]): Float32Array {
 	return mono;
 }
 
+/** Below this frequency, sound is rumble, hum or knocks on the microphone, never voice. */
+export const LOW_CUT_HZ = 100;
+
+/**
+ * Removes what is below `cutoff` hertz (a first-order high-pass filter): rumble and hum go, the
+ * voice stays.
+ */
+export function lowCut(
+	samples: Float32Array,
+	sampleRate = SPEECH_SAMPLE_RATE,
+	cutoff = LOW_CUT_HZ
+): Float32Array {
+	const rc = 1 / (2 * Math.PI * cutoff);
+	const alpha = rc / (rc + 1 / sampleRate);
+	const filtered = new Float32Array(samples.length);
+	for (let i = 1; i < samples.length; i++) {
+		filtered[i] = alpha * (filtered[i - 1] + samples[i] - samples[i - 1]);
+	}
+	return filtered;
+}
+
+/** The loudest sample after `louder`: near full scale, with headroom. */
+export const TARGET_PEAK = 0.9;
+/** The most `louder` amplifies (×10, 20 dB), so a recording of mere breath stays quiet. */
+export const MAX_GAIN = 10;
+
+/**
+ * Amplifies the samples so the loudest one reaches `TARGET_PEAK`, by `MAX_GAIN` at most; never
+ * makes a recording quieter. Learners' recordings are often faint, and the speech model hears a
+ * faint word less well.
+ */
+export function louder(samples: Float32Array): Float32Array {
+	let peak = 0;
+	for (const sample of samples) peak = Math.max(peak, Math.abs(sample));
+	const gain = peak === 0 ? 1 : Math.min(MAX_GAIN, Math.max(1, TARGET_PEAK / peak));
+	return samples.map((sample) => sample * gain);
+}
+
 /**
  * Turns what `MediaRecorder` recorded (WebM, MP4… whatever the browser makes) into 16 kHz mono
- * WAV. Decoding through a 16 kHz `OfflineAudioContext` resamples on the way, and needs no
- * `AudioContext`: nothing is played.
+ * WAV, low-cut then louder. Decoding through a 16 kHz `OfflineAudioContext` resamples on the
+ * way, and needs no `AudioContext`: nothing is played.
  */
 export async function toSpeechWav(recorded: ArrayBuffer): Promise<Uint8Array> {
 	const context = new OfflineAudioContext(1, 1, SPEECH_SAMPLE_RATE);
@@ -51,5 +89,5 @@ export async function toSpeechWav(recorded: ArrayBuffer): Promise<Uint8Array> {
 	const channels = Array.from({ length: audio.numberOfChannels }, (_, i) =>
 		audio.getChannelData(i)
 	);
-	return encodeWav(downmix(channels), audio.sampleRate);
+	return encodeWav(louder(lowCut(downmix(channels), audio.sampleRate)), audio.sampleRate);
 }

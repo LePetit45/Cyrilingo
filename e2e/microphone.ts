@@ -31,6 +31,7 @@ export async function fakeMicrophone(page: Page, { denied = false } = {}) {
 			mimeType = 'audio/wav';
 			start() {
 				this.state = 'recording';
+				setTimeout(() => this.dispatchEvent(new Event('start')));
 			}
 			stop() {
 				this.state = 'inactive';

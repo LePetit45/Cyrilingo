@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { downmix, encodeWav } from './wav.js';
+import { downmix, encodeWav, louder, lowCut, MAX_GAIN, TARGET_PEAK } from './wav.js';
 
 describe('encodeWav', () => {
 	it('writes a 16 kHz mono 16-bit PCM WAV header', () => {
@@ -31,5 +31,31 @@ describe('downmix', () => {
 		expect(downmix([new Float32Array([1, 0]), new Float32Array([0, 0.5])])).toEqual(
 			new Float32Array([0.5, 0.25])
 		);
+	});
+});
+
+describe('lowCut', () => {
+	const tone = (hertz: number) =>
+		Float32Array.from({ length: 16_000 }, (_, i) => Math.sin((2 * Math.PI * hertz * i) / 16_000));
+	const peak = (samples: Float32Array) => Math.max(...samples.slice(8_000).map(Math.abs));
+
+	it('removes a constant offset and weakens a hum, but keeps the voice', () => {
+		expect(peak(lowCut(new Float32Array(16_000).fill(0.5)))).toBeLessThan(0.001);
+		expect(peak(lowCut(tone(30)))).toBeLessThan(0.35);
+		expect(peak(lowCut(tone(1_000)))).toBeGreaterThan(0.95);
+	});
+});
+
+describe('louder', () => {
+	it('brings the loudest sample to the target', () => {
+		expect(louder(new Float32Array([0.3, -0.45, 0.1]))).toEqual(
+			new Float32Array([0.3, -0.45, 0.1].map((sample) => (sample * TARGET_PEAK) / 0.45))
+		);
+	});
+
+	it('amplifies by 10 at most, never makes quieter, and leaves silence alone', () => {
+		expect(louder(new Float32Array([0.001]))[0]).toBeCloseTo(0.001 * MAX_GAIN, 6);
+		expect(louder(new Float32Array([1, -0.5]))).toEqual(new Float32Array([1, -0.5]));
+		expect(louder(new Float32Array(3))).toEqual(new Float32Array(3));
 	});
 });
