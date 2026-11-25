@@ -96,6 +96,28 @@ describe('AccountState', () => {
 		expect(account.signedIn).toBe(false);
 	});
 
+	it('[AC-53] creates and revokes agent tokens, staying signed in', async () => {
+		signedInDevice();
+		const api = fakeApi();
+		const account = newAccount(api);
+		const created = await account.createAgentToken();
+		expect(created).toEqual({
+			ok: true,
+			value: { token: 'a'.repeat(43), expiresAt: expect.any(String) }
+		});
+		expect((await account.revokeAgentTokens()).ok).toBe(true);
+		expect(api.revokeAgentTokens).toHaveBeenCalledOnce();
+		expect(account.signedIn).toBe(true);
+	});
+
+	it('signs the device out when an agent token call finds the session expired', async () => {
+		signedInDevice();
+		const expired = { ok: false, error: 'unauthenticated' } as const;
+		const account = newAccount(fakeApi({ createAgentToken: vi.fn(async () => expired) }));
+		expect(await account.createAgentToken()).toEqual(expired);
+		expect(account.signedIn).toBe(false);
+	});
+
 	it('reloads the account after a password change', async () => {
 		signedInDevice();
 		const api = fakeApi();

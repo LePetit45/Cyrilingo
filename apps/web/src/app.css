@@ -58,6 +58,7 @@
 	/* Every Bulgarian text is tagged lang="bg" and set in Sofia Sans, whose Bulgarian lowercase
 	   shapes are required by spec D2. */
 	--font-cyrillic: 'Sofia Sans Variable', var(--font-sans);
+	--font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 
 	color-scheme: light;
 }

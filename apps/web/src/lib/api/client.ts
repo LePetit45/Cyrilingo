@@ -42,6 +42,12 @@ export interface Account {
 	features: { readAloud: boolean; google: boolean };
 }
 
+/** `POST /api/me/agent-tokens`: a token for the MCP server, in this answer only. */
+export interface AgentToken {
+	token: string;
+	expiresAt: string;
+}
+
 /** `GET /api/progress`, and the answer to `PATCH /api/progress`. */
 export interface Progress {
 	completedLessons: readonly string[];
@@ -152,6 +158,8 @@ export function createApiClient(fetchFn: typeof fetch = (...args) => fetch(...ar
 		setPassword: (passwords: { currentPassword?: string; newPassword: string }) =>
 			call<void>('PUT', '/me/password', passwords),
 		deleteAccount: () => call<void>('DELETE', '/me'),
+		createAgentToken: () => call<AgentToken>('POST', '/me/agent-tokens'),
+		revokeAgentTokens: () => call<void>('DELETE', '/me/agent-tokens'),
 		getProgress: () => call<Progress>('GET', '/progress'),
 		mergeProgress: (progress: Progress) => call<Progress>('PATCH', '/progress', progress),
 		resetProgress: () => call<void>('DELETE', '/progress'),

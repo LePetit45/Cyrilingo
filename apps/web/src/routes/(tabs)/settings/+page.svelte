@@ -73,6 +73,10 @@
 				{account.details?.hasPassword === false ? m.account.setPassword : m.account.changePassword}
 				<Icon name="forward" size={22} />
 			</a>
+			<a class="row" href={resolve('/(tabs)/settings/agent')}>
+				{m.account.agent}
+				<Icon name="forward" size={22} />
+			</a>
 			<button type="button" class="row" disabled={accountAction.loading} onclick={signOut}>
 				{accountAction.loading ? m.auth.busy : m.account.signOut}
 			</button>

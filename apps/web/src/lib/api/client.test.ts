@@ -35,6 +35,26 @@ describe('createApiClient', () => {
 		});
 	});
 
+	it('creates and revokes agent tokens under /api/me/agent-tokens', async () => {
+		const fetch = vi.fn(async () => Response.json({ token: 't', expiresAt: 'later' }));
+		const client = createApiClient(fetch);
+		expect(await client.createAgentToken()).toEqual({
+			ok: true,
+			value: { token: 't', expiresAt: 'later' }
+		});
+		expect(fetch).toHaveBeenLastCalledWith('/api/me/agent-tokens', {
+			method: 'POST',
+			headers: {},
+			signal: expect.any(AbortSignal)
+		});
+		await client.revokeAgentTokens();
+		expect(fetch).toHaveBeenLastCalledWith('/api/me/agent-tokens', {
+			method: 'DELETE',
+			headers: {},
+			signal: expect.any(AbortSignal)
+		});
+	});
+
 	it('sends a recording as WAV audio, with the word in the query', async () => {
 		const fetchFn = vi.fn(async () => Response.json({ outcome: 'match' }));
 		const audio = new Uint8Array([82, 73, 70, 70]);

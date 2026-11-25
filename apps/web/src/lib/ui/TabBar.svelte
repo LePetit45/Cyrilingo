@@ -29,6 +29,7 @@
 			matches: [
 				resolve('/(tabs)/settings'),
 				resolve('/(tabs)/settings/password'),
+				resolve('/(tabs)/settings/agent'),
 				resolve('/(tabs)/about'),
 				resolve('/(tabs)/signin'),
 				resolve('/(tabs)/signup')
