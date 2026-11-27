@@ -33,8 +33,6 @@ services:
     environment:
       PUBLIC_URL: ${PUBLIC_URL:?Set PUBLIC_URL}
       DATABASE_URL: postgres://cyrilingo:${POSTGRES_PASSWORD}@db:5432/cyrilingo
-      # Fixed inside the stack: web forwards to api:3000. API_PORT in .env is for `npm run dev`.
-      API_PORT: 3000
       TRUST_PROXY: ${TRUST_PROXY:-false}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
