@@ -12,23 +12,21 @@ Cyrilingo teaches French speakers to read the Bulgarian Cyrillic alphabet. npm w
 
 ## Commands
 
-Run from the repository root. Node.js version: [`.nvmrc`](.nvmrc). Local settings: copy `.env.example` to `.env` (read by Docker Compose, `npm run dev`, `npm run db:migrate` and the API tests).
+Run from the repository root. Node.js version: [`.nvmrc`](.nvmrc). Local settings: copy `.env.dev.example` to `.env` (read by `npm run dev`, `npm run db:migrate` and the API tests); development needs a PostgreSQL server of your own at `DATABASE_URL`. `compose.yaml` is the deployment only.
 
-| Command                     | What it does                                                              |
-| --------------------------- | ------------------------------------------------------------------------- |
-| `npm install`               | install every workspace                                                   |
-| `docker compose up db`      | start PostgreSQL for development                                          |
-| `npm run dev`               | front end and API with hot reload (Vite proxies `/api` and `/mcp`)        |
-| `npm run db:migrate`        | apply pending migrations, then the seed                                   |
-| `npm run lint`              | Prettier check + ESLint (including the layer boundaries)                  |
-| `npm run check`             | type check every workspace                                                |
-| `npm run test:unit`         | Vitest, all projects (add `-- --run` for a single run)                    |
-| `npm run test:e2e`          | build, then Playwright end-to-end tests                                   |
-| `npm run coverage`          | all Vitest projects with coverage; fails under 80 % lines or branches     |
-| `npm run ac:check`          | fails if an acceptance criterion of SPEC.md has no test containing its id |
-| `npm run --silent mcp`      | MCP server on stdio (needs `DATABASE_URL`, `CYRILINGO_SESSION_TOKEN`)     |
-| `npm run audio`             | regenerate recordings with Azure TTS (needs `AZURE_SPEECH_*` in `.env`)   |
-| `docker compose up --build` | the full stack as deployed                                                |
+| Command                | What it does                                                              |
+| ---------------------- | ------------------------------------------------------------------------- |
+| `npm install`          | install every workspace                                                   |
+| `npm run dev`          | front end and API with hot reload (Vite proxies `/api` and `/mcp`)        |
+| `npm run db:migrate`   | apply pending migrations, then the seed                                   |
+| `npm run lint`         | Prettier check + ESLint (including the layer boundaries)                  |
+| `npm run check`        | type check every workspace                                                |
+| `npm run test:unit`    | Vitest, all projects (add `-- --run` for a single run)                    |
+| `npm run test:e2e`     | build, then Playwright end-to-end tests                                   |
+| `npm run coverage`     | all Vitest projects with coverage; fails under 80 % lines or branches     |
+| `npm run ac:check`     | fails if an acceptance criterion of SPEC.md has no test containing its id |
+| `npm run --silent mcp` | MCP server on stdio (needs `DATABASE_URL`, `CYRILINGO_SESSION_TOKEN`)     |
+| `npm run audio`        | regenerate recordings with Azure TTS (needs `AZURE_SPEECH_*` in `.env`)   |
 
 Before saying a change is done: `npm run lint && npm run check && npm run coverage && npm run ac:check`, plus `npm run test:e2e` when the UI changed.
 
@@ -58,7 +56,7 @@ Before saying a change is done: `npm run lint && npm run check && npm run covera
 
 - One branch + one pull request into `dev` per feature, squash-merged. No direct commits to `dev` or `main`, documentation included.
 - A release is a pull request from `dev` into `main` that bumps the version (`package.json`, `package-lock.json`); once merged, publish a GitHub release tagged on `main`. A merge into `main` is deployed.
-- CI (GitHub Actions) runs on every pull request: lint, type check, coverage, `ac:check`, end-to-end tests, secret scan.
+- CI (GitHub Actions) runs on every pull request: lint, type check, coverage, `ac:check`, end-to-end tests, Docker stack smoke test.
 
 ## Always ask the project owner before
 
@@ -70,7 +68,7 @@ Before saying a change is done: `npm run lint && npm run check && npm run covera
 
 ## Never
 
-- Commit a secret (API key, client secret, password, token) or a real `.env` file: only `.env.example` with empty values.
+- Commit a secret (API key, client secret, password, token) or a real `.env` file: only `.env.example` and `.env.dev.example`, without real values.
 - Commit anything specific to a deployment host (domain, server address, proxy or orchestrator details): use environment variables.
 - Put an authorization check in a route handler or an MCP tool instead of the service.
 - Write a database query outside `apps/api/src/db/`, or call a model provider outside `apps/api/src/speech/`.
