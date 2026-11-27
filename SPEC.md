@@ -453,7 +453,7 @@ Mutating requests must carry `Content-Type: application/json` (or `audio/wav` fo
 
 `compose.yaml` runs three services:
 
-- `db`: PostgreSQL with a named volume; the other services reach it on the stack's own network, and its port is published on the host's loopback only (`127.0.0.1:${DB_PORT:-5432}`), for development and tests, never to the network;
+- `db`: PostgreSQL with a named volume, on the stack's internal network only (no published port);
 - `api`: the Hono server; at each start it first applies the pending migrations then the seed, and starts only if they succeeded;
 - `web`: Nginx serving the static front end and forwarding `/api` and `/mcp` to `api`; the only port published to the network, `${WEB_PORT:-8080}`.
 
@@ -461,7 +461,7 @@ HTTPS is terminated by whatever reverse proxy sits in front of `web`; the app tr
 
 Configuration, all through environment variables (template in `.env.example`; real values never committed): `PUBLIC_URL`, `API_PORT` (default 3000), `WEB_PORT`, `TRUST_PROXY`, `POSTGRES_PASSWORD`, `DATABASE_URL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION`, `SPEECH_DAILY_LIMIT` (default 500). Missing Google or Azure settings turn the matching feature off; a missing `PUBLIC_URL` or database setting stops the API at start with a clear message. CI runs a secret scanner (gitleaks) on every pull request, and builds and starts the stack to check the front end, `/api/health` and `/mcp` through Nginx. Inside the stack `api` listens on its default port, 3000 (`API_PORT` only matters to `npm run dev`), and `DATABASE_URL` is built from `POSTGRES_PASSWORD`, which therefore holds letters and digits only.
 
-Local development: `docker compose up db` then `npm run dev` (front end and API with hot reload, Vite proxies `/api` and `/mcp`), or `docker compose up --build` for the full stack.
+Local development: a PostgreSQL server of one's own at `DATABASE_URL`, then `npm run dev` (front end and API with hot reload, Vite proxies `/api` and `/mcp`). `compose.yaml` is the deployment only.
 
 ## Acceptance criteria
 

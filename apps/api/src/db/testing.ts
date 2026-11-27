@@ -13,7 +13,7 @@ export function testServerUrl(env: Record<string, string | undefined> = process.
 	const url = env.TEST_DATABASE_URL || env.DATABASE_URL;
 	if (!url) {
 		throw new Error(
-			'The API tests need PostgreSQL: run `docker compose up db` and set DATABASE_URL in .env'
+			'The API tests need PostgreSQL: set DATABASE_URL (or TEST_DATABASE_URL) in .env'
 		);
 	}
 	return url;

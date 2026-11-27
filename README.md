@@ -39,8 +39,7 @@ Requirements: Node.js 22.17 or later (the version used in CI is pinned in [`.nvm
 
 ```bash
 npm install
-cp .env.example .env      # then fill in PUBLIC_URL, POSTGRES_PASSWORD and DATABASE_URL
-docker compose up -d db   # PostgreSQL 17, on 127.0.0.1 only
+cp .env.example .env      # then fill in PUBLIC_URL and DATABASE_URL (a PostgreSQL 17 server of your own)
 npm run db:migrate        # migrations, then the seed
 npm run dev
 ```
@@ -75,7 +74,7 @@ npx playwright install chromium firefox webkit
 
 Tests import `test` and `expect` from [`e2e/test.ts`](e2e/test.ts), which disables Web Audio so sound effects don't play while tests run. [`e2e/answers.ts`](e2e/answers.ts) answers questions by reading the screen, and [`e2e/storage.ts`](e2e/storage.ts) starts the app with a given progress.
 
-The API runs beside the build during these tests, on a database it recreates each run (`cyrilingo_e2e`, on the server of `TEST_DATABASE_URL`, else `DATABASE_URL`): start PostgreSQL first (`docker compose up -d db`). Tests live in [`e2e/`](e2e) and run against the production build on desktop Chrome, Firefox and Safari plus mobile Chrome and Safari viewports. To run a single browser: `npm run test:e2e -- --project=chromium`.
+The API runs beside the build during these tests, on a database it recreates each run (`cyrilingo_e2e`, on the server of `TEST_DATABASE_URL`, else `DATABASE_URL`): start PostgreSQL first. Tests live in [`e2e/`](e2e) and run against the production build on desktop Chrome, Firefox and Safari plus mobile Chrome and Safari viewports. To run a single browser: `npm run test:e2e -- --project=chromium`.
 
 ## Project structure
 
@@ -151,16 +150,16 @@ v2 runs as a Docker Compose stack ([`compose.yaml`](compose.yaml)), built from t
 
 | Service | What it does                                                                                                                                                               |
 | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `db`    | PostgreSQL 17, data in the `db-data` volume; its port is published on `127.0.0.1` only (`DB_PORT`, default 5432)                                                           |
+| `db`    | PostgreSQL 17, data in the `db-data` volume; no published port, only `api` reaches it                                                                                      |
 | `api`   | at each start, applies the pending migrations and the seed, then starts the Hono server ([`apps/api/Dockerfile`](apps/api/Dockerfile))                                     |
 | `web`   | Nginx: the static front end, `/api` and `/mcp` forwarded to `api` ([`apps/web/nginx.conf`](apps/web/nginx.conf)); the only port for the network, `WEB_PORT` (default 8080) |
 
 To deploy:
 
 1. Put an HTTPS reverse proxy in front of `WEB_PORT`: the app does not handle TLS.
-2. Set the stack's environment variables (the host's, or a `.env` beside `compose.yaml`): `PUBLIC_URL` (the `https://` origin learners open), `POSTGRES_PASSWORD` (letters and digits only: it goes into a URL), `TRUST_PROXY=true`, and optionally `WEB_PORT`, `DB_PORT`, `GOOGLE_*`, `AZURE_SPEECH_*`, `SPEECH_DAILY_LIMIT`. See [`.env.example`](.env.example).
+2. Set the stack's environment variables (the host's, or a `.env` beside `compose.yaml`): `PUBLIC_URL` (the `https://` origin learners open), `POSTGRES_PASSWORD` (letters and digits only: it goes into a URL), `TRUST_PROXY=true`, and optionally `WEB_PORT`, `GOOGLE_*`, `AZURE_SPEECH_*`, `SPEECH_DAILY_LIMIT`. See [`.env.example`](.env.example).
 3. `docker compose up --build --detach`. Each deployment rebuilds the images; `api` waits for `db`, migrates, then serves, and `web` waits for `api` to be healthy. If a migration fails the server does not start, and Docker retries it.
 
-The MCP server is then at `<PUBLIC_URL>/mcp`. To try the whole stack locally, set `PUBLIC_URL=http://localhost:8080` and run `docker compose up --build`.
+The MCP server is then at `<PUBLIC_URL>/mcp`.
 
 CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs lint, type check, unit tests, end-to-end tests, a build and smoke test of the Docker stack, and a secret scan (gitleaks) on every pull request (not again on `main` after the merge; it can also be started by hand from the Actions tab).
