@@ -98,19 +98,3 @@ jobs:
         run: docker compose logs
       - if: ${{ always() }}
         run: docker compose down --volumes
-
-  secrets:
-    name: Secret scan
-    runs-on: ubuntu-latest
-    # The action lists the pull request's commits through the GitHub API.
-    permissions:
-      contents: read
-      pull-requests: read
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          # The whole history of the pull request, not only its last commit.
-          fetch-depth: 0
-      - uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

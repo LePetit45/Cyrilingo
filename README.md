@@ -162,4 +162,4 @@ To deploy:
 
 The MCP server is then at `<PUBLIC_URL>/mcp`.
 
-CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs lint, type check, unit tests, end-to-end tests, a build and smoke test of the Docker stack, and a secret scan (gitleaks) on every pull request (not again on `main` after the merge; it can also be started by hand from the Actions tab).
+CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs lint, type check, unit tests, end-to-end tests and a build and smoke test of the Docker stack on every pull request (not again on `main` after the merge; it can also be started by hand from the Actions tab).
