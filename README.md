@@ -39,7 +39,7 @@ Requirements: Node.js 22.17 or later (the version used in CI is pinned in [`.nvm
 
 ```bash
 npm install
-cp .env.example .env      # then fill in PUBLIC_URL and DATABASE_URL (a PostgreSQL 17 server of your own)
+cp .env.dev.example .env  # then fill in DATABASE_URL (a PostgreSQL 17 server of your own)
 npm run db:migrate        # migrations, then the seed
 npm run dev
 ```

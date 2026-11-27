@@ -10,3 +10,11 @@ test-results
 playwright-report
 blob-report
 scripts/audio/bench-out
+# Tests and their helpers never run in an image.
+**/*.test.ts
+**/testing.ts
+**/vitest.config.ts
+e2e
+apps/api/src/e2e-server.ts
+apps/api/src/db/global-setup.ts
+apps/api/src/auth/google-testing.ts

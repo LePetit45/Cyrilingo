@@ -12,7 +12,7 @@ Cyrilingo teaches French speakers to read the Bulgarian Cyrillic alphabet. npm w
 
 ## Commands
 
-Run from the repository root. Node.js version: [`.nvmrc`](.nvmrc). Local settings: copy `.env.example` to `.env` (read by `npm run dev`, `npm run db:migrate` and the API tests); development needs a PostgreSQL server of your own at `DATABASE_URL`. `compose.yaml` is the deployment only.
+Run from the repository root. Node.js version: [`.nvmrc`](.nvmrc). Local settings: copy `.env.dev.example` to `.env` (read by `npm run dev`, `npm run db:migrate` and the API tests); development needs a PostgreSQL server of your own at `DATABASE_URL`. `compose.yaml` is the deployment only.
 
 | Command                | What it does                                                              |
 | ---------------------- | ------------------------------------------------------------------------- |
@@ -68,7 +68,7 @@ Before saying a change is done: `npm run lint && npm run check && npm run covera
 
 ## Never
 
-- Commit a secret (API key, client secret, password, token) or a real `.env` file: only `.env.example` with empty values.
+- Commit a secret (API key, client secret, password, token) or a real `.env` file: only `.env.example` and `.env.dev.example`, without real values.
 - Commit anything specific to a deployment host (domain, server address, proxy or orchestrator details): use environment variables.
 - Put an authorization check in a route handler or an MCP tool instead of the service.
 - Write a database query outside `apps/api/src/db/`, or call a model provider outside `apps/api/src/speech/`.
