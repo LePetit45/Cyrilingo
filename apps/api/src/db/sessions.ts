@@ -47,3 +47,35 @@ export async function deleteOtherSessions(db: Db, userId: string, keepId: string
 export async function deleteAllSessions(db: Db, userId: string): Promise<void> {
 	await db.deleteFrom('sessions').where('user_id', '=', userId).execute();
 }
+
+/**
+ * Puts this session in place of every session of its kind of its user, at once: the account's
+ * one agent key, whose previous value stops working.
+ */
+export async function replaceSessionsOfKind(db: Db, session: SessionRow): Promise<void> {
+	await db.transaction().execute(async (trx) => {
+		await trx
+			.deleteFrom('sessions')
+			.where('user_id', '=', session.userId)
+			.where('kind', '=', session.kind)
+			.execute();
+		await insertSession(trx, session);
+	});
+}
+
+/** Whether the user has a session of this kind that has not expired at `now`. */
+export async function hasLiveSession(
+	db: Db,
+	userId: string,
+	kind: SessionKind,
+	now: Date
+): Promise<boolean> {
+	const row = await db
+		.selectFrom('sessions')
+		.select('id')
+		.where('user_id', '=', userId)
+		.where('kind', '=', kind)
+		.where('expires_at', '>', now)
+		.executeTakeFirst();
+	return row !== undefined;
+}

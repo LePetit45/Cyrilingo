@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
 import type { Config } from '../config.js';
+import { mcpRoutes } from '../mcp/http.js';
 import { ServiceError } from '../services/errors.js';
 import type { Services } from '../services/index.js';
 import { authRoutes } from './auth.js';
@@ -29,11 +30,15 @@ const jsonBodyLimit = bodyLimit({
 	onError: (c) => errorResponse(c, 413, 'payload_too_large', 'The body is too large')
 });
 
-/** The whole HTTP API, under `/api`. */
+/** The whole HTTP API, under `/api`, and the MCP server over HTTP, at `/mcp`. */
 export function createApp({ config, services, log }: AppOptions) {
-	const app = new Hono().basePath('/api');
+	const root = new Hono();
+	root.use(requestLogger(log));
+	// Outside `/api`: an agent sends a Bearer key, not the session cookie, so the CSRF checks below
+	// do not apply; the MCP route checks the Origin itself.
+	root.route('/mcp', mcpRoutes(services, config.publicUrl));
 
-	app.use(requestLogger(log));
+	const app = root.basePath('/api');
 	app.use(requireSameOrigin(config.publicUrl));
 	// A limit set here could not be raised by a route: the speech route sets its own.
 	app.use((c, next) => (c.req.path.startsWith('/api/speech/') ? next() : jsonBodyLimit(c, next)));
@@ -48,8 +53,8 @@ export function createApp({ config, services, log }: AppOptions) {
 	app.route('/word-lists', wordListRoutes(services, cookies));
 	app.route('/speech', speechRoutes(services, cookies));
 
-	app.notFound((c) => errorResponse(c, 404, 'not_found', 'No such route'));
-	app.onError((error, c) => {
+	root.notFound((c) => errorResponse(c, 404, 'not_found', 'No such route'));
+	root.onError((error, c) => {
 		if (error instanceof ServiceError) {
 			const { status, message } = SERVICE_ERRORS[error.code];
 			return errorResponse(c, status, error.code, message);
@@ -61,5 +66,5 @@ export function createApp({ config, services, log }: AppOptions) {
 		return errorResponse(c, 500, 'internal', 'Internal error');
 	});
 
-	return app;
+	return root;
 }

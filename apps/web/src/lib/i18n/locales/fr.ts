@@ -312,6 +312,22 @@ export const fr = {
 		deleteConfirm: 'Supprimer définitivement',
 		deleted: 'Ton compte a été supprimé.'
 	},
+	agent: {
+		section: 'Clé MCP',
+		help: 'À quoi sert cette clé ?',
+		helpText:
+			'Elle permet à un assistant IA compatible MCP d’utiliser Cyrilingo à ta place. Elle n’est visible qu’au moment où tu la régénères.',
+		serverAddress: (url: string) => `Adresse du serveur : ${url}`,
+		key: 'Clé pour un agent IA',
+		none: 'Aucune clé',
+		copy: 'Copier la clé',
+		copied: 'Clé copiée.',
+		regenerate: 'Régénérer',
+		regenerateTitle: 'Régénérer la clé ?',
+		regenerateMessage:
+			'L’ancienne clé cessera aussitôt de fonctionner : les agents qui l’utilisent devront recevoir la nouvelle.',
+		regenerateConfirm: 'Régénérer'
+	},
 	password: {
 		title: 'Mot de passe',
 		current: 'Mot de passe actuel',

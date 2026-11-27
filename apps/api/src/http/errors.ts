@@ -12,6 +12,7 @@ export type ErrorCode =
 	| 'invalid_input'
 	| 'payload_too_large'
 	| 'forbidden'
+	| 'method_not_allowed'
 	| 'database_unavailable'
 	| 'internal';
 

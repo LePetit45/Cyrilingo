@@ -199,7 +199,12 @@ describe('account', () => {
 		const email = newEmail();
 		const { token } = await auth.signUp(email, PASSWORD, newIp());
 		const { userId } = (await auth.authenticate(token))!;
-		expect(await account.get(userId)).toEqual({ email, hasPassword: true, providers: [] });
+		expect(await account.get(userId)).toEqual({
+			email,
+			hasPassword: true,
+			providers: [],
+			hasAgentToken: false
+		});
 	});
 
 	it('[AC-18] changes the password with the current one, and revokes the other sessions', async () => {

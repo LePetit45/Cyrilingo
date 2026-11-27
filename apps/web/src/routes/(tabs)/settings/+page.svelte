@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
 	import { m } from '#lib/i18n/index.js';
 	import Button from '#lib/ui/Button.svelte';
 	import { hasVoice } from '#lib/ui/audio/voice.js';
@@ -43,6 +44,33 @@
 			.filter(Boolean)
 			.join(' · ');
 	});
+
+	// The account's agent key (SPEC.md › MCP tools). The API keeps only its hash, so the key is in
+	// clear only right after « Régénérer », while this page stays open; it is never stored.
+	const agentKey = new AsyncState();
+	let agentToken = $state('');
+	let agentKeyCopied = $state(false);
+	let confirmingRegenerate = $state(false);
+	let agentHelpOpen = $state(false);
+	const hasAgentToken = $derived(account.details?.hasAgentToken ?? false);
+	// Asks before replacing unless the account is known to have no key yet.
+	const mayReplaceKey = $derived(account.details?.hasAgentToken !== false);
+
+	async function regenerateAgentKey() {
+		agentKeyCopied = false;
+		const result = await agentKey.run(() => account.regenerateAgentToken());
+		if (result?.ok) agentToken = result.value.token;
+	}
+
+	async function copyAgentKey() {
+		try {
+			await navigator.clipboard.writeText(agentToken);
+			agentKeyCopied = true;
+		} catch {
+			// No clipboard (refused, insecure context): the key stays selectable in its field.
+			agentKeyCopied = false;
+		}
+	}
 
 	function resetProgress() {
 		void reset.run(() => progressSync.reset());
@@ -100,6 +128,63 @@
 	<p class="status" role="status">{accountAction.status === 'success' ? accountDone : ''}</p>
 </section>
 
+{#if account.signedIn}
+	<section aria-labelledby="agent-section" aria-busy={agentKey.loading}>
+		<div class="section-title">
+			<h2 id="agent-section">{m.agent.section}</h2>
+			<span class="help">
+				<button
+					type="button"
+					class="help-button"
+					aria-label={m.agent.help}
+					aria-describedby="agent-help"
+					aria-expanded={agentHelpOpen}
+					onclick={() => (agentHelpOpen = !agentHelpOpen)}
+					onblur={() => (agentHelpOpen = false)}
+				>
+					?
+				</button>
+				<span id="agent-help" role="tooltip" class="tooltip" class:open={agentHelpOpen}>
+					{m.agent.helpText}
+					<span class="address">{m.agent.serverAddress(`${page.url.origin}/mcp`)}</span>
+				</span>
+			</span>
+		</div>
+		<div class="group key-row">
+			<input
+				id="agent-key"
+				aria-label={m.agent.key}
+				readonly
+				autocomplete="off"
+				spellcheck="false"
+				value={agentToken || (hasAgentToken ? '••••••••••••••••' : '')}
+				placeholder={account.details ? m.agent.none : ''}
+				onfocus={(event) => agentToken && event.currentTarget.select()}
+			/>
+			<button
+				type="button"
+				class="key-button icon"
+				aria-label={agentKeyCopied ? m.agent.copied : m.agent.copy}
+				title={agentKeyCopied ? m.agent.copied : m.agent.copy}
+				disabled={!agentToken}
+				onclick={copyAgentKey}
+			>
+				<Icon name={agentKeyCopied ? 'check' : 'copy'} size={20} />
+			</button>
+			<button
+				type="button"
+				class="key-button"
+				disabled={agentKey.loading}
+				onclick={() => (mayReplaceKey ? (confirmingRegenerate = true) : regenerateAgentKey())}
+			>
+				{agentKey.loading ? m.auth.busy : m.agent.regenerate}
+			</button>
+		</div>
+		<p class="error" role="alert">{agentKey.error ? m.errors[agentKey.error] : ''}</p>
+		<p class="status" role="status">{agentKeyCopied ? m.agent.copied : ''}</p>
+	</section>
+{/if}
+
 <section aria-labelledby="sound-section">
 	<h2 id="sound-section">{m.settings.soundSection}</h2>
 	<div class="group">
@@ -153,6 +238,14 @@
 	confirmLabel={m.account.deleteConfirm}
 	danger
 	onconfirm={deleteAccount}
+/>
+
+<ConfirmDialog
+	bind:open={confirmingRegenerate}
+	title={m.agent.regenerateTitle}
+	message={m.agent.regenerateMessage}
+	confirmLabel={m.agent.regenerateConfirm}
+	onconfirm={regenerateAgentKey}
 />
 
 <ConfirmDialog
@@ -252,6 +345,127 @@
 	.value {
 		max-width: 100%;
 		overflow-wrap: anywhere;
+	}
+
+	/* A section heading with the « ? » that explains it, on hover, on focus or on a tap. */
+	.section-title {
+		position: relative;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.help {
+		display: inline-flex;
+	}
+
+	.help-button {
+		display: grid;
+		place-items: center;
+		width: 1.5rem;
+		height: 1.5rem;
+		padding: 0;
+		font: inherit;
+		font-size: 0.875rem;
+		font-weight: 900;
+		color: var(--color-text-muted);
+		background: var(--color-surface);
+		border: 2px solid var(--color-border-dark);
+		border-radius: 50%;
+		cursor: help;
+	}
+
+	.tooltip {
+		position: absolute;
+		top: calc(100% + 0.5rem);
+		left: 0;
+		z-index: 1;
+		display: none;
+		width: max-content;
+		max-width: min(20rem, 100%);
+		padding: 0.625rem 0.875rem;
+		font-size: 0.875rem;
+		font-weight: 700;
+		color: var(--color-surface);
+		background: var(--color-text);
+		border-radius: var(--radius-sm);
+	}
+
+	/* The address, on a line of its own, wraps anywhere rather than widening the bubble. */
+	.address {
+		display: block;
+		margin-top: 0.375rem;
+		overflow-wrap: anywhere;
+	}
+
+	.help:hover .tooltip,
+	.help-button:focus-visible + .tooltip,
+	.tooltip.open {
+		display: block;
+	}
+
+	/* The key, then its two buttons, on one line in a frame like the other groups. */
+	.key-row {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.5rem;
+	}
+
+	/* The key is long and has no spaces: it scrolls inside its field instead of widening the page. */
+	.key-row input {
+		flex: 1;
+		width: 100%;
+		min-width: 0;
+		min-height: 2.75rem;
+		padding: 0.25rem 0.75rem;
+		font-family: var(--font-mono);
+		font-size: 1rem;
+		color: var(--color-text);
+		background: var(--color-surface-muted);
+		border: 2px solid transparent;
+		border-radius: var(--radius-sm);
+	}
+
+	.key-row input::placeholder {
+		font-family: var(--font-sans);
+		font-weight: 700;
+		color: var(--color-text-muted);
+	}
+
+	.key-row input:focus {
+		border-color: var(--color-accent);
+		background: var(--color-surface);
+	}
+
+	.key-button {
+		flex: none;
+		min-height: 2.75rem;
+		padding: 0 0.875rem;
+		font: inherit;
+		font-size: 0.9375rem;
+		font-weight: 800;
+		color: var(--color-accent-dark);
+		background: var(--color-surface);
+		border: 2px solid var(--color-border-dark);
+		border-radius: var(--radius-sm);
+		cursor: pointer;
+	}
+
+	.key-button.icon {
+		display: grid;
+		place-items: center;
+		width: 2.75rem;
+		padding: 0;
+	}
+
+	.key-button:hover:not(:disabled) {
+		background: var(--color-surface-muted);
+	}
+
+	.key-button:disabled {
+		color: var(--color-text-faint);
+		cursor: not-allowed;
 	}
 
 	.invite {

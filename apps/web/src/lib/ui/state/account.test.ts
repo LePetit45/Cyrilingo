@@ -96,6 +96,27 @@ describe('AccountState', () => {
 		expect(account.signedIn).toBe(false);
 	});
 
+	it('[AC-53] regenerates the agent key, and then knows the account has one', async () => {
+		signedInDevice();
+		const account = newAccount(fakeApi());
+		await account.refresh();
+		expect(account.details?.hasAgentToken).toBe(false);
+		expect(await account.regenerateAgentToken()).toEqual({
+			ok: true,
+			value: { token: 'a'.repeat(43), expiresAt: expect.any(String) }
+		});
+		expect(account.details?.hasAgentToken).toBe(true);
+		expect(account.signedIn).toBe(true);
+	});
+
+	it('signs the device out when regenerating finds the session expired', async () => {
+		signedInDevice();
+		const expired = { ok: false, error: 'unauthenticated' } as const;
+		const account = newAccount(fakeApi({ regenerateAgentToken: vi.fn(async () => expired) }));
+		expect(await account.regenerateAgentToken()).toEqual(expired);
+		expect(account.signedIn).toBe(false);
+	});
+
 	it('reloads the account after a password change', async () => {
 		signedInDevice();
 		const api = fakeApi();

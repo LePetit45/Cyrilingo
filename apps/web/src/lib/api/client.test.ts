@@ -35,6 +35,19 @@ describe('createApiClient', () => {
 		});
 	});
 
+	it('regenerates the agent key with POST /api/me/agent-token', async () => {
+		const fetch = vi.fn(async () => Response.json({ token: 't', expiresAt: 'later' }));
+		expect(await createApiClient(fetch).regenerateAgentToken()).toEqual({
+			ok: true,
+			value: { token: 't', expiresAt: 'later' }
+		});
+		expect(fetch).toHaveBeenCalledWith('/api/me/agent-token', {
+			method: 'POST',
+			headers: {},
+			signal: expect.any(AbortSignal)
+		});
+	});
+
 	it('sends a recording as WAV audio, with the word in the query', async () => {
 		const fetchFn = vi.fn(async () => Response.json({ outcome: 'match' }));
 		const audio = new Uint8Array([82, 73, 70, 70]);

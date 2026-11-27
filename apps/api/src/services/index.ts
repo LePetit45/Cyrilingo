@@ -66,7 +66,7 @@ export function createServices(
 			now
 		}),
 		google: google ? createGoogleAuthService(db, google, now) : null,
-		account: createAccountService(db),
+		account: createAccountService(db, now),
 		lessons: createLessonService(db),
 		progress: createProgressService(db, now),
 		wordLists: createWordListService(db, now),

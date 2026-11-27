@@ -2,7 +2,13 @@ import { hashPassword, spendPasswordCheckTime, verifyPassword } from '../auth/pa
 import { generateToken, hashToken } from '../auth/tokens.js';
 import type { Db } from '../db/database.js';
 import type { SessionKind } from '../db/schema.js';
-import { deleteSession, findLiveSession, insertSession, setSessionExpiry } from '../db/sessions.js';
+import {
+	deleteSession,
+	findLiveSession,
+	insertSession,
+	replaceSessionsOfKind,
+	setSessionExpiry
+} from '../db/sessions.js';
 import { findUserByEmail, insertUser } from '../db/users.js';
 import { ServiceError } from './errors.js';
 import type { IpLimit } from './ip-limits.js';
@@ -35,8 +41,16 @@ export interface AuthService {
 	signUp(email: string, password: string, ip: string): Promise<StartedSession>;
 	signIn(email: string, password: string, ip: string): Promise<StartedSession>;
 	signOut(token: string): Promise<void>;
-	/** The user and session a token stands for, or null when it is unknown or expired. */
-	authenticate(token: string): Promise<Authenticated | null>;
+	/**
+	 * The user and session a token stands for, or null when it is unknown, expired or of another
+	 * kind: a browser cookie is no agent token, and an agent token opens no browser session.
+	 */
+	authenticate(token: string, kind?: SessionKind): Promise<Authenticated | null>;
+	/**
+	 * Gives the account a new agent key for the MCP server, in place of the previous one, which
+	 * stops working (AC-53). Only its hash is stored: this answer is the key's only copy.
+	 */
+	regenerateAgentToken(userId: string): Promise<StartedSession>;
 }
 
 export interface AuthDeps {
@@ -64,10 +78,16 @@ export function checkPasswordLength(password: string): void {
  * so a password and Google give the same kind of session.
  */
 export async function startSession(db: Db, userId: string, now: Date): Promise<StartedSession> {
+	const { token, session } = newSession(userId, 'browser', now);
+	await insertSession(db, session);
+	return { token, expiresAt: session.expiresAt };
+}
+
+/** A new token and the row that stands for it; both kinds live and renew alike. */
+function newSession(userId: string, kind: SessionKind, now: Date) {
 	const token = generateToken();
 	const expiresAt = new Date(now.getTime() + SESSION_LIFETIME_MS);
-	await insertSession(db, { id: hashToken(token), userId, kind: 'browser', expiresAt });
-	return { token, expiresAt };
+	return { token, session: { id: hashToken(token), userId, kind, expiresAt } };
 }
 
 export function createAuthService({
@@ -111,10 +131,10 @@ export function createAuthService({
 			await deleteSession(db, hashToken(token));
 		},
 
-		async authenticate(token) {
+		async authenticate(token, kind = 'browser') {
 			const at = now();
 			const session = await findLiveSession(db, hashToken(token), at);
-			if (!session) return null;
+			if (!session || session.kind !== kind) return null;
 			const authenticated: Authenticated = {
 				userId: session.userId,
 				sessionId: session.id,
@@ -125,6 +145,12 @@ export function createAuthService({
 				await setSessionExpiry(db, session.id, authenticated.renewedUntil);
 			}
 			return authenticated;
+		},
+
+		async regenerateAgentToken(userId) {
+			const { token, session } = newSession(userId, 'agent', now());
+			await replaceSessionsOfKind(db, session);
+			return { token, expiresAt: session.expiresAt };
 		}
 	};
 }

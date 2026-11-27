@@ -27,6 +27,11 @@ export function meRoutes(services: Services, cookies: SessionCookies) {
 			});
 			return c.body(null, 204);
 		})
+		.post('/agent-token', async (c) => {
+			// The account's agent key for the MCP server (SPEC.md › MCP tools), in this answer only.
+			const { token, expiresAt } = await services.auth.regenerateAgentToken(c.var.session.userId);
+			return c.json({ token, expiresAt }, 201);
+		})
 		.delete('/', async (c) => {
 			await services.account.remove(c.var.session.userId);
 			cookies.clear(c);

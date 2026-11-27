@@ -46,6 +46,7 @@ describe('POST /api/auth/signup', () => {
 			email,
 			hasPassword: true,
 			providers: [],
+			hasAgentToken: false,
 			features: { readAloud: true, google: false }
 		});
 	});

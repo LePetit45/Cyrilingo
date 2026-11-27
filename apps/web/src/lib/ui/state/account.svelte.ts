@@ -1,7 +1,13 @@
 // The signed-in account, if any (SPEC.md › Auth). The session itself is an HttpOnly cookie the
 // page cannot read, so the device remembers in localStorage that it signed in, and with which
 // e-mail: a guest's device never calls the API (AC-8), a signed-in one checks its session at start.
-import { api, type Account, type ApiClient, type ApiResult } from '#lib/api/client.js';
+import {
+	api,
+	type Account,
+	type AgentToken,
+	type ApiClient,
+	type ApiResult
+} from '#lib/api/client.js';
 import { progressSync, type ProgressSync } from './progress-sync.svelte.js';
 
 const ACCOUNT_KEY = 'cyrilingo.account.v1';
@@ -81,6 +87,17 @@ export class AccountState {
 		const result = await this.#api.setPassword(passwords);
 		if (result.ok) await this.refresh();
 		else if (result.error === 'unauthenticated') this.#forget();
+		return result;
+	}
+
+	/**
+	 * Gives the account a new agent key (SPEC.md › MCP tools), in place of the previous one. The
+	 * answer is the key's only copy: the API keeps its hash.
+	 */
+	async regenerateAgentToken(): Promise<ApiResult<AgentToken>> {
+		const result = await this.#api.regenerateAgentToken();
+		if (result.ok && this.details) this.details = { ...this.details, hasAgentToken: true };
+		else if (!result.ok && result.error === 'unauthenticated') this.#forget();
 		return result;
 	}
 
