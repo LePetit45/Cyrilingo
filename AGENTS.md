@@ -56,7 +56,7 @@ Before saying a change is done: `npm run lint && npm run check && npm run covera
 
 - One branch + one pull request into `dev` per feature, squash-merged. No direct commits to `dev` or `main`, documentation included.
 - A release is a pull request from `dev` into `main` that bumps the version (`package.json`, `package-lock.json`); once merged, publish a GitHub release tagged on `main`. A merge into `main` is deployed.
-- CI (GitHub Actions) runs on every pull request: lint, type check, coverage, `ac:check`, end-to-end tests, secret scan.
+- CI (GitHub Actions) runs on every pull request: lint, type check, coverage, `ac:check`, end-to-end tests, Docker stack smoke test.
 
 ## Always ask the project owner before
 
