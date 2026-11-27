@@ -1,5 +1,5 @@
-// `npm run db:migrate`: applies the pending migrations, then the seed. Run once per deployment,
-// before the API starts (the `migrate` service of compose.yaml).
+// `npm run db:migrate`: applies the pending migrations, then the seed. Deployed, the API image
+// runs it at each start, before the server (apps/api/Dockerfile).
 import { ConfigError, loadDatabaseUrl } from '../config.js';
 import { createDb } from './database.js';
 import { migrate } from './migrate.js';

@@ -147,11 +147,20 @@ The manifest is built from [`apps/web/src/lib/pwa/manifest.ts`](apps/web/src/lib
 
 ## Deployment
 
-The site is deployed by Cloudflare Pages through its Git integration: `main` goes to production at https://cyrilingo.pages.dev and every pull request gets a preview deployment. Pages project settings:
+v2 runs as a Docker Compose stack ([`compose.yaml`](compose.yaml)), built from the repository on any host that can run Docker Compose; the static v0.10.0-beta stays on Cloudflare Pages until v2 is released.
 
-- Framework preset: None (the SvelteKit preset expects `adapter-cloudflare` and its `.svelte-kit/cloudflare` output)
-- Build command: `npm run build`
-- Build output directory: `apps/web/build`
-- Node.js version: read from `.nvmrc`
+| Service | What it does                                                                                                                                                               |
+| ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `db`    | PostgreSQL 17, data in the `db-data` volume; its port is published on `127.0.0.1` only (`DB_PORT`, default 5432)                                                           |
+| `api`   | at each start, applies the pending migrations and the seed, then starts the Hono server ([`apps/api/Dockerfile`](apps/api/Dockerfile))                                     |
+| `web`   | Nginx: the static front end, `/api` and `/mcp` forwarded to `api` ([`apps/web/nginx.conf`](apps/web/nginx.conf)); the only port for the network, `WEB_PORT` (default 8080) |
 
-CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs lint, type check, unit tests and end-to-end tests on every pull request (not again on `main` after the merge; it can also be started by hand from the Actions tab).
+To deploy:
+
+1. Put an HTTPS reverse proxy in front of `WEB_PORT`: the app does not handle TLS.
+2. Set the stack's environment variables (the host's, or a `.env` beside `compose.yaml`): `PUBLIC_URL` (the `https://` origin learners open), `POSTGRES_PASSWORD` (letters and digits only: it goes into a URL), `TRUST_PROXY=true`, and optionally `WEB_PORT`, `DB_PORT`, `GOOGLE_*`, `AZURE_SPEECH_*`, `SPEECH_DAILY_LIMIT`. See [`.env.example`](.env.example).
+3. `docker compose up --build --detach`. Each deployment rebuilds the images; `api` waits for `db`, migrates, then serves, and `web` waits for `api` to be healthy. If a migration fails the server does not start, and Docker retries it.
+
+The MCP server is then at `<PUBLIC_URL>/mcp`. To try the whole stack locally, set `PUBLIC_URL=http://localhost:8080` and run `docker compose up --build`.
+
+CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs lint, type check, unit tests, end-to-end tests, a build and smoke test of the Docker stack, and a secret scan (gitleaks) on every pull request (not again on `main` after the merge; it can also be started by hand from the Actions tab).

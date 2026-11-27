@@ -1,0 +1,12 @@
+# Keep the Docker build context to the sources: no local installs, builds, secrets or reports.
+**/node_modules
+.git
+.env
+.env.*
+!.env.example
+apps/web/build
+apps/web/.svelte-kit
+test-results
+playwright-report
+blob-report
+scripts/audio/bench-out

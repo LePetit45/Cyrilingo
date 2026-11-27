@@ -28,7 +28,7 @@ Run from the repository root. Node.js version: [`.nvmrc`](.nvmrc). Local setting
 | `npm run ac:check`          | fails if an acceptance criterion of SPEC.md has no test containing its id |
 | `npm run --silent mcp`      | MCP server on stdio (needs `DATABASE_URL`, `CYRILINGO_SESSION_TOKEN`)     |
 | `npm run audio`             | regenerate recordings with Azure TTS (needs `AZURE_SPEECH_*` in `.env`)   |
-| `docker compose up --build` | the full stack as deployed                                                |
+| `docker compose up --build` | the full stack as deployed (set `PUBLIC_URL=http://localhost:8080`)       |
 
 Before saying a change is done: `npm run lint && npm run check && npm run coverage && npm run ac:check`, plus `npm run test:e2e` when the UI changed.
 

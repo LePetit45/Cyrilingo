@@ -71,3 +71,46 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 14
+
+  docker:
+    name: Docker stack
+    runs-on: ubuntu-latest
+    # Builds and starts compose.yaml as a host would, then checks the front end, the API (whose
+    # health needs the migrations to have run) and the MCP server, all through Nginx.
+    env:
+      PUBLIC_URL: http://localhost:8080
+      POSTGRES_PASSWORD: ci0throwaway0password
+    steps:
+      - uses: actions/checkout@v7
+      - run: docker compose up --build --detach --wait
+      - name: Smoke test through Nginx
+        run: |
+          set -eu
+          # --fail: any answer other than 2xx fails the step.
+          for path in / /alphabet /api/health; do
+            curl --fail --silent --show-error --output /dev/null "http://localhost:8080$path"
+          done
+          # No agent key: 401 with WWW-Authenticate: Bearer, so from the MCP route and not Nginx.
+          curl --silent --include --request POST http://localhost:8080/mcp \
+            --header 'Content-Type: application/json' --data '{}' | tee mcp.txt
+          grep --quiet --ignore-case '^www-authenticate: Bearer' mcp.txt
+      - if: ${{ failure() }}
+        run: docker compose logs
+      - if: ${{ always() }}
+        run: docker compose down --volumes
+
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    # The action lists the pull request's commits through the GitHub API.
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # The whole history of the pull request, not only its last commit.
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
