@@ -10,14 +10,14 @@ v2 (spec in [SPEC.md](SPEC.md)) adds a back end, accounts, personal word lists, 
 
 Live at **https://cyrilingo.pages.dev**.
 
-The whole course is playable: the path of 10 lessons, letter discovery cards, the three exercise types with the in-app keyboard on touch devices, free review, the final exam (« L'Épreuve de Preslav ») with its diploma, the alphabet screen and the settings. It works offline once opened. Since v0.10.0-beta every screen uses the light, Duolingo-inspired design (spec §8).
+The whole course is playable: the path of 10 lessons, letter discovery cards, the three exercise types with the in-app keyboard on touch devices, free review, the final exam (« L'Épreuve de Preslav ») with its diploma, the alphabet screen and the settings. Since v0.10.0-beta every screen uses the light, Duolingo-inspired design (spec §8).
 
 Not in the beta:
 
 - recorded voice: no recordings yet (spec §10.1), audio buttons stay hidden;
 - the content (mnemonics, words, translations, stress) is a first draft to be reviewed (spec §9).
 
-To try a local build like the real thing (production build, service worker, offline):
+To try a local build like the real thing (production build):
 
 ```bash
 npm install
@@ -101,7 +101,7 @@ apps/web/                 # SvelteKit front end
 │   ├── routes/
 │   │   ├── (tabs)/       # Pages with the bottom tab bar: path, alphabet, settings, about
 │   │   └── (play)/       # Full-screen pages: lesson/[id], review, exam
-│   └── service-worker/   # Offline support (own tsconfig, WebWorker types)
+│   └── service-worker/   # Retires the old offline worker (own tsconfig)
 └── static/               # Files served as-is
 apps/api/                 # Hono REST API on Node.js
 ├── src/
@@ -127,22 +127,21 @@ No text is hard-coded in components. UI strings live in [`apps/web/src/lib/i18n/
 
 ### Font and Bulgarian letter shapes
 
-The app uses [Sofia Sans](https://fonts.google.com/specimen/Sofia+Sans) (variable), self-hosted through `@fontsource-variable/sofia-sans` so it works offline and makes no third-party requests. Bulgarian Cyrillic is the font's **default** design: д, т, л, в, г… are drawn with their Bulgarian shapes unless the text is tagged `lang="ru"`, which switches to the Russian forms through the OpenType `locl` feature. This was checked in Chromium, Firefox and WebKit.
+The app uses [Sofia Sans](https://fonts.google.com/specimen/Sofia+Sans) (variable), self-hosted through `@fontsource-variable/sofia-sans` so it makes no third-party requests. Bulgarian Cyrillic is the font's **default** design: д, т, л, в, г… are drawn with their Bulgarian shapes unless the text is tagged `lang="ru"`, which switches to the Russian forms through the OpenType `locl` feature. This was checked in Chromium, Firefox and WebKit.
 
 All Bulgarian text should go through the [`Cyrillic`](apps/web/src/lib/ui/Cyrillic.svelte) component, which tags it `lang="bg"` so fallback fonts that localize Cyrillic also pick the Bulgarian shapes.
 
-## PWA and offline support
+## Installable web app, no offline mode
 
-Cyrilingo is an installable PWA that works fully offline once it has been opened once (spec §10). It uses SvelteKit's built-in service worker ([`apps/web/src/service-worker/index.ts`](apps/web/src/service-worker/index.ts)), with no extra dependency:
+Cyrilingo is an installable web app (web manifest), but it no longer works offline (spec D37): precaching the whole build, about 800 files with the recordings, at the first visit looked like an attack to any rate limit in front of the site.
 
-- On install, it precaches everything the build produces: the prerendered pages, the web manifest, JS/CSS, the Sofia Sans `woff2` files, the icons and the files in `static/`. Precached files are then served cache-first; any other request goes to the network.
-- Files under `_app/immutable/` have content-hashed names, so they live in a cache that is kept across deploys: an update only downloads new or changed files. Pages and `static/` files live in a cache tied to the build version, which is dropped when a new version activates.
-- A new version takes over once every tab of the old one is closed (no forced reload in the middle of a lesson).
-- **Audio** (letters and words): import the files from `apps/web/src/lib` (for example with `import.meta.glob`) rather than putting them in `static/`. They then get content-hashed names, are precached automatically and are only downloaded again when they change. `apps/web/vite.config.ts` keeps `.opus`/`.mp3` files from being inlined as data URIs.
+- Every file is loaded when a page needs it. Files under `_app/immutable/` have content-hashed names and are cached by the browser for a year (`apps/web/nginx.conf`); pages and the service worker file are checked again on every load, so a deploy is seen at once.
+- **Audio** (letters and words): import the files from `apps/web/src/lib` (for example with `import.meta.glob`) rather than putting them in `static/`. They then get content-hashed names and are downloaded the first time they are played. `apps/web/vite.config.ts` keeps `.opus`/`.mp3` files from being inlined as data URIs.
+- [`apps/web/src/service-worker/index.ts`](apps/web/src/service-worker/index.ts) only retires the precaching worker of earlier versions: SvelteKit does not register it (`serviceWorker.register: false`), but a browser that has the old one fetches it at its next visit; it then deletes the old caches, unregisters itself and reloads the page.
 
 The manifest is built from [`apps/web/src/lib/pwa/manifest.ts`](apps/web/src/lib/pwa/manifest.ts) (name and description come from the i18n catalog; a unit test keeps its colors in sync with `apps/web/src/app.css`). The PNG icons in `apps/web/src/lib/assets/icons/` are rendered from `favicon.svg` with `npm run icons` (it uses Playwright's Chromium); rerun it and commit the PNGs whenever the favicon changes.
 
-[`e2e/pwa.e2e.ts`](e2e/pwa.e2e.ts) checks that the app reloads offline, served by the service worker, in every browser. Under `npm run dev` the build file lists are empty, so only `static/` files get cached; try offline behavior on the production build (`npm run build && npm run preview`). To start from a clean state while debugging, unregister it in the browser dev tools (Application › Service workers).
+[`e2e/pwa.e2e.ts`](e2e/pwa.e2e.ts) checks that no service worker is installed, that no recording is downloaded before it is played, and that the old worker retires itself.
 
 ## Deployment
 

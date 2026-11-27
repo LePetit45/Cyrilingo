@@ -7,7 +7,7 @@ What an agent reads at the start of every session on this repository. The produc
 Cyrilingo teaches French speakers to read the Bulgarian Cyrillic alphabet. npm workspaces monorepo:
 
 - `packages/core`: pure TypeScript shared by both sides (alphabet, content, lesson engine, answer checking). No framework, no I/O.
-- `apps/web`: SvelteKit + Svelte 5 static PWA (offline first, guest mode).
+- `apps/web`: SvelteKit + Svelte 5 static web app (no offline mode, guest mode).
 - `apps/api`: Hono REST API on Node.js, PostgreSQL through Kysely, numbered SQL migrations, the MCP server.
 
 ## Commands

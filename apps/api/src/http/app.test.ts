@@ -154,4 +154,18 @@ describe('requestLogger', () => {
 		expect(lines).toHaveLength(1);
 		expect(lines[0]).toMatch(/^GET \/api\/things 200 \d+ms$/);
 	});
+
+	it('logs a health check only when it fails', async () => {
+		const lines: string[] = [];
+		let healthy = true;
+		const app = new Hono()
+			.use(requestLogger((line) => lines.push(line)))
+			.get('/api/health', (c) => c.text('', healthy ? 200 : 503));
+		await app.request('/api/health');
+		expect(lines).toEqual([]);
+		healthy = false;
+		await app.request('/api/health');
+		expect(lines).toHaveLength(1);
+		expect(lines[0]).toMatch(/^GET \/api\/health 503 \d+ms$/);
+	});
 });

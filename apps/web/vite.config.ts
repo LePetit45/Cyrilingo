@@ -10,7 +10,10 @@ export default defineConfig({
 				runes: ({ filename }) =>
 					filename.split(/[/\\]/).includes('node_modules') ? undefined : true
 			},
-			adapter: adapter()
+			adapter: adapter(),
+			// The app no longer works offline (SPEC.md › D37): src/service-worker only retires the
+			// worker earlier versions installed, so new visitors must not register it.
+			serviceWorker: { register: false }
 		})
 	],
 	// In development the API runs beside Vite (`npm run dev`); in production Nginx forwards /api
@@ -23,7 +26,8 @@ export default defineConfig({
 	},
 	build: {
 		// Keep icons and audio as separate files (never data URIs): they get content-hashed names
-		// under _app/immutable/, which the service worker precaches and keeps across deploys.
+		// under _app/immutable/, cached by the browser for a year, and a recording is downloaded
+		// only when it is first played instead of weighing on the JS bundle.
 		assetsInlineLimit: (file) => (/\.(png|opus|mp3)$/.test(file) ? false : undefined)
 	},
 	test: {

@@ -1,27 +1,31 @@
-import type { Response } from '@playwright/test';
 import { expect, test } from './test.js';
 import { isSofiaSansCyrillicLoaded } from './fonts.js';
 
-test('works offline once the service worker is installed', async ({ page, context }) => {
+test('loads files as pages need them, without a service worker', async ({ page }) => {
+	const requested: string[] = [];
+	page.on('request', (request) => requested.push(new URL(request.url()).pathname));
 	await page.goto('/');
-	// The service worker precaches the whole app on install, then takes control of the page.
-	await page.evaluate(() => navigator.serviceWorker.ready);
-	await page.waitForFunction(() => navigator.serviceWorker.controller !== null);
-
-	await context.setOffline(true);
-	// Some browsers fall back to their HTTP cache when offline, so also check that the page and
-	// everything it loads were answered by the service worker.
-	const responses: Response[] = [];
-	page.on('response', (response) => responses.push(response));
-	await page.reload();
-
 	await expect(page.getByRole('heading', { level: 1 })).toHaveText(/Bienvenue sur Cyrilingo/);
 	expect(await isSofiaSansCyrillicLoaded(page)).toBe(true);
 
-	expect(responses.map((response) => response.url())).toContain(page.url());
-	for (const response of responses) {
-		expect(response.fromServiceWorker(), response.url()).toBe(true);
-	}
+	expect(await page.evaluate(() => navigator.serviceWorker.getRegistrations())).toHaveLength(0);
+	// No recording is downloaded before one is played (the app has about 700).
+	expect(requested.filter((path) => path.endsWith('.mp3'))).toEqual([]);
+});
+
+test('retires the service worker an earlier version installed', async ({ page }) => {
+	await page.goto('/');
+	// What a browser kept from the precaching worker: its caches and its registration.
+	await page.evaluate(async () => {
+		const cache = await caches.open('cyrilingo-immutable');
+		await cache.put('/old-file', new Response('old'));
+		await navigator.serviceWorker.register('/service-worker.js');
+	});
+
+	await expect
+		.poll(() => page.evaluate(() => navigator.serviceWorker.getRegistrations()))
+		.toHaveLength(0);
+	expect(await page.evaluate(() => caches.keys())).toEqual([]);
 });
 
 test('links an installable web app manifest', async ({ page }) => {

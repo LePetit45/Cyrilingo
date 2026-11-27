@@ -9,7 +9,7 @@ Own project: Cyrilingo, a web app that teaches French speakers to read the Bulga
 ## Goals
 
 - A French speaker who finishes the 10 lessons can sound out any Bulgarian word (signs, menus, names) without necessarily understanding it, and passes the final exam with 90 % or more.
-- The whole course is playable without an account, offline included; signing in is encouraged, never required.
+- The whole course is playable without an account; signing in is encouraged, never required.
 - A learner signs in with an e-mail and a password or with Google, one person always ends up with one account, and their progress follows them across devices.
 - A signed-in learner builds personal word lists and reviews them.
 - In lessons, a signed-in learner also reads words aloud, checked by a speech recognition model.
@@ -31,7 +31,7 @@ Own project: Cyrilingo, a web app that teaches French speakers to read the Bulga
 - Stack: SvelteKit + Svelte 5 + TypeScript front end, Hono on Node.js back end, PostgreSQL (see Architecture).
 - Passwords are never stored as readable text, only as an argon2id hash.
 - Free tiers only for third-party services (Google OAuth, Azure Speech F0).
-- Offline first: the course, the alphabet and free review keep working offline, for guests and signed-in learners alike. Only sign-in, sync, word lists and read-aloud need the network.
+- Online app (D37): every file is loaded when a page needs it (recordings when first played) and kept by the browser's HTTP cache; there is no offline mode. A lesson already open goes on if the network drops, and a signed-in learner's progress waits on the device until the next sync.
 - French UI first, English later: learner-facing text lives only in the per-language locale and content files (see UI › Languages). Everything else in the repository is in English.
 - Generic repository: nothing about a particular server, domain or proxy is committed; every deployment detail is an environment variable.
 - Browsers: last 2 versions of Chrome, Firefox, Edge and Safari; Safari iOS 16+.
@@ -221,7 +221,7 @@ The settings show the e-mail and the linked providers, let the learner set or ch
 - Guests play the whole course; their progress lives in `localStorage`, and nothing is sent to the server. The path and the summary invite them to sign in (« Connecte-toi pour garder ta progression sur tous tes appareils »).
 - The device remembers in `localStorage` that it signed in, and with which e-mail (the session cookie is `HttpOnly`, so the page cannot read it): only such a device asks `GET /api/me` at start, so a guest's device never calls the API, and a signed-in one knows its account offline. A 401 from the API signs the device out.
 - **At sign-in**, the device's progress is merged into the account (`PATCH /api/progress`), then the device shows the account's progress.
-- **While signed in**, the account is the reference and the device keeps a copy for offline play. Each completed lesson and passed exam is sent to the account; if the request fails (offline), it waits in a queue on the device. At each sync (app start, back online), the device sends its queue, then **replaces** its copy with the account's progress. Only the queue is sent, never the whole copy, so a reset made on another device is not undone.
+- **While signed in**, the account is the reference and the device keeps a copy, shown without waiting for the API. Each completed lesson and passed exam is sent to the account; if the request fails (offline), it waits in a queue on the device. At each sync (app start, back online), the device sends its queue, then **replaces** its copy with the account's progress. Only the queue is sent, never the whole copy, so a reset made on another device is not undone.
 - **Signing out** removes the account's progress from the device and keeps the settings.
 - **« Réinitialiser ma progression »** while signed in resets the account's progress (`DELETE /api/progress`) as well as the device's, after a confirmation saying it applies to every device. If the account cannot be reached, nothing is reset and the learner is told.
 - **Known limitation**: a lesson completed offline on one device, before a reset made on another device, is still in the first device's queue; it is sent at that device's next sync, so it reappears in the account after the reset. Accepted: avoiding it would need a reset date on the account, compared with the date of every queued completion.
@@ -274,7 +274,7 @@ On stdio, set `DATABASE_URL` and `CYRILINGO_SESSION_TOKEN` (locally against the 
 
 ## UI
 
-Stack: SvelteKit + Svelte 5 + TypeScript, built as a static PWA (`adapter-static`, service worker), plain CSS with design tokens, Nunito and Sofia Sans self-hosted. Screens: Path (home), Lesson, Free review, Exam and diploma, Alphabet, Word lists, Sign in, Sign up, Settings.
+Stack: SvelteKit + Svelte 5 + TypeScript, built as a static, installable web app (`adapter-static`, web manifest, no offline mode), plain CSS with design tokens, Nunito and Sofia Sans self-hosted. Screens: Path (home), Lesson, Free review, Exam and diploma, Alphabet, Word lists, Sign in, Sign up, Settings.
 
 ### Screens
 
@@ -348,7 +348,7 @@ An npm workspaces monorepo:
 ```
 packages/core/   pure TypeScript shared by both sides: alphabet, content, lesson engine,
                  reading checker, speech text normalization. No framework, no I/O.
-apps/web/        SvelteKit (Svelte 5) static PWA: routes, components, i18n, a typed API client.
+apps/web/        SvelteKit (Svelte 5) static web app: routes, components, i18n, a typed API client.
 apps/api/        Hono on Node.js:
   src/http/        routes: parse and validate input, call one service, map errors to HTTP
   src/services/    the rules: ownership, limits, linking, quotas (take the acting user id)
@@ -428,7 +428,7 @@ Mutating requests must carry `Content-Type: application/json` (or `audio/wav` fo
 
 | Concern        | Technology                                                                                                           | Why                                             |
 | -------------- | -------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
-| Front end      | SvelteKit + Svelte 5 + TypeScript, `adapter-static`, service worker                                                  | offline PWA                                     |
+| Front end      | SvelteKit + Svelte 5 + TypeScript, `adapter-static`                                                                  | static files behind Nginx                       |
 | Back end       | Hono on Node.js 24                                                                                                   | small, typed, Web-standard `Request`/`Response` |
 | Database       | PostgreSQL 17                                                                                                        | relational, foreign keys, cascades              |
 | Queries        | Kysely                                                                                                               | typed SQL query builder, stays close to SQL     |
@@ -600,6 +600,7 @@ Nothing has been built from this spec yet. Once slice 1 is built and checked: wh
 | D34 | Read aloud in a lesson                      | **Never repeated, counted in the first-try rate**; any failure removes the remaining read-aloud questions                        |
 | D35 | Telling learners their voice leaves the app | **In Settings › about only**                                                                                                     |
 | D36 | Agent key                                   | **One per account**, in its own settings section; in clear only right after « Régénérer »; checked on every call                 |
+| D37 | Offline                                     | **Dropped**: files load as pages need them; precaching ~800 files per first visit looked like an attack to any rate limit        |
 
 Missing numbers are earlier decisions, folded into the text above or superseded.
 
